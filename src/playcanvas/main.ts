@@ -8,28 +8,42 @@ const canvas=el<HTMLCanvasElement>("#scene"), status=el<HTMLElement>("#status"),
 const stage=el<HTMLElement>(".stage"), moveBtn=el<HTMLButtonElement>("#move-mode"), buildBtn=el<HTMLButtonElement>("#build-mode"), sessionBtn=el<HTMLButtonElement>("#session-mode"), viewBtn=el<HTMLButtonElement>("#view-mode");
 const buildPanel=el<HTMLElement>("#build-panel"), saveState=el<HTMLElement>("#save-state"), coinsLabel=el<HTMLElement>("#coins"), sessionDialog=el<HTMLDialogElement>("#session-dialog");
 const app=new pc.Application(canvas,{graphicsDeviceOptions:{antialias:false,alpha:false,powerPreference:"low-power"}});
-app.setCanvasFillMode(pc.FILLMODE_NONE); app.setCanvasResolution(pc.RESOLUTION_AUTO); app.graphicsDevice.maxPixelRatio=Math.min(window.devicePixelRatio||1,1.15);
-let lastViewportWidth=0,lastViewportHeight=0;
+app.setCanvasFillMode(pc.FILLMODE_NONE);
+app.setCanvasResolution(pc.RESOLUTION_AUTO);
+app.graphicsDevice.maxPixelRatio=Math.min(window.devicePixelRatio||1,1.25);
+canvas.style.width="100%";canvas.style.height="100%";canvas.style.display="block";
+let lastViewportWidth=0,lastViewportHeight=0,resizeQueued=false;
 const syncViewportHeight=()=>{
- const h=window.visualViewport?.height??window.innerHeight;
- document.documentElement.style.setProperty("--app-height",Math.round(h)+"px");
+ const vv=window.visualViewport;
+ const h=Math.max(1,Math.round(vv?.height??window.innerHeight));
+ document.documentElement.style.setProperty("--app-height",h+"px");
 };
-syncViewportHeight();
-window.addEventListener("resize",syncViewportHeight,{passive:true});
-window.visualViewport?.addEventListener("resize",syncViewportHeight,{passive:true});
 const resize=()=>{
- const rect=stage.getBoundingClientRect(),w=Math.round(rect.width),h=Math.round(rect.height);
+ resizeQueued=false;
+ const rect=stage.getBoundingClientRect();
+ const w=Math.max(1,Math.round(rect.width)),h=Math.max(1,Math.round(rect.height));
  if(w<2||h<2)return;
- if(w===lastViewportWidth&&h===lastViewportHeight&&canvas.width>0)return;
+ if(w===lastViewportWidth&&h===lastViewportHeight&&canvas.width>0&&canvas.height>0)return;
  lastViewportWidth=w;lastViewportHeight=h;
  app.resizeCanvas(w,h);
+ // Keep the same vertical world scale on phones; only the horizontal visible span adapts.
  const aspect=w/h;
- camera.camera!.orthoHeight=aspect<.58?13.4:aspect<.78?13.0:12.4;
+ camera.camera!.orthoHeight=aspect<.48?13.8:aspect<.62?13.2:aspect<.82?12.8:12.2;
 };
-const observer=new ResizeObserver(()=>requestAnimationFrame(resize));observer.observe(stage);
-window.addEventListener("resize",()=>requestAnimationFrame(resize),{passive:true});
-window.addEventListener("orientationchange",()=>window.setTimeout(resize,120),{passive:true});
-window.visualViewport?.addEventListener("resize",()=>requestAnimationFrame(resize),{passive:true});
+const queueResize=()=>{
+ syncViewportHeight();
+ if(resizeQueued)return;
+ resizeQueued=true;
+ requestAnimationFrame(resize);
+};
+syncViewportHeight();
+const observer=new ResizeObserver(queueResize);
+observer.observe(stage);
+observer.observe(el<HTMLElement>(".clinic-app"));
+window.addEventListener("resize",queueResize,{passive:true});
+window.addEventListener("orientationchange",()=>window.setTimeout(queueResize,150),{passive:true});
+window.visualViewport?.addEventListener("resize",queueResize,{passive:true});
+window.visualViewport?.addEventListener("scroll",queueResize,{passive:true});
 app.scene.ambientLight=new pc.Color(.62,.68,.76);
 function material(c:pc.Color){const m=new pc.StandardMaterial();m.diffuse=c;m.update();return m;}
 const M={ground:material(new pc.Color(.32,.48,.43)),tile:material(new pc.Color(.43,.59,.51)),grid:material(new pc.Color(.25,.4,.36)),room:material(new pc.Color(.78,.82,.79)),wall:material(new pc.Color(.88,.91,.86)),wallSide:material(new pc.Color(.53,.68,.69)),wood:material(new pc.Color(.48,.33,.23)),wood2:material(new pc.Color(.68,.49,.31)),teal:material(new pc.Color(.13,.48,.55)),blue:material(new pc.Color(.18,.35,.58)),pale:material(new pc.Color(.79,.9,.88)),green:material(new pc.Color(.2,.53,.36)),skin:material(new pc.Color(.7,.49,.36)),dark:material(new pc.Color(.1,.16,.21)),white:material(new pc.Color(.93,.94,.87)),yellow:material(new pc.Color(.85,.65,.27))};
@@ -284,9 +298,17 @@ app.on("update",(dt:number)=>{
  }
 });
 let frames=0,elapsed=0;app.on("postupdate",(dt:number)=>{frames++;elapsed+=dt;if(elapsed>=1){fpsLabel.textContent=Math.round(frames/elapsed)+" FPS";frames=0;elapsed=0;}});
-app.start();
-resize();
-requestAnimationFrame(()=>{resize();loading.classList.add("done");});
+try{
+ app.start();
+ queueResize();
+ requestAnimationFrame(()=>{queueResize();loading.classList.add("done");});
+}catch(error){
+ console.error("THERASON CLINIC startup failed",error);
+ loading.classList.add("failed");
+ loading.querySelector("b")!.textContent="تعذر تشغيل مشهد العيادة";
+ loading.querySelector("small")!.textContent="أعد تحميل الصفحة؛ تم تسجيل سبب الخطأ للفحص.";
+ status.textContent="حدث خطأ أثناء بدء محرك اللعبة.";
+}
 /* The base world is procedural and ready immediately; character assets load independently. */
 window.setTimeout(()=>{if(!loading.classList.contains("done"))loading.classList.add("done");},1200);
 window.setTimeout(()=>{if(!avatarAnim)status.textContent="العالم جاهز؛ ما زلنا نحاول تحميل شخصية الأخصائي.";},7000);window.setTimeout(()=>el("#camera-hint").classList.add("hide"),6500);
