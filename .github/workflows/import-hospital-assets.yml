@@ -56,4 +56,6 @@ jobs:
             exit 0
           fi
           git commit -m "Import licensed hospital GLB assets"
+          git fetch origin clinic-dev
+          git rebase origin/clinic-dev
           git push origin HEAD:clinic-dev
