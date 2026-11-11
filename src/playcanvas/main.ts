@@ -21,9 +21,8 @@ const light=new pc.Entity("Soft daylight");light.addComponent("light",{type:"dir
 const world=new pc.Entity("Clinic plot");app.root.addChild(world);
 const GRID=1, W=16, D=16, HALF=W/2;
 box("Land foundation",0,-.27,0,W,.5,D,M.ground,world);
-for(let x=-HALF;x<HALF;x++)for(let z=-HALF;z<HALF;z++)box("Build grid tile",x+.5,-.008,z+.5,.975,.018,.975,((x+z)&1)?M.tile:M.ground,world);
-for(let x=-HALF;x<=HALF;x++)box("Grid line",x,.012,0,.018,.012,D,M.grid,world);
-for(let z=-HALF;z<=HALF;z++)box("Grid line",0,.012,z,W,.012,.018,M.grid,world);
+for(let x=-HALF;x<=HALF;x++)box("Build grid line",x,.012,0,.012,.012,D,M.grid,world);
+for(let z=-HALF;z<=HALF;z++)box("Build grid line",0,.012,z,W,.012,.012,M.grid,world);
 const roomRoot=new pc.Entity("Starter treatment room");world.addChild(roomRoot);
 function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:number){
  const root=new pc.Entity("Room "+id);root.setPosition(gx,0,gz);world.addChild(root);
