@@ -149,7 +149,10 @@ const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,p
 function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:2,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function load(){try{const s=localStorage.getItem(saveKey);if(!s)return;const v=JSON.parse(s);if(v.v!==2)return;coins=100000;xp=Number.isFinite(v.xp)?v.xp:0;placed=Array.isArray(v.placed)?v.placed.slice(0,60):[];coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";for(const p of placed)drawPlaced(p);}catch{}}
 function drawPlaced(p:Placed){const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"||p.kind==="gym"||p.kind==="treatment"){const r=makeRoom(p.kind,p.gx,p.gz,p.id);entities.push(r);return;}
- const root=new pc.Entity("Placed "+p.kind);root.setPosition(x,0,z);root.setEulerAngles(0,p.rot??0,0);world.addChild(root);entities.push(root);
+ const root=new pc.Entity("Placed "+p.kind);
+ if(p.kind==="wall")root.setPosition(p.rot===90?p.gx+1.5: x,0,p.rot===90?z:p.gz+1.5);
+ else root.setPosition(x,0,z);
+ root.setEulerAngles(0,p.rot??0,0);world.addChild(root);entities.push(root);
  if(p.kind==="chair"){box("Chair seat",0,.38,0,.6,.15,.6,M.teal,root);box("Chair back",0,.75,-.22,.6,.6,.13,M.blue,root);for(const a of [-.22,.22])for(const b of [-.22,.22])box("Chair leg",a,.16,b,.06,.32,.06,M.dark,root);}
  if(p.kind==="plant"){box("Plant pot",0,.2,0,.38,.4,.38,M.wood2,root);sphere("Plant leaves",0,.72,0,.52,M.green,root);sphere("Plant leaf",.2,.88,.04,.3,M.green,root);}
  if(p.kind==="cabinet"){box("Cabinet body",0,.6,0,.7,1.2,.42,M.wood2,root);box("Cabinet door",0,.6,.22,.62,1.08,.03,M.wood,root);}
