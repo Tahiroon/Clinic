@@ -94,7 +94,7 @@ loadClinicProp("hospital-signage-set.glb","Clinic signage",1,7,3.4);
 loadClinicProp("hospital-bed-bay.glb","Treatment beds",-7,-6,4.4);
 
 const avatar=new pc.Entity("Student avatar");avatar.setPosition(-1,0,1.7);world.addChild(avatar);
-let avatarAnim:pc.AnimComponent|null=null;
+let avatarAnim:any=null;let avatarClipNames=new Set<string>();
 const characterAssets:Record<string,string>={
  student:new URL("../assets/characters/Student.glb",import.meta.url).href,
  doctor:new URL("../assets/characters/WhiteCoatDoctor.glb",import.meta.url).href,
@@ -123,7 +123,7 @@ function loadHumanoid(url:string,parent:pc.Entity,height:number,onReady?:(entity
   if(onReady)onReady(model);
  });
 }
-loadHumanoid(characterAssets.student,avatar,1.72,model=>{avatarAnim=model.anim;status.textContent="شخصيتك جاهزة؛ تحرك داخل العيادة.";});
+loadHumanoid(characterAssets.student,avatar,1.72,model=>{avatarAnim=model.anim;avatarClipNames=new Set((model.anim.baseLayer.states??[]).map((x:any)=>String(x.name).toLowerCase()));status.textContent="شخصيتك جاهزة؛ تحرك داخل العيادة.";});
 const doctorNpc=new pc.Entity("Clinic doctor");doctorNpc.setPosition(3,0,-1);world.addChild(doctorNpc);
 loadHumanoid(characterAssets.doctor,doctorNpc,1.72);
 const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(4,0,2);world.addChild(patientNpc);
@@ -201,7 +201,7 @@ sessionBtn.addEventListener("click",()=>{sessionStep=0;sessionScore=0;renderStep
 el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
 load();coins=100000;coinsLabel.textContent=String(coins);
 let locomotionState="Idle";
-function setLocomotion(state:string){if(!avatarAnim||locomotionState===state)return;const available=avatarAnim.baseLayer.states.some(x=>x.name.toLowerCase()===state.toLowerCase());if(!available)return;avatarAnim.baseLayer.transition(state,.22);locomotionState=state;}
+function setLocomotion(state:string){if(!avatarAnim||locomotionState===state)return;if(!avatarClipNames.has(state.toLowerCase()))return;avatarAnim.baseLayer.transition(state,.22);locomotionState=state;}
 app.on("update",(dt:number)=>{if(target){const p=avatar.getPosition(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);if(d<.07){target=null;setLocomotion("Idle");}else{setLocomotion("Walk");const step=Math.min(d,dt*2.0);const moved=moveAvatarSafely(dx/d*step,dz/d*step);if(moved)avatar.setEulerAngles(0,Math.atan2(dx,dz)*180/Math.PI,0);else{target=null;setLocomotion("Idle");status.textContent="لا يمكن المرور من هنا؛ يوجد جهاز أو جدار في الطريق.";}}}else setLocomotion("Idle");});
 let frames=0,elapsed=0;app.on("postupdate",(dt:number)=>{frames++;elapsed+=dt;if(elapsed>=1){fpsLabel.textContent=Math.round(frames/elapsed)+" FPS";frames=0;elapsed=0;}});
 app.start();resize();requestAnimationFrame(resize);window.setTimeout(()=>{if(loading.classList.contains("done"))return;status.textContent="نحمّل أصول العيادة...";},4500);window.setTimeout(()=>el("#camera-hint").classList.add("hide"),6500);
