@@ -10,6 +10,13 @@ const buildPanel=el<HTMLElement>("#build-panel"), saveState=el<HTMLElement>("#sa
 const app=new pc.Application(canvas,{graphicsDeviceOptions:{antialias:false,alpha:false,powerPreference:"low-power"}});
 app.setCanvasFillMode(pc.FILLMODE_NONE); app.setCanvasResolution(pc.RESOLUTION_AUTO); app.graphicsDevice.maxPixelRatio=Math.min(window.devicePixelRatio||1,1.15);
 let lastViewportWidth=0,lastViewportHeight=0;
+const syncViewportHeight=()=>{
+ const h=window.visualViewport?.height??window.innerHeight;
+ document.documentElement.style.setProperty("--app-height",Math.round(h)+"px");
+};
+syncViewportHeight();
+window.addEventListener("resize",syncViewportHeight,{passive:true});
+window.visualViewport?.addEventListener("resize",syncViewportHeight,{passive:true});
 const resize=()=>{
  const rect=stage.getBoundingClientRect(),w=Math.round(rect.width),h=Math.round(rect.height);
  if(w<2||h<2)return;
@@ -277,5 +284,10 @@ app.on("update",(dt:number)=>{
  }
 });
 let frames=0,elapsed=0;app.on("postupdate",(dt:number)=>{frames++;elapsed+=dt;if(elapsed>=1){fpsLabel.textContent=Math.round(frames/elapsed)+" FPS";frames=0;elapsed=0;}});
-app.start();resize();requestAnimationFrame(resize);window.setTimeout(()=>{if(loading.classList.contains("done"))return;status.textContent="نحمّل أصول العيادة...";},4500);window.setTimeout(()=>el("#camera-hint").classList.add("hide"),6500);
+app.start();
+resize();
+requestAnimationFrame(()=>{resize();loading.classList.add("done");});
+/* The base world is procedural and ready immediately; character assets load independently. */
+window.setTimeout(()=>{if(!loading.classList.contains("done"))loading.classList.add("done");},1200);
+window.setTimeout(()=>{if(!avatarAnim)status.textContent="العالم جاهز؛ ما زلنا نحاول تحميل شخصية الأخصائي.";},7000);window.setTimeout(()=>el("#camera-hint").classList.add("hide"),6500);
 window.addEventListener("pagehide",()=>{observer.disconnect();app.destroy();},{once:true});
