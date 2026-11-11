@@ -142,7 +142,7 @@ function loadHumanoid(url:string,parent:pc.Entity,height:number,castShadow:boole
   if(!meshes.length){console.error("Character GLB has no render meshes",url);model.destroy();return;}
   let minY=Infinity,maxY=-Infinity;
   for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);}
-  const scale=height/Math.max(.01,maxY-minY);
+  const measuredHeight=maxY-minY;const scale=height/Math.max(0.000001,measuredHeight);
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
   const scaled=model.findComponents("render").flatMap(r=>r.meshInstances);
   minY=Infinity;for(const mesh of scaled){const b=mesh.aabb;minY=Math.min(minY,b.center.y-b.halfExtents.y);}
