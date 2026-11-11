@@ -70,6 +70,29 @@ function loadClinicModel(url:string,name:string,centerX:number,centerZ:number,ta
 // Vite bundles this licensed model with the game instead of exposing a standalone public download.
 const starterRoomAsset=new URL("../assets/clinic-kit/hospital/physical-therapy-room-set.glb",import.meta.url).href;
 loadClinicModel(starterRoomAsset,"Physical therapy room",-1,-1,4.7,()=>{loading.classList.add("done");});
+
+function loadClinicProp(file:string,label:string,x:number,z:number,width:number){
+ const url=new URL("../assets/clinic-kit/hospital/"+file,import.meta.url).href;
+ app.assets.loadFromUrl(url,"container",(err,asset)=>{
+  if(err||!asset?.resource)return;
+  const entity=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
+  entity.name=label;world.addChild(entity);entity.syncHierarchy();app.root.syncHierarchy();
+  const meshes=entity.findComponents("render").flatMap(r=>r.meshInstances);
+  if(!meshes.length){entity.destroy();return;}
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,minZ=Infinity,maxZ=-Infinity;
+  for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
+  const scale=width/Math.max(maxX-minX,maxZ-minZ,.001);entity.setLocalScale(scale,scale,scale);entity.syncHierarchy();app.root.syncHierarchy();
+  const all=entity.findComponents("render").flatMap(r=>r.meshInstances);minX=Infinity;maxX=-Infinity;minY=Infinity;minZ=Infinity;maxZ=-Infinity;
+  for(const mesh of all){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
+  entity.setPosition(x-(minX+maxX)/2,-minY,z-(minZ+maxZ)/2);
+ });
+}
+loadClinicProp("hospital-waiting-room.glb","Waiting room",5,4,5.5);
+loadClinicProp("hospital-reception-desk.glb","Reception desk asset",5,-3,3.2);
+loadClinicProp("hospital-equipment-set.glb","Therapy equipment", -7,5,4.2);
+loadClinicProp("hospital-signage-set.glb","Clinic signage",1,7,3.4);
+loadClinicProp("hospital-bed-bay.glb","Treatment beds",-7,-6,4.4);
+
 const avatar=new pc.Entity("Student avatar");avatar.setPosition(-1,0,1.7);world.addChild(avatar);
 box("Avatar torso",0,.95,0,.42,.72,.32,M.teal,avatar);sphere("Avatar head",0,1.52,0,.34,M.skin,avatar);box("Avatar hair",0,1.69,-.02,.34,.12,.34,M.dark,avatar);
 for(const side of [-1,1]){box("Avatar leg",side*.12,.42,0,.15,.52,.17,M.blue,avatar);box("Avatar shoe",side*.12,.12,.08,.17,.15,.3,M.dark,avatar);box("Avatar arm",side*.28,.98,0,.14,.52,.14,M.skin,avatar);}
