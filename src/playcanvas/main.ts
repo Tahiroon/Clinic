@@ -94,8 +94,40 @@ loadClinicProp("hospital-signage-set.glb","Clinic signage",1,7,3.4);
 loadClinicProp("hospital-bed-bay.glb","Treatment beds",-7,-6,4.4);
 
 const avatar=new pc.Entity("Student avatar");avatar.setPosition(-1,0,1.7);world.addChild(avatar);
-box("Avatar torso",0,.95,0,.42,.72,.32,M.teal,avatar);sphere("Avatar head",0,1.52,0,.34,M.skin,avatar);box("Avatar hair",0,1.69,-.02,.34,.12,.34,M.dark,avatar);
-for(const side of [-1,1]){box("Avatar leg",side*.12,.42,0,.15,.52,.17,M.blue,avatar);box("Avatar shoe",side*.12,.12,.08,.17,.15,.3,M.dark,avatar);box("Avatar arm",side*.28,.98,0,.14,.52,.14,M.skin,avatar);}
+let avatarAnim:pc.AnimComponent|null=null;
+const characterAssets:Record<string,string>={
+ student:new URL("../assets/characters/Student.glb",import.meta.url).href,
+ doctor:new URL("../assets/characters/WhiteCoatDoctor.glb",import.meta.url).href,
+ patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,
+ nurse:new URL("../assets/characters/WardNurse.glb",import.meta.url).href
+};
+function loadHumanoid(url:string,parent:pc.Entity,height:number,onReady?:(entity:pc.Entity)=>void){
+ app.assets.loadFromUrl(url,"container",(err,asset)=>{
+  if(err||!asset?.resource){status.textContent="تعذر تحميل إحدى الشخصيات؛ نعيد المحاولة عند توفر الاتصال.";return;}
+  const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
+  model.name="Rigged humanoid";parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
+  const meshes=model.findComponents("render").flatMap(r=>r.meshInstances);
+  if(!meshes.length){model.destroy();return;}
+  let minY=Infinity,maxY=-Infinity;
+  for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);}
+  const scale=height/Math.max(.01,maxY-minY);
+  model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
+  const scaled=model.findComponents("render").flatMap(r=>r.meshInstances);
+  minY=Infinity;for(const mesh of scaled){const b=mesh.aabb;minY=Math.min(minY,b.center.y-b.halfExtents.y);}
+  model.setLocalPosition(0,-minY,0);
+  model.addComponent("anim",{activate:true,speed:1});
+  const clips=asset.resource.animations??[];
+  for(const clip of clips){const track=clip.resource;if(track)model.anim.assignAnimation(track.name,track);}
+  const idle=clips.find(a=>/idle/i.test(a.resource?.name??""));
+  if(idle)model.anim.baseLayer.play(idle.resource.name);
+  if(onReady)onReady(model);
+ });
+}
+loadHumanoid(characterAssets.student,avatar,1.72,model=>{avatarAnim=model.anim;status.textContent="شخصيتك جاهزة؛ تحرك داخل العيادة.";});
+const doctorNpc=new pc.Entity("Clinic doctor");doctorNpc.setPosition(3,0,-1);world.addChild(doctorNpc);
+loadHumanoid(characterAssets.doctor,doctorNpc,1.72);
+const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(4,0,2);world.addChild(patientNpc);
+loadHumanoid(characterAssets.patient,patientNpc,1.62);
 
 let mode:"move"|"build"="move", selected:BuildKind="reception", target:pc.Vec3|null=null, coins=100000, xp=0, nextId=2, focus=false;
 let placed:Placed[]=[];const saveKey="therason-clinic-world-v2";const entities:pc.Entity[]=[];
@@ -168,7 +200,9 @@ function renderStep(){const s=steps[sessionStep];el("#session-step").textContent
 sessionBtn.addEventListener("click",()=>{sessionStep=0;sessionScore=0;renderStep();sessionDialog.showModal();});
 el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
 load();coins=100000;coinsLabel.textContent=String(coins);
-app.on("update",(dt:number)=>{if(target){const p=avatar.getPosition(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);if(d<.07)target=null;else{const step=Math.min(d,dt*2.0);const moved=moveAvatarSafely(dx/d*step,dz/d*step);if(moved)avatar.setEulerAngles(0,Math.atan2(dx,dz)*180/Math.PI,0);else{target=null;status.textContent="لا يمكن المرور من هنا؛ يوجد جهاز أو جدار في الطريق.";}}}});
+let locomotionState="Idle";
+function setLocomotion(state:string){if(!avatarAnim||locomotionState===state)return;const available=avatarAnim.baseLayer.states.some(x=>x.name.toLowerCase()===state.toLowerCase());if(!available)return;avatarAnim.baseLayer.transition(state,.22);locomotionState=state;}
+app.on("update",(dt:number)=>{if(target){const p=avatar.getPosition(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);if(d<.07){target=null;setLocomotion("Idle");}else{setLocomotion("Walk");const step=Math.min(d,dt*2.0);const moved=moveAvatarSafely(dx/d*step,dz/d*step);if(moved)avatar.setEulerAngles(0,Math.atan2(dx,dz)*180/Math.PI,0);else{target=null;setLocomotion("Idle");status.textContent="لا يمكن المرور من هنا؛ يوجد جهاز أو جدار في الطريق.";}}}else setLocomotion("Idle");});
 let frames=0,elapsed=0;app.on("postupdate",(dt:number)=>{frames++;elapsed+=dt;if(elapsed>=1){fpsLabel.textContent=Math.round(frames/elapsed)+" FPS";frames=0;elapsed=0;}});
 app.start();resize();requestAnimationFrame(resize);window.setTimeout(()=>{if(loading.classList.contains("done"))return;status.textContent="نحمّل أصول العيادة...";},4500);window.setTimeout(()=>el("#camera-hint").classList.add("hide"),6500);
 window.addEventListener("pagehide",()=>{observer.disconnect();app.destroy();},{once:true});
