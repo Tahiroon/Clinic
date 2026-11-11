@@ -163,14 +163,19 @@ function drawPlaced(p:Placed){const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"|
  if(p.kind==="door"){box("Door left jamb",-.43,1.25,0,.12,2.5,.18,M.white,root);box("Door right jamb",.43,1.25,0,.12,2.5,.18,M.white,root);box("Door lintel",0,2.48,0,1,.16,.18,M.white,root);box("Door leaf",-.22,1.08,.09,.42,2.12,.055,M.wood2,root);}
 }
 function footprint(kind:BuildKind){return kind==="treatment"||kind==="reception"||kind==="gym"?4:1;}
-function footprintAt(gx:number,gz:number,kind:BuildKind){return {x:gx,z:gz,w:footprint(kind),d:footprint(kind)};}
+function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0){
+ const size=footprint(kind);
+ if(kind==="wall")return rot===0?{x:gx+.42,z:gz,w:.16,d:3}:{x:gx,z:gz+1.42,w:3,d:.16};
+ if(kind==="door")return rot===0?{x:gx+.08,z:gz,w:.84,d:.22}:{x:gx,z:gz+.08,w:.22,d:.84};
+ return {x:gx,z:gz,w:size,d:size};
+}
 function rectanglesOverlap(a:{x:number;z:number;w:number;d:number},b:{x:number;z:number;w:number;d:number}){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.z<b.z+b.d&&a.z+a.d>b.z;}
 const starterFootprint={x:99,z:99,w:0,d:0};
 function occupied(gx:number,gz:number,kind:BuildKind){
  const a=footprintAt(gx,gz,kind);
  if(a.x< -HALF||a.z< -HALF||a.x+a.w>HALF||a.z+a.d>HALF)return true;
  if(rectanglesOverlap(a,starterFootprint))return true;
- return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind)));
+ return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot)));
 }
 function canAvatarStand(x:number,z:number){
  const r=.28;
@@ -178,7 +183,14 @@ function canAvatarStand(x:number,z:number){
  const player={x:x-r,z:z-r,w:r*2,d:r*2};
  const boundary=[{x:-HALF,z:-HALF,w:W,d:.22},{x:-HALF,z:HALF-.22,w:W,d:.22},{x:-HALF,z:-HALF,w:.22,d:D},{x:HALF-.22,z:-HALF,w:.22,d:D}];
  if(boundary.some(w=>rectanglesOverlap(player,w)))return false;
- return !placed.some(p=>rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind)));
+ return !placed.some(p=>{
+  if(p.kind==="treatment"||p.kind==="reception"||p.kind==="gym"){
+   const x=p.gx,z=p.gz;
+   const walls=[{x:x,z:z+2.9,w:4,d:.16},{x:x,z:z,w:.16,d:4},{x:x+3.9,z:z,w:.16,d:4},{x:x+.0,z:z-.05,w:.55,d:.14},{x:x+2.05,z:z-.05,w:1.95,d:.14}];
+   return walls.some(w=>rectanglesOverlap(player,w));
+  }
+  return rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot));
+ });
 }
 function findWalkPath(sx:number,sz:number,tx:number,tz:number){
  const step=.5,cell=(v:number)=>Math.round(v/step),key=(x:number,z:number)=>x+","+z;
