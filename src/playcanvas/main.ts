@@ -40,10 +40,13 @@ for(let z=-HALF;z<=HALF;z++)box("Subtle construction grid",0,.014,z,W,.008,.008,
 // Permanent outer shell: a real clinic perimeter with layered wall bands, glazing and structural columns.
 const shell=new pc.Entity("Clinic architectural shell");world.addChild(shell);
 for(const z of [-HALF,HALF]){
- box("Exterior wall lower",0,1.25,z,W,2.5,.28,M.wall,shell);
- box("Exterior teal dado",0,.28,z-.02,W,.18,.32,M.teal,shell);
- box("Exterior wall cap",0,2.55,z,.35,.16,.42,M.white,shell);
- for(let x=-12;x<=12;x+=4){box("Facade window",x,1.55,z-.16,2.35,1.05,.035,glass,shell);box("Window sill",x,1.0,z-.2,2.5,.09,.16,M.white,shell);box("Window mullion",x,1.55,z-.23,.045,1.05,.04,M.wall,shell);}
+ const spans=z===-HALF?[{x:-9,w:14},{x:9,w:14}]:[{x:0,w:W}];
+ for(const span of spans){
+  box("Exterior wall lower",span.x,1.25,z,span.w,2.5,.28,M.wall,shell);
+  box("Exterior teal dado",span.x,.28,z-.02,span.w,.18,.32,M.teal,shell);
+  box("Exterior wall cap",span.x,2.55,z,span.w,.16,.42,M.white,shell);
+ }
+ for(let x=-12;x<=12;x+=4){if(z===-HALF&&Math.abs(x)<3)continue;box("Facade window",x,1.55,z-.16,2.35,1.05,.035,glass,shell);box("Window sill",x,1.0,z-.2,2.5,.09,.16,M.white,shell);box("Window mullion",x,1.55,z-.23,.045,1.05,.04,M.wall,shell);}
 }
 for(const x of [-HALF,HALF]){
  box("Exterior side wall",x,1.25,0,.28,2.5,D,M.wall,shell);
