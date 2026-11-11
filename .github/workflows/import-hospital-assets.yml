@@ -22,15 +22,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p /tmp/therason-hospital public/assets/clinic-kit/hospital
+          mkdir -p /tmp/therason-hospital src/assets/clinic-kit/hospital
           curl --fail --location --retry 3 --retry-delay 2 --user-agent "THERASON-CLINIC-asset-import/1.0" "https://shuriken.studio/kits/hospital/download" --output /tmp/hospital-kit.zip
           file /tmp/hospital-kit.zip
           unzip -t /tmp/hospital-kit.zip
           unzip -q /tmp/hospital-kit.zip -d /tmp/therason-hospital
           find /tmp/therason-hospital -type f -iname '*.glb' -print
           test "$(find /tmp/therason-hospital -type f -iname '*.glb' | wc -l)" -ge 1
-          find /tmp/therason-hospital -type f -iname '*.glb' -exec cp {} public/assets/clinic-kit/hospital/ \;
-          cat > public/assets/clinic-kit/hospital/ASSET-SOURCES.md <<'EOF'
+          find /tmp/therason-hospital -type f -iname '*.glb' -exec cp {} src/assets/clinic-kit/hospital/ \;
+          cat > src/assets/clinic-kit/hospital/ASSET-SOURCES.md <<'EOF'
           # Hospital kit asset sources
 
           Source: Shuriken Studio — https://shuriken.studio/kits/hospital
@@ -42,14 +42,14 @@ jobs:
           The standalone model files must not be redistributed or offered for download separately from the project.
           Keep this notice with the assets.
           EOF
-          echo "Imported $(find public/assets/clinic-kit/hospital -type f -iname '*.glb' | wc -l) GLB models."
+          echo "Imported $(find src/assets/clinic-kit/hospital -type f -iname '*.glb' | wc -l) GLB models."
       - name: Commit imported assets to clinic-dev
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/assets/clinic-kit/hospital
+          rm -rf public/assets/clinic-kit/hospital\n          git add src/assets/clinic-kit/hospital public/assets/clinic-kit/hospital
           if git diff --cached --quiet; then
             echo "No new asset changes."
             exit 0
