@@ -47,11 +47,12 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
  return root;
 }
 function loadClinicModel(url:string,name:string,centerX:number,centerZ:number,targetWidth:number,onReady?:()=>void){
- const fallback=()=>{makeRoom("treatment",-3,-3,1);loading.classList.add("done");};
+ let fallbackRoom:pc.Entity|null=null;const fallback=()=>{if(!fallbackRoom)fallbackRoom=makeRoom("treatment",-3,-3,1);loading.classList.add("done");};
+ window.setTimeout(()=>{if(!loading.classList.contains("done")){status.textContent="الاتصال بطيء؛ نعرض نسخة خفيفة مؤقتاً.";fallback();}},10000);
  app.assets.loadFromUrl(url,"container",(err,asset)=>{
   if(err||!asset?.resource){status.textContent="تعذر تحميل النموذج ثلاثي الأبعاد؛ تم تشغيل التصميم الاحتياطي.";fallback();return;}
   const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
-  model.name=name;world.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
+  model.name=name;world.addChild(model);if(fallbackRoom){fallbackRoom.destroy();fallbackRoom=null;}model.syncHierarchy();app.root.syncHierarchy();
   const meshes=model.findComponents("render").flatMap(r=>r.meshInstances);
   if(!meshes.length){model.destroy();status.textContent="النموذج لا يحتوي مجسمات قابلة للعرض؛ تم تشغيل التصميم الاحتياطي.";fallback();return;}
   let minX=Infinity,minY=Infinity,minZ=Infinity,maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
