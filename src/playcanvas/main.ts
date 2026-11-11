@@ -171,7 +171,7 @@ function transitionHumanoid(rig:HumanoidRig|null,moving:boolean){
  if(!rig?.anim?.baseLayer)return;
  const desired=moving?rig.walk:rig.idle;
  if(!desired||rig.anim.baseLayer.activeState===desired)return;
- try{rig.anim.baseLayer.transition(desired,moving?.22:.3);rig.anim.speed=moving?1:1;}
+ try{rig.anim.baseLayer.transition(desired,moving ? 0.22 : 0.3);rig.anim.speed=moving?1:1;}
  catch{try{rig.anim.baseLayer.play(desired);}catch{}}
 }
 loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
@@ -320,7 +320,8 @@ app.on("update",(dt:number)=>{
   const desiredYaw=Math.atan2(dx,dz)*180/Math.PI;
   const currentYaw=avatar.getEulerAngles().y;
   let yawDelta=((desiredYaw-currentYaw+540)%360)-180;
-  avatar.setEulerAngles(0,currentYaw+Math.max(-Math.max(150,dt*360),Math.min(Math.max(150,dt*360),yawDelta)),0);
+  const maxTurn=Math.max(1,dt*360);
+  avatar.setEulerAngles(0,currentYaw+Math.max(-maxTurn,Math.min(maxTurn,yawDelta)),0);
   const walkSpeed=1.25;
   const step=Math.min(d,dt*walkSpeed),moved=moveAvatarSafely(dx/d*step,dz/d*step);
   if(!moved){target=null;walkPath=[];setLocomotion(false);status.textContent="تعذر إكمال المسار؛ اختر ممراً أوسع.";}
