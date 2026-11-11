@@ -1,43 +1,31 @@
-# 3D Engine Evaluation — PlayCanvas vs Babylon.js
+# THERASON CLINIC — Engine Decision Record
 
-**Status:** Evaluation plan; no engine selected | **Branch:** clinic-dev
+**Decision:** PlayCanvas is the selected runtime for the first production-oriented clinic slice.
+**Date:** 2026-11-11
+**Branch:** clinic-dev
 
-## Decision rule
-Build equivalent prototypes and compare on the same devices, browsers, scene content, and test procedure. Do not select based on familiarity, marketing, or desktop demonstrations.
+## Context
+Both PlayCanvas and Babylon.js prototypes were made available to the project owner and tested informally on their phone. The owner reported that both were initially acceptable. The project needs a portrait-first, fixed-isometric, stylized 3D clinic for entry-level Android devices and unreliable connectivity. The initial world is compact: reception, one treatment room, avatar movement, grid-based furnishing, and guided clinical learning.
 
-## Candidates
-- PlayCanvas
-- Babylon.js
+## Decision
+Proceed with PlayCanvas as the single primary engine. Keep Babylon.js prototype code only as a historical comparison during this phase; do not ship two engines or ask students to choose an engine.
 
-Both remain candidates.
+## Rationale
+- The required scene and interaction scope is a compact stylized 3D environment, not a broad general-purpose high-end simulation.
+- PlayCanvas is a capable WebGL engine with a focused web-first workflow.
+- The current project spike already has a PlayCanvas scene and touch interaction foundation.
+- Choosing one engine reduces duplicated code, testing, payload, and maintenance.
 
-## Prototype parity
-Each prototype must include the same portrait canvas, isometric-style camera, room geometry/materials/lighting, avatar placeholder, tap-to-move, grid highlighting, object placement, invalid-placement feedback, asset formats, and instrumentation.
+This is a project-fit decision, not a claim that PlayCanvas is universally faster or superior to Babylon.js. Actual low-end Android performance, memory, startup time, and payload must continue to be measured.
 
-## Weighted scorecard
-| Criterion | Weight | Evidence |
-|---|---:|---|
-| Low-end phone performance | 25% | Sustained frame time/FPS, spikes, thermal behavior |
-| Startup and asset size | 15% | Cold/warm startup, transferred and decoded sizes |
-| Visual quality and lighting | 15% | Comparable screenshots and quality |
-| Camera and movement | 10% | Touch accuracy, responsiveness, stability |
-| Grid placement | 10% | Correctness, collision handling, complexity |
-| Next.js integration | 10% | Build, routing, lifecycle, resize, cleanup |
-| Maintenance/workflow | 10% | Documentation, tooling, debugging, clarity |
-| Offline potential | 5% | Cacheability and offline behavior |
+## Non-negotiable implementation constraints
+- Arabic-first, portrait-first interface; no forced landscape orientation.
+- Low-poly/stylized assets, restrained materials, capped device pixel ratio, minimal draw calls.
+- Load only assets required by the active room and interaction.
+- No remote font or decorative asset dependency for the first screen.
+- Local versioned saves first; remote identity/sync only after a security design and explicit approval.
+- Keep the simulator independently deployable and isolated from the THERASON platform.
+- Do not merge clinic-dev into main without owner approval.
 
-Score each category 1–5 only after evidence is collected; normalize weighted total to 100.
-
-## Measurement protocol
-Record device model, Android/browser versions, network/cache condition, startup duration, transferred asset bytes, average FPS and frame-time percentiles during a fixed three-minute route, memory before/after repeated scene entry/exit, touch response, placement latency, crashes, reloads, and thermal symptoms.
-
-Repeat each test at least three times where practical; report median and range. Never claim physical-device results until a real device has been tested.
-
-## Initial target
-Aim for a stable experience near 30 FPS on a representative entry-level Android phone. This is a test target, not a guarantee. Responsiveness, thermal stability, and frame-time spikes matter too.
-
-## Decision record
-Final selection must include raw measurements, device/browser details, limitations, weighted score, rationale, risks, and mitigations.
-
-## Research checklist
-Verify current official documentation for mobile WebGL/WebGPU/browser compatibility, texture compression, touch input, lifecycle/memory cleanup, instancing, baked lighting, offline/PWA support, licensing, and deployment.
+## Revisit criteria
+Reconsider the engine only if real-device evidence shows PlayCanvas cannot meet agreed startup, stability, memory, interaction, or maintainability targets and another engine materially improves those outcomes.
