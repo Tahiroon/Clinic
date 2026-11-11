@@ -1,77 +1,43 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#07152f" />
-  <meta name="description" content="THERASON CLINIC — محاكي العيادة التعليمية لطلاب العلاج الطبيعي" />
-  <title>THERASON CLINIC</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#071329"><meta name="description" content="THERASON CLINIC — محاكي العيادة التعليمية لطلاب العلاج الطبيعي">
+<title>THERASON CLINIC</title>
 </head>
 <body>
-  <main class="clinic-app">
-    <header class="app-header">
-      <a class="brand" href="/" aria-label="ثيراسون كلينيك">
-        <span class="brand-mark">T<span>+</span></span>
-        <span><b>THERASON</b><small>CLINIC SIMULATOR</small></span>
-      </a>
-      <div class="header-meta"><span class="online-dot"></span><span>نسخة تجريبية</span></div>
-    </header>
-
-    <section class="welcome">
-      <div><p class="eyebrow">مساحتك التعليمية</p><h1>عيادتك تبدأ من هنا</h1><p class="subline">ابنِ عيادتك، استقبل الحالات، وطوّر تفكيرك السريري.</p></div>
-      <div class="level-card"><span>المستوى</span><strong>01</strong><small>متدرب</small></div>
-    </section>
-
-    <section class="game-frame" aria-label="مشهد العيادة">
-      <div class="scene-top">
-        <div><span class="scene-kicker">عيادتي</span><strong>الفرع الأول</strong></div>
-        <div class="scene-stats"><span id="fps">-- FPS</span><span id="save-state">محفوظ محلياً</span></div>
-      </div>
-      <div class="stage"><canvas id="scene" aria-label="مشهد عيادة علاج طبيعي ثلاثي الأبعاد"></canvas><div class="loading-cover" id="loading"><span class="loader"></span><b>نجهّز عيادتك...</b><small>يتم تحميل المشهد لأول مرة</small></div></div>
-      <div class="scene-status"><span class="status-dot"></span><p id="status" aria-live="polite">اضغط على أرضية العيادة لتحريك شخصيتك.</p></div>
-    </section>
-
-    <nav class="tool-dock" aria-label="أدوات العيادة">
-      <button class="tool active" id="move-mode" type="button"><span class="tool-icon">↗</span><b>الحركة</b></button>
-      <button class="tool" id="build-mode" type="button"><span class="tool-icon">▦</span><b>البناء</b></button>
-      <button class="tool" id="case-mode" type="button"><span class="tool-icon">＋</span><b>حالة تعليمية</b></button>
-      <button class="tool" id="reset-avatar" type="button"><span class="tool-icon">↺</span><b>إعادة</b></button>
-    </nav>
-
-    <section class="build-panel" id="build-panel" hidden>
-      <div class="panel-heading"><div><p class="eyebrow">تخصيص العيادة</p><h2>اختر قطعة لإضافتها</h2></div><span class="coin-pill">● 100</span></div>
-      <div class="catalog">
-        <button class="catalog-item selected" data-item="chair" type="button"><span class="catalog-art chair-art"></span><b>كرسي انتظار</b><small>20 عملة</small></button>
-        <button class="catalog-item" data-item="plant" type="button"><span class="catalog-art plant-art"></span><b>نبات داخلي</b><small>15 عملة</small></button>
-        <button class="catalog-item" data-item="cabinet" type="button"><span class="catalog-art cabinet-art"></span><b>خزانة أدوات</b><small>30 عملة</small></button>
-      </div>
-      <p class="panel-hint">اختر قطعة ثم اضغط على مكان فارغ داخل العيادة لوضعها.</p>
-    </section>
-
-    <section class="progress-card"><div><span class="eyebrow">رحلتك المهنية</span><h2>كل جلسة تصنع فرقاً</h2><p>تعلّم خطوة بخطوة، واكسب الخبرة مع كل حالة.</p></div><div class="progress-ring"><strong>0%</strong><small>التقدم</small></div></section>
-    <footer>THERASON CLINIC <span>·</span> Learn by reasoning</footer>
-  </main>
-
-  <dialog id="case-dialog" class="case-dialog">
-    <form method="dialog" class="case-content">
-      <button class="dialog-close" aria-label="إغلاق" value="close">×</button>
-      <p class="eyebrow">محاكاة سريرية · حالة تدريبية</p>
-      <h2>مريض يعاني من ألم أسفل الظهر</h2>
-      <p class="case-intro">حالة تعليمية افتراضية. هدفك أن تبدأ بتفكير آمن ومنظم قبل اختيار الفحوصات أو التدخل.</p>
-      <div class="patient-brief"><b>العمر: 32 سنة</b><span>ألم منذ 10 أيام بعد رفع جسم ثقيل</span><span>لا توجد معلومات كافية بعد لاستبعاد علامات الخطر</span></div>
-      <h3>ما أول خطوة مناسبة؟</h3>
-      <div class="case-options">
-        <button type="button" data-answer="history">أخذ التاريخ المرضي وفحص علامات الخطر</button>
-        <button type="button" data-answer="exercise">بدء تمارين تقوية مباشرة</button>
-        <button type="button" data-answer="diagnosis">تحديد التشخيص النهائي فوراً</button>
-      </div>
-      <p class="case-feedback" id="case-feedback" aria-live="polite">اختر إجابة لترى التغذية الراجعة التعليمية.</p>
-      <button class="case-done" value="close">العودة إلى العيادة</button>
-    </form>
-  </dialog>
-  <script type="module" src="/src/playcanvas/main.ts"></script>
-</body>
-</html>
+<main class="clinic-app">
+<header class="app-header"><a class="brand" href="/" aria-label="ثيراسون"><span class="brand-mark">T<span>+</span></span><span><b>THERASON</b><small>CLINIC SIMULATOR</small></span></a><div class="header-right"><span class="level-chip">المستوى 01</span><span class="coin-pill">◈ <b id="coins">120</b></span></div></header>
+<section class="welcome"><div><p class="eyebrow">عيادتك · رحلتك المهنية</p><h1>مساحة تبني فيها مستقبلك</h1><p class="subline">ابدأ بغرفة واحدة، ووسّع عيادتك بخبرتك.</p></div></section>
+<section class="game-frame" aria-label="عالم العيادة">
+<div class="scene-top"><div><span class="scene-kicker">أرض العيادة</span><strong id="zone-name">الفرع الأول · المستوى 1</strong></div><div class="scene-stats"><span id="fps">-- FPS</span><span id="save-state">محفوظ</span></div></div>
+<div class="stage"><canvas id="scene" aria-label="عالم العيادة ثلاثي الأبعاد"></canvas><div class="loading-cover" id="loading"><span class="loader"></span><b>نجهّز أرض عيادتك...</b><small>نحمّل المشهد الأساسي</small></div><div class="camera-hint" id="camera-hint">اسحب لتحريك المشهد · قرّب بإصبعين</div></div>
+<div class="scene-status"><span class="status-dot"></span><p id="status" aria-live="polite">اضغط على الأرض لتحريك شخصيتك. هذه أرضك، ابنِ عيادتك كما تريد.</p></div>
+</section>
+<nav class="tool-dock" aria-label="أدوات العيادة">
+<button class="tool active" id="move-mode" type="button"><span class="tool-icon">➤</span><b>تحريك</b></button>
+<button class="tool" id="build-mode" type="button"><span class="tool-icon">▦</span><b>بناء</b></button>
+<button class="tool" id="session-mode" type="button"><span class="tool-icon">＋</span><b>بدء جلسة</b></button>
+<button class="tool" id="view-mode" type="button"><span class="tool-icon">◎</span><b>تركيز</b></button>
+</nav>
+<section class="build-panel" id="build-panel" hidden>
+<div class="panel-heading"><div><p class="eyebrow">وضع البناء</p><h2>طوّر مساحة عيادتك</h2></div><button class="small-action" id="cancel-build" type="button">إنهاء البناء</button></div>
+<div class="build-tabs"><button class="build-tab active" data-category="rooms" type="button">الغرف</button><button class="build-tab" data-category="furniture" type="button">الأثاث</button></div>
+<div class="catalog" id="catalog-rooms">
+<button class="catalog-item selected" data-build="treatment" type="button"><span class="catalog-art room-art"></span><b>غرفة علاج</b><small>مجانية · البداية</small></button>
+<button class="catalog-item" data-build="reception" type="button"><span class="catalog-art reception-art"></span><b>استقبال</b><small>60 عملة</small></button>
+<button class="catalog-item" data-build="gym" type="button"><span class="catalog-art gym-art"></span><b>صالة تمارين</b><small>90 عملة</small></button>
+</div>
+<div class="catalog" id="catalog-furniture" hidden>
+<button class="catalog-item selected" data-build="chair" type="button"><span class="catalog-art chair-art"></span><b>كرسي انتظار</b><small>20 عملة</small></button>
+<button class="catalog-item" data-build="plant" type="button"><span class="catalog-art plant-art"></span><b>نبات داخلي</b><small>15 عملة</small></button>
+<button class="catalog-item" data-build="cabinet" type="button"><span class="catalog-art cabinet-art"></span><b>خزانة أدوات</b><small>30 عملة</small></button>
+</div>
+<p class="panel-hint" id="build-hint">اختر الغرفة ثم اضغط على مساحة فارغة في الأرض. ستظهر شبكة البناء.</p>
+</section>
+<section class="progress-card"><div><span class="eyebrow">تقدمك المهني</span><h2>خبرة تُبنى مع كل مريض</h2><p id="experience-text">ابدأ أول جلسة تعليمية لاكتساب خبرتك.</p></div><div class="progress-ring"><strong id="experience">0 XP</strong><small>الخبرة</small></div></section>
+<footer>THERASON CLINIC <span>·</span> Learn by reasoning</footer>
+</main>
+<dialog id="session-dialog" class="case-dialog"><form method="dialog" class="case-content"><button class="dialog-close" aria-label="إغلاق" value="close">×</button><p class="eyebrow" id="session-step">الجلسة التعليمية · 1 من 5</p><h2 id="session-title">استقبال المريض</h2><p class="case-intro" id="session-intro">وصل مريض جديد إلى عيادتك. ابدأ الجلسة بخطوة آمنة ومنظمة.</p><div class="patient-brief" id="patient-brief"><b>حالة تدريبية افتراضية</b><span>مريض عمره 32 عاماً، يشكو من ألم أسفل الظهر منذ 10 أيام بعد رفع جسم ثقيل.</span></div><h3 id="session-question">ما الخطوة المناسبة الآن؟</h3><div class="case-options" id="session-options"><button type="button" data-choice="safe">التحقق من علامات الخطر وأخذ التاريخ المرضي</button><button type="button" data-choice="exercise">بدء التمارين مباشرة</button><button type="button" data-choice="diagnosis">تحديد التشخيص النهائي فوراً</button></div><p class="case-feedback" id="session-feedback" aria-live="polite">اختر إجابتك لتحصل على تغذية راجعة.</p><button class="case-done" id="session-next" type="button" disabled>التالي</button></form></dialog>
+<script type="module" src="/src/playcanvas/main.ts"></script>
+</body></html>
