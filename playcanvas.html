@@ -21,8 +21,8 @@
 <button class="tool" id="view-mode" type="button"><span class="tool-icon">◎</span><b>تركيز</b></button>
 </nav>
 <section class="build-panel" id="build-panel" hidden>
-<div class="panel-heading"><div><p class="eyebrow">وضع البناء</p><h2>طوّر مساحة عيادتك</h2></div><button class="small-action" id="cancel-build" type="button">إنهاء البناء</button></div>
-<div class="build-tabs"><button class="build-tab active" data-category="structure" type="button">الجدران</button><button class="build-tab" data-category="rooms" type="button">الغرف</button><button class="build-tab" data-category="furniture" type="button">الأثاث</button></div>
+<div class="panel-heading"><div><p class="eyebrow">وضع البناء</p><h2>متجر الأصول الحقيقية</h2></div><button class="small-action" id="cancel-build" type="button">إنهاء البناء</button></div>
+<div class="build-tabs"><button class="build-tab active" data-category="structure" type="button">الجدران</button><button class="build-tab" data-category="rooms" type="button">الغرف</button><button class="build-tab" data-category="furniture" type="button">أصول 3D</button></div>
 <div class="catalog" id="catalog-structure">
 <button class="catalog-item selected" data-build="wall" type="button"><span class="catalog-art room-art"></span><b>حائط</b><small>8 عملات</small></button>
 <button class="catalog-item" data-build="door" type="button"><span class="catalog-art reception-art"></span><b>باب</b><small>22 عملة</small></button>
@@ -34,17 +34,22 @@
 <button class="catalog-item" data-build="gym" type="button"><span class="catalog-art gym-art"></span><b>صالة تمارين</b><small>90 عملة</small></button>
 </div>
 <div class="catalog" id="catalog-furniture" hidden>
-<button class="catalog-item selected" data-build="chair" type="button"><span class="catalog-art chair-art"></span><b>كرسي انتظار</b><small>20 عملة</small></button>
-<button class="catalog-item" data-build="plant" type="button"><span class="catalog-art plant-art"></span><b>نبات داخلي</b><small>15 عملة</small></button>
-<button class="catalog-item" data-build="cabinet" type="button"><span class="catalog-art cabinet-art"></span><b>خزانة أدوات</b><small>30 عملة</small></button>
-<button class="catalog-item" data-build="parallel" type="button"><span class="catalog-art gym-art"></span><b>متوازي</b><small>80 عملة</small></button>
-<button class="catalog-item" data-build="bike" type="button"><span class="catalog-art gym-art"></span><b>دراجة علاجية</b><small>100 عملة</small></button>
-<button class="catalog-item" data-build="treadmill" type="button"><span class="catalog-art gym-art"></span><b>سير مشي</b><small>120 عملة</small></button>
-<button class="catalog-item" data-build="wallbars" type="button"><span class="catalog-art room-art"></span><b>سلم حائطي</b><small>70 عملة</small></button>
-<button class="catalog-item" data-build="lamp" type="button"><span class="catalog-art plant-art"></span><b>مصباح</b><small>15 عملة</small></button>
-<button class="catalog-item" data-build="rug" type="button"><span class="catalog-art cabinet-art"></span><b>سجادة تمارين</b><small>25 عملة</small></button>
+<button class="catalog-item selected" data-asset="pt-treatment-table" type="button"><span class="catalog-art room-art"></span><b>سرير علاج طبيعي</b><small>90 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="pt-parallel-bars" type="button"><span class="catalog-art gym-art"></span><b>جهاز المتوازي</b><small>100 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="pt-band-rack" type="button"><span class="catalog-art cabinet-art"></span><b>حامل أحزمة المقاومة</b><small>35 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="pt-exercise-ball" type="button"><span class="catalog-art plant-art"></span><b>كرة علاجية</b><small>20 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="pt-exercise-mat" type="button"><span class="catalog-art room-art"></span><b>بساط تمارين</b><small>25 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="pt-hand-weights" type="button"><span class="catalog-art gym-art"></span><b>أوزان علاجية</b><small>30 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="pt-privacy-curtain" type="button"><span class="catalog-art reception-art"></span><b>ستارة خصوصية</b><small>45 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="pt-storage-cabinet" type="button"><span class="catalog-art cabinet-art"></span><b>خزانة أدوات</b><small>40 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="hospital-crutches" type="button"><span class="catalog-art gym-art"></span><b>عكازات طبية</b><small>18 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="hospital-first-aid" type="button"><span class="catalog-art cabinet-art"></span><b>حقيبة إسعافات</b><small>15 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="hospital-oxygen" type="button"><span class="catalog-art plant-art"></span><b>عربة أكسجين</b><small>55 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="hospital-stretcher" type="button"><span class="catalog-art room-art"></span><b>نقالة طبية</b><small>75 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="hospital-transport-chair" type="button"><span class="catalog-art reception-art"></span><b>كرسي نقل مرضى</b><small>55 عملة · نموذج 3D</small></button>
+<button class="catalog-item" data-asset="hospital-walking-frame" type="button"><span class="catalog-art gym-art"></span><b>مشاية طبية</b><small>35 عملة · نموذج 3D</small></button>
 </div>
-<p class="panel-hint" id="build-hint">اختر الغرفة ثم اضغط على مساحة فارغة في الأرض. ستظهر شبكة البناء.</p>
+<p class="panel-hint" id="build-hint">اختر أصلاً طبياً حقيقياً من المتجر، ثم اضغط على مساحة فارغة لوضعه دون تداخل.</p>
 </section>
 <section class="progress-card"><div><span class="eyebrow">تقدمك المهني</span><h2>خبرة تُبنى مع كل مريض</h2><p id="experience-text">ابدأ أول جلسة تعليمية لاكتساب خبرتك.</p></div><div class="progress-ring"><strong id="experience">0 XP</strong><small>الخبرة</small></div></section>
 <footer>THERASON CLINIC <span>·</span> Learn by reasoning</footer>
