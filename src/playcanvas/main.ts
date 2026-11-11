@@ -204,6 +204,10 @@ const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:n
  "hospital-transport-chair":{file:"hospital-equipment-set.glb",node:"TransportChair",label:"كرسي نقل مرضى",cost:55,footprint:2,targetSize:1.25},
  "hospital-walking-frame":{file:"hospital-equipment-set.glb",node:"WalkingFrame",label:"مشاية طبية",cost:35,footprint:2,targetSize:1.15}
 };
+const clinicAssetUrls:Record<string,string>={
+ "physical-therapy-room-set.glb":new URL("../assets/clinic-kit/hospital/physical-therapy-room-set.glb",import.meta.url).href,
+ "hospital-equipment-set.glb":new URL("../assets/clinic-kit/hospital/hospital-equipment-set.glb",import.meta.url).href
+};
 const containerCache=new Map<string,Promise<any>>();
 function getClinicContainer(url:string):Promise<any>{
  let pending=containerCache.get(url);
@@ -216,7 +220,7 @@ function getClinicContainer(url:string):Promise<any>{
 function loadClinicAsset(p:Placed){
  const spec=p.assetKey?storeAssetSpecs[p.assetKey]:undefined;
  if(!spec)return;
- const url=new URL("../assets/clinic-kit/hospital/"+spec.file,import.meta.url).href;
+ const url=clinicAssetUrls[spec.file];
  getClinicContainer(url).then(asset=>{
   const container=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
   const chosen=container.children.find((child:pc.Entity)=>child.name===spec.node);
