@@ -124,20 +124,22 @@ function loadClinicModel(url:string,name:string,centerX:number,centerZ:number,ta
 }
 // The starter clinic is intentionally an open, empty architectural shell; students design their own rooms.
 const avatar=new pc.Entity("Student avatar");avatar.setPosition(-1,0,1.7);world.addChild(avatar);
-let avatarAnim:any=null;let avatarClipNames:string[]=[];
+let avatarAnim:any=null;let avatarClipNames:string[]=[];let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
  student:new URL("../assets/characters/Student.glb",import.meta.url).href,
  doctor:new URL("../assets/characters/WhiteCoatDoctor.glb",import.meta.url).href,
  patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,
  nurse:new URL("../assets/characters/WardNurse.glb",import.meta.url).href
 };
-function loadHumanoid(url:string,parent:pc.Entity,height:number,onReady?:(entity:pc.Entity)=>void){
+type HumanoidRig={entity:pc.Entity;anim:any;clips:string[];idle:string;walk:string};
+const humanoidRigs:HumanoidRig[]=[];
+function loadHumanoid(url:string,parent:pc.Entity,height:number,castShadow:boolean,onReady?:(rig:HumanoidRig)=>void){
  app.assets.loadFromUrl(url,"container",(err,asset)=>{
-  if(err||!asset?.resource){status.textContent="تعذر تحميل إحدى الشخصيات؛ نعيد المحاولة عند توفر الاتصال.";return;}
-  const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
-  model.name="Rigged humanoid";parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
+  if(err||!asset?.resource){console.error("Character asset failed",url,err);status.textContent="تعذر تحميل شخصية؛ بقية العيادة تستمر بالعمل.";return;}
+  const model=asset.resource.instantiateRenderEntity({castShadows:castShadow,receiveShadows:false});
+  model.name="Animated humanoid";parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
   const meshes=model.findComponents("render").flatMap(r=>r.meshInstances);
-  if(!meshes.length){model.destroy();return;}
+  if(!meshes.length){console.error("Character GLB has no render meshes",url);model.destroy();return;}
   let minY=Infinity,maxY=-Infinity;
   for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);}
   const scale=height/Math.max(.01,maxY-minY);
@@ -146,21 +148,42 @@ function loadHumanoid(url:string,parent:pc.Entity,height:number,onReady?:(entity
   minY=Infinity;for(const mesh of scaled){const b=mesh.aabb;minY=Math.min(minY,b.center.y-b.halfExtents.y);}
   model.setLocalPosition(0,-minY,0);
   model.addComponent("anim",{activate:true,speed:1});
-  const anim:any=(model as any).anim;if(!anim){if(onReady)onReady(model);return;}
+  const anim:any=(model as any).anim;
   const clips:any[]=asset.resource.animations??[];
   const names:string[]=[];
-  for(const clip of clips){const track:any=clip.resource;if(track){const clipName=String(track.name||clip.name||"");if(clipName){anim.assignAnimation(clipName,track);names.push(clipName);}}}
-  (model as any).__clinicClips=names;
-  const idleName=names.find(n=>/idle|stand|rest/i.test(n))??names[0];
-  if(idleName&&anim.baseLayer){try{anim.baseLayer.play(idleName,.18);}catch{}}
-  if(onReady)onReady(model);
+  if(anim){
+   for(const clip of clips){
+    const track:any=clip.resource;
+    const clipName=String(track?.name||clip.name||"");
+    if(track&&clipName){try{anim.assignAnimation(clipName,track);names.push(clipName);}catch(error){console.warn("Animation clip binding skipped",clipName,error);}}
+   }
+  }
+  const idle=names.find(n=>/idle|stand|rest/i.test(n))??names[0]??"";
+  const walk=names.find(n=>/walk|walking/i.test(n))??names.find(n=>/run|jog/i.test(n))??idle;
+  const rig:HumanoidRig={entity:model,anim,clips:names,idle,walk};
+  humanoidRigs.push(rig);
+  if(idle&&anim?.baseLayer){try{anim.baseLayer.play(idle);}catch(error){console.warn("Idle animation could not start",error);}}
+  if(onReady)onReady(rig);
+  console.info("Clinic character ready",url,{height,clips:names,idle,walk});
  });
 }
-loadHumanoid(characterAssets.doctor,avatar,1.72,model=>{avatarAnim=(model as any).anim??null;avatarClipNames=(model as any).__clinicClips??[];status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";});
+function transitionHumanoid(rig:HumanoidRig|null,moving:boolean){
+ if(!rig?.anim?.baseLayer)return;
+ const desired=moving?rig.walk:rig.idle;
+ if(!desired||rig.anim.baseLayer.activeState===desired)return;
+ try{rig.anim.baseLayer.transition(desired,moving?.22:.3);rig.anim.speed=moving?1:1;}
+ catch{try{rig.anim.baseLayer.play(desired);}catch{}}
+}
+loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
+ avatarAnim=rig.anim;avatarClipNames=rig.clips;playerRig=rig;
+ status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
+});
 const doctorNpc=new pc.Entity("Clinic doctor");doctorNpc.setPosition(3,0,-1);world.addChild(doctorNpc);
-loadHumanoid(characterAssets.nurse,doctorNpc,1.68);
+loadHumanoid(characterAssets.doctor,doctorNpc,1.72,false);
 const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(4,0,2);world.addChild(patientNpc);
-loadHumanoid(characterAssets.patient,patientNpc,1.62);
+loadHumanoid(characterAssets.patient,patientNpc,1.62,false);
+const nurseNpc=new pc.Entity("Clinic nurse");nurseNpc.setPosition(5.5,0,-1.2);world.addChild(nurseNpc);
+loadHumanoid(characterAssets.nurse,nurseNpc,1.68,false);
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", target:pc.Vec3|null=null, coins=100000, xp=0, nextId=2, focus=false, wallRotation:0|90=0;
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v2";const entities:pc.Entity[]=[];
@@ -258,7 +281,7 @@ function screenToGround(clientX:number,clientY:number){const r=canvas.getBoundin
 let pointerStart:{x:number;y:number;cx:number;cz:number;tx:number;tz:number}|null=null,dragged=false;const activePointers=new Map<number,{x:number;y:number}>();let pinchDistance=0,pinchHeight=0;
 canvas.addEventListener("pointerdown",e=>{activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size===2){const pts=[...activePointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);pinchHeight=camera.camera!.orthoHeight;pointerStart=null;dragged=true;}else{pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};dragged=false;}canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)camera.camera!.orthoHeight=Math.max(9,Math.min(16,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraTarget.set(Math.max(-5,Math.min(5,pointerStart.tx+shiftX)),0,Math.max(-5,Math.min(5,pointerStart.tz+shiftZ)));camera.setPosition(cameraTarget.x+11,15,cameraTarget.z+11);camera.lookAt(cameraTarget);}});
-canvas.addEventListener("pointerup",e=>{activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;if(!pointerStart){if(activePointers.size===1){const p=[...activePointers.values()][0];pointerStart={x:p.x,y:p.y,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};}else dragged=false;return;}const wasDrag=dragged;pointerStart=null;if(wasDrag)return;const p=screenToGround(e.clientX,e.clientY);if(!p)return;if(mode==="build"){const gx=Math.floor(p.x),gz=Math.floor(p.z);if(occupied(gx,gz,selected)){status.textContent="هذه الخلية مشغولة. اختر مساحة فارغة بجوارها.";return;}const cost=costs[selected];if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}coins-=cost;coinsLabel.textContent=String(coins);const item={id:nextId++,kind:selected,gx,gz,rot:(selected==="wall"||selected==="door")?wallRotation:0 as 0|90};placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;}const tx=Math.round(p.x*2)/2,tz=Math.round(p.z*2)/2;if(!canAvatarStand(tx,tz)){status.textContent="المكان محجوز بجدار أو جهاز. اختر ممراً خالياً.";return;}target=new pc.Vec3(tx,0,tz);status.textContent="شخصيتك تتحرك إلى الموقع المحدد.";});
+canvas.addEventListener("pointerup",e=>{activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;if(!pointerStart){if(activePointers.size===1){const p=[...activePointers.values()][0];pointerStart={x:p.x,y:p.y,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};}else dragged=false;return;}const wasDrag=dragged;pointerStart=null;if(wasDrag)return;const p=screenToGround(e.clientX,e.clientY);if(!p)return;if(mode==="build"){const gx=Math.floor(p.x),gz=Math.floor(p.z);if(occupied(gx,gz,selected)){status.textContent="هذه الخلية مشغولة. اختر مساحة فارغة بجوارها.";return;}const cost=costs[selected];if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}coins-=cost;coinsLabel.textContent=String(coins);const item={id:nextId++,kind:selected,gx,gz,rot:(selected==="wall"||selected==="door")?wallRotation:0 as 0|90};placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;}const tx=Math.round(p.x*2)/2,tz=Math.round(p.z*2)/2;const route=findWalkPath(avatar.getPosition().x,avatar.getPosition().z,tx,tz);if(!route||!route.length){status.textContent="لم أجد ممراً آمناً إلى هذه النقطة. اختر مكاناً أقرب أو ممراً أوسع.";return;}walkPath=route;const first=walkPath.shift()!;target=new pc.Vec3(first.x,0,first.z);status.textContent="الأخصائي يسلك أقرب ممر متاح.";});
 canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;});
 function selectBuild(kind:BuildKind){selected=kind;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}
 moveBtn.addEventListener("click",()=>updateMode("move"));buildBtn.addEventListener("click",()=>updateMode(mode==="build"?"move":"build"));el("#cancel-build").addEventListener("click",()=>updateMode("move"));
@@ -280,21 +303,27 @@ el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionS
 load();coins=100000;coinsLabel.textContent=String(coins);
 let locomotionState="";
 function setLocomotion(moving:boolean){
- if(!avatarAnim||!avatarClipNames.length)return;
- const desired=moving?(avatarClipNames.find(n=>/walk|walking|run/i.test(n))??avatarClipNames[0]):(avatarClipNames.find(n=>/idle|stand|rest/i.test(n))??avatarClipNames[0]);
+ if(!playerRig)return;
+ const desired=moving?playerRig.walk:playerRig.idle;
  if(!desired||locomotionState===desired)return;
- try{avatarAnim.baseLayer?.play(desired,.2);locomotionState=desired;}catch{}
+ transitionHumanoid(playerRig,moving);
+ locomotionState=desired;
 }
 app.on("update",(dt:number)=>{
  if(!target)return;
  const p=avatar.getPosition(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
- if(d<.09){
+ if(d<.07){
   if(walkPath.length){const next=walkPath.shift()!;target=new pc.Vec3(next.x,0,next.z);}
   else{target=null;setLocomotion(false);}
  }else{
-  setLocomotion(true);const step=Math.min(d,dt*1.45),moved=moveAvatarSafely(dx/d*step,dz/d*step);
-  if(moved)avatar.setEulerAngles(0,Math.atan2(dx,dz)*180/Math.PI,0);
-  else{target=null;walkPath=[];setLocomotion(false);status.textContent="تعذر إكمال المسار؛ اختر نقطة أخرى."; }
+  setLocomotion(true);
+  const desiredYaw=Math.atan2(dx,dz)*180/Math.PI;
+  const currentYaw=avatar.getEulerAngles().y;
+  let yawDelta=((desiredYaw-currentYaw+540)%360)-180;
+  avatar.setEulerAngles(0,currentYaw+Math.max(-Math.max(150,dt*360),Math.min(Math.max(150,dt*360),yawDelta)),0);
+  const walkSpeed=1.25;
+  const step=Math.min(d,dt*walkSpeed),moved=moveAvatarSafely(dx/d*step,dz/d*step);
+  if(!moved){target=null;walkPath=[];setLocomotion(false);status.textContent="تعذر إكمال المسار؛ اختر ممراً أوسع.";}
  }
 });
 let frames=0,elapsed=0;app.on("postupdate",(dt:number)=>{frames++;elapsed+=dt;if(elapsed>=1){fpsLabel.textContent=Math.round(frames/elapsed)+" FPS";frames=0;elapsed=0;}});
