@@ -227,8 +227,8 @@ function loadClinicAsset(p:Placed){
   chosen.setLocalPosition(0,0,0);chosen.setLocalEulerAngles(0,p.rot??0,0);
   holder.syncHierarchy();app.root.syncHierarchy();
   const getBounds=()=>{
-   const meshes=chosen.findComponents("render").flatMap(r=>r.meshInstances);
-   let minX=Infinity,maxX=-Infinity,minY=Infinity,minZ=Infinity,maxZ=-Infinity;
+   const meshes=chosen.findComponents("render").flatMap((r:any)=>r.meshInstances);
+   let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
    for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
    return {minX,maxX,minY,maxY,minZ,maxZ};
   };
@@ -260,16 +260,16 @@ function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}co
  if(p.kind==="door"){box("Door left jamb",-.43,1.25,0,.12,2.5,.18,M.white,root);box("Door right jamb",.43,1.25,0,.12,2.5,.18,M.white,root);box("Door lintel",0,2.48,0,1,.16,.18,M.white,root);box("Door leaf",-.22,1.08,.09,.42,2.12,.055,M.wood2,root);}
 }
 function footprint(kind:BuildKind,assetKey?:string){if(kind==="asset")return storeAssetSpecs[assetKey??""]?.footprint??1;return kind==="treatment"||kind==="reception"||kind==="gym"?4:1;}
-function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0){
- const size=footprint(kind);
+function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string){
+ const size=footprint(kind,assetKey);
  if(kind==="wall")return rot===0?{x:gx+.42,z:gz,w:.16,d:3}:{x:gx,z:gz+1.42,w:3,d:.16};
  if(kind==="door")return rot===0?{x:gx+.08,z:gz,w:.84,d:.22}:{x:gx,z:gz+.08,w:.22,d:.84};
  return {x:gx,z:gz,w:size,d:size};
 }
 function rectanglesOverlap(a:{x:number;z:number;w:number;d:number},b:{x:number;z:number;w:number;d:number}){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.z<b.z+b.d&&a.z+a.d>b.z;}
 const starterFootprint={x:99,z:99,w:0,d:0};
-function occupied(gx:number,gz:number,kind:BuildKind){
- const a=footprintAt(gx,gz,kind);
+function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string){
+ const a=footprintAt(gx,gz,kind,rot,assetKey);
  if(a.x< -HALF||a.z< -HALF||a.x+a.w>HALF||a.z+a.d>HALF)return true;
  if(rectanglesOverlap(a,starterFootprint))return true;
  return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey)));
