@@ -1,8 +1,8 @@
 import * as pc from "playcanvas";
 import "../style.css";
 
-type BuildKind = "treatment" | "reception" | "gym" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door";
-type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90 };
+type BuildKind = "treatment" | "reception" | "gym" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door" | "asset";
+type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90; assetKey?:string };
 const el=<T extends HTMLElement>(s:string)=>document.querySelector<T>(s)!;
 const canvas=el<HTMLCanvasElement>("#scene"), status=el<HTMLElement>("#status"), fpsLabel=el<HTMLElement>("#fps"), loading=el<HTMLElement>("#loading");
 const stage=el<HTMLElement>(".stage"), moveBtn=el<HTMLButtonElement>("#move-mode"), buildBtn=el<HTMLButtonElement>("#build-mode"), sessionBtn=el<HTMLButtonElement>("#session-mode"), viewBtn=el<HTMLButtonElement>("#view-mode");
@@ -28,7 +28,7 @@ const resize=()=>{
  app.resizeCanvas(w,h);
  // Keep the same vertical world scale on phones; only the horizontal visible span adapts.
  const aspect=w/h;
- camera.camera!.orthoHeight=aspect<.48?13.8:aspect<.62?13.2:aspect<.82?12.8:12.2;
+ camera.camera!.orthoHeight=aspect<.48?9.8:aspect<.62?9.3:aspect<.82?8.9:8.5;
 };
 const queueResize=()=>{
  syncViewportHeight();
@@ -52,7 +52,7 @@ function sphere(name:string,x:number,y:number,z:number,s:number,m:pc.StandardMat
 const camera=new pc.Entity("Portrait isometric camera");camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:10,clearColor:new pc.Color(.55,.7,.72),nearClip:.1,farClip:150});const cameraTarget=new pc.Vec3(0,0,0);camera.setPosition(11,15,11);camera.lookAt(cameraTarget);app.root.addChild(camera);
 const light=new pc.Entity("Soft daylight");light.addComponent("light",{type:"directional",intensity:1.65,castShadows:true,shadowResolution:2048,shadowType:pc.SHADOW_PCF3,shadowDistance:55,normalOffsetBias:.035});light.setEulerAngles(48,35,0);app.root.addChild(light);
 const world=new pc.Entity("Clinic plot");app.root.addChild(world);
-const GRID=1, W=32, D=32, HALF=W/2;
+const GRID=1, W=16, D=16, HALF=W/2;
 const floorBase=material(new pc.Color(.72,.75,.72)),floorTile=material(new pc.Color(.82,.84,.8)),floorAlt=material(new pc.Color(.76,.8,.77)),gridLine=material(new pc.Color(.57,.64,.62)),glass=material(new pc.Color(.35,.72,.79));
 box("Clinic structural slab",0,-.22,0,W,.42,D,floorBase,world);
 for(let x=-HALF+2;x<HALF;x+=4)for(let z=-HALF+2;z<HALF;z+=4)box("Porcelain floor tile",x,-.002,z,3.96,.025,3.96,((x+z)%8===0)?floorAlt:floorTile,world);
@@ -61,20 +61,20 @@ for(let z=-HALF;z<=HALF;z++)box("Subtle construction grid",0,.014,z,W,.008,.008,
 // Permanent outer shell: a real clinic perimeter with layered wall bands, glazing and structural columns.
 const shell=new pc.Entity("Clinic architectural shell");world.addChild(shell);
 for(const z of [-HALF,HALF]){
- const spans=z===-HALF?[{x:-9,w:14},{x:9,w:14}]:[{x:0,w:W}];
+ const spans=z===-HALF?[{x:-4.5,w:7},{x:4.5,w:7}]:[{x:0,w:W}];
  for(const span of spans){
   box("Exterior wall lower",span.x,1.25,z,span.w,2.5,.28,M.wall,shell);
   box("Exterior teal dado",span.x,.28,z-.02,span.w,.18,.32,M.teal,shell);
   box("Exterior wall cap",span.x,2.55,z,span.w,.16,.42,M.white,shell);
  }
- for(let x=-12;x<=12;x+=4){if(z===-HALF&&Math.abs(x)<3)continue;box("Facade window",x,1.55,z-.16,2.35,1.05,.035,glass,shell);box("Window sill",x,1.0,z-.2,2.5,.09,.16,M.white,shell);box("Window mullion",x,1.55,z-.23,.045,1.05,.04,M.wall,shell);}
+ for(let x=-6;x<=6;x+=4){if(z===-HALF&&Math.abs(x)<3)continue;box("Facade window",x,1.55,z-.16,2.35,1.05,.035,glass,shell);box("Window sill",x,1.0,z-.2,2.5,.09,.16,M.white,shell);box("Window mullion",x,1.55,z-.23,.045,1.05,.04,M.wall,shell);}
 }
 for(const x of [-HALF,HALF]){
  box("Exterior side wall",x,1.25,0,.28,2.5,D,M.wall,shell);
  box("Side teal dado",x-.02,.28,0,.32,.18,D,M.teal,shell);
- for(let z=-12;z<=12;z+=4){box("Side facade window",x-.16,1.55,z,.035,1.05,2.35,glass,shell);box("Side window sill",x-.2,1.0,z,.16,.09,2.5,M.white,shell);}
+ for(let z=-6;z<=6;z+=4){box("Side facade window",x-.16,1.55,z,.035,1.05,2.35,glass,shell);box("Side window sill",x-.2,1.0,z,.16,.09,2.5,M.white,shell);}
 }
-for(const x of [-15.8,15.8])for(const z of [-15.8,15.8])box("Structural corner column",x,1.5,z,.48,3,.48,M.pale,shell);
+for(const x of [-7.8,7.8])for(const z of [-7.8,7.8])box("Structural corner column",x,1.5,z,.48,3,.48,M.pale,shell);
 box("Entrance left pier",-2,1.35,-HALF,.35,2.7,.42,M.wall,shell);
 box("Entrance right pier",2,1.35,-HALF,.35,2.7,.42,M.wall,shell);
 box("Entrance canopy",0,2.8,-HALF,4.6,.22,1.1,M.teal,shell);
@@ -185,12 +185,64 @@ loadHumanoid(characterAssets.patient,patientNpc,1.62,false);
 const nurseNpc=new pc.Entity("Clinic nurse");nurseNpc.setPosition(5.5,0,-1.2);world.addChild(nurseNpc);
 loadHumanoid(characterAssets.nurse,nurseNpc,1.68,false);
 
-let mode:"move"|"build"="move", selected:BuildKind="wall", target:pc.Vec3|null=null, coins=100000, xp=0, nextId=2, focus=false, wallRotation:0|90=0;
+let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=100000, xp=0, nextId=2, focus=false, wallRotation:0|90=0;
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v2";const entities:pc.Entity[]=[];
-const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22};
+const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
+const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
+ "pt-treatment-table":{file:"physical-therapy-room-set.glb",node:"TreatmentTable",label:"سرير علاج طبيعي",cost:90,footprint:3,targetSize:2.15},
+ "pt-parallel-bars":{file:"physical-therapy-room-set.glb",node:"ParallelBars",label:"جهاز المتوازي",cost:100,footprint:3,targetSize:2.8},
+ "pt-band-rack":{file:"physical-therapy-room-set.glb",node:"BandRack",label:"حامل أحزمة المقاومة",cost:35,footprint:2,targetSize:1.5},
+ "pt-exercise-ball":{file:"physical-therapy-room-set.glb",node:"ExerciseBall",label:"كرة علاجية",cost:20,footprint:1,targetSize:.72},
+ "pt-exercise-mat":{file:"physical-therapy-room-set.glb",node:"ExerciseMat",label:"بساط تمارين",cost:25,footprint:2,targetSize:2.2},
+ "pt-hand-weights":{file:"physical-therapy-room-set.glb",node:"HandWeights",label:"أوزان علاجية",cost:30,footprint:2,targetSize:1.2},
+ "pt-privacy-curtain":{file:"physical-therapy-room-set.glb",node:"PrivacyCurtain",label:"ستارة خصوصية",cost:45,footprint:3,targetSize:2.8},
+ "pt-storage-cabinet":{file:"physical-therapy-room-set.glb",node:"StorageCabinet",label:"خزانة أدوات",cost:40,footprint:1,targetSize:1.1},
+ "hospital-crutches":{file:"hospital-equipment-set.glb",node:"Crutches",label:"عكازات طبية",cost:18,footprint:1,targetSize:1.35},
+ "hospital-first-aid":{file:"hospital-equipment-set.glb",node:"FirstAidBag",label:"حقيبة إسعافات",cost:15,footprint:1,targetSize:.65},
+ "hospital-oxygen":{file:"hospital-equipment-set.glb",node:"OxygenTrolley",label:"عربة أكسجين",cost:55,footprint:1,targetSize:1.15},
+ "hospital-stretcher":{file:"hospital-equipment-set.glb",node:"Stretcher",label:"نقالة طبية",cost:75,footprint:3,targetSize:2.7},
+ "hospital-transport-chair":{file:"hospital-equipment-set.glb",node:"TransportChair",label:"كرسي نقل مرضى",cost:55,footprint:2,targetSize:1.25},
+ "hospital-walking-frame":{file:"hospital-equipment-set.glb",node:"WalkingFrame",label:"مشاية طبية",cost:35,footprint:2,targetSize:1.15}
+};
+const containerCache=new Map<string,Promise<any>>();
+function getClinicContainer(url:string):Promise<any>{
+ let pending=containerCache.get(url);
+ if(!pending){
+  pending=new Promise((resolve,reject)=>app.assets.loadFromUrl(url,"container",(err,asset)=>err||!asset?.resource?reject(err??new Error("Asset unavailable")):resolve(asset)));
+  containerCache.set(url,pending);
+ }
+ return pending;
+}
+function loadClinicAsset(p:Placed){
+ const spec=p.assetKey?storeAssetSpecs[p.assetKey]:undefined;
+ if(!spec)return;
+ const url=new URL("../assets/clinic-kit/hospital/"+spec.file,import.meta.url).href;
+ getClinicContainer(url).then(asset=>{
+  const container=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
+  const chosen=container.children.find((child:pc.Entity)=>child.name===spec.node);
+  if(!chosen){container.destroy();throw new Error("Missing model node "+spec.node);}
+  container.removeChild(chosen);container.destroy();
+  const size=spec.footprint,holder=new pc.Entity("3D asset · "+spec.label);
+  holder.setPosition(p.gx+size/2,0,p.gz+size/2);world.addChild(holder);holder.addChild(chosen);
+  chosen.setLocalPosition(0,0,0);chosen.setLocalEulerAngles(0,p.rot??0,0);
+  holder.syncHierarchy();app.root.syncHierarchy();
+  const getBounds=()=>{
+   const meshes=chosen.findComponents("render").flatMap(r=>r.meshInstances);
+   let minX=Infinity,maxX=-Infinity,minY=Infinity,minZ=Infinity,maxZ=-Infinity;
+   for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
+   return {minX,maxX,minY,maxY,minZ,maxZ};
+  };
+  const before=getBounds(),scale=spec.targetSize/Math.max(before.maxX-before.minX,before.maxZ-before.minZ,.01);
+  chosen.setLocalScale(scale,scale,scale);holder.syncHierarchy();app.root.syncHierarchy();
+  const b=getBounds();
+  chosen.setLocalPosition(holder.getPosition().x-(b.minX+b.maxX)/2,-b.minY,holder.getPosition().z-(b.minZ+b.maxZ)/2);
+  holder.syncHierarchy();app.root.syncHierarchy();
+ }).catch(error=>{console.error("Clinic store asset failed",spec.label,error);status.textContent="تعذر تحميل "+spec.label+"؛ تأكد من الاتصال ثم أعد المحاولة.";});
+}
+
 function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:2,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function load(){try{const s=localStorage.getItem(saveKey);if(!s)return;const v=JSON.parse(s);if(v.v!==2)return;coins=100000;xp=Number.isFinite(v.xp)?v.xp:0;placed=Array.isArray(v.placed)?v.placed.slice(0,60):[];coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";for(const p of placed)drawPlaced(p);}catch{}}
-function drawPlaced(p:Placed){const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"||p.kind==="gym"||p.kind==="treatment"){const r=makeRoom(p.kind,p.gx,p.gz,p.id);entities.push(r);return;}
+function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"||p.kind==="gym"||p.kind==="treatment"){const r=makeRoom(p.kind,p.gx,p.gz,p.id);entities.push(r);return;}
  const root=new pc.Entity("Placed "+p.kind);
  if(p.kind==="wall")root.setPosition(p.rot===90?p.gx+1.5: x,0,p.rot===90?z:p.gz+1.5);
  else root.setPosition(x,0,z);
@@ -207,7 +259,7 @@ function drawPlaced(p:Placed){const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"|
  if(p.kind==="wall"){box("Interior partition",0,1.3,0,1,.12,2.6,M.wall,root);box("Wall teal trim",0,.22,.07,1,.12,.08,M.teal,root);box("Wall cap",0,2.62,0,1.05,.12,.18,M.white,root);}
  if(p.kind==="door"){box("Door left jamb",-.43,1.25,0,.12,2.5,.18,M.white,root);box("Door right jamb",.43,1.25,0,.12,2.5,.18,M.white,root);box("Door lintel",0,2.48,0,1,.16,.18,M.white,root);box("Door leaf",-.22,1.08,.09,.42,2.12,.055,M.wood2,root);}
 }
-function footprint(kind:BuildKind){return kind==="treatment"||kind==="reception"||kind==="gym"?4:1;}
+function footprint(kind:BuildKind,assetKey?:string){if(kind==="asset")return storeAssetSpecs[assetKey??""]?.footprint??1;return kind==="treatment"||kind==="reception"||kind==="gym"?4:1;}
 function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0){
  const size=footprint(kind);
  if(kind==="wall")return rot===0?{x:gx+.42,z:gz,w:.16,d:3}:{x:gx,z:gz+1.42,w:3,d:.16};
@@ -220,7 +272,7 @@ function occupied(gx:number,gz:number,kind:BuildKind){
  const a=footprintAt(gx,gz,kind);
  if(a.x< -HALF||a.z< -HALF||a.x+a.w>HALF||a.z+a.d>HALF)return true;
  if(rectanglesOverlap(a,starterFootprint))return true;
- return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot)));
+ return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey)));
 }
 function canAvatarStand(x:number,z:number){
  const r=.28;
@@ -234,7 +286,7 @@ function canAvatarStand(x:number,z:number){
    const walls=[{x:x,z:z+2.9,w:4,d:.16},{x:x,z:z,w:.16,d:4},{x:x+3.9,z:z,w:.16,d:4},{x:x+.0,z:z-.05,w:.55,d:.14},{x:x+2.05,z:z-.05,w:1.95,d:.14}];
    return walls.some(w=>rectanglesOverlap(player,w));
   }
-  return rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot));
+  return rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey));
  });
 }
 function findWalkPath(sx:number,sz:number,tx:number,tz:number){
@@ -281,12 +333,12 @@ function screenToGround(clientX:number,clientY:number){const r=canvas.getBoundin
 let pointerStart:{x:number;y:number;cx:number;cz:number;tx:number;tz:number}|null=null,dragged=false;const activePointers=new Map<number,{x:number;y:number}>();let pinchDistance=0,pinchHeight=0;
 canvas.addEventListener("pointerdown",e=>{activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size===2){const pts=[...activePointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);pinchHeight=camera.camera!.orthoHeight;pointerStart=null;dragged=true;}else{pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};dragged=false;}canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)camera.camera!.orthoHeight=Math.max(9,Math.min(16,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraTarget.set(Math.max(-5,Math.min(5,pointerStart.tx+shiftX)),0,Math.max(-5,Math.min(5,pointerStart.tz+shiftZ)));camera.setPosition(cameraTarget.x+11,15,cameraTarget.z+11);camera.lookAt(cameraTarget);}});
-canvas.addEventListener("pointerup",e=>{activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;if(!pointerStart){if(activePointers.size===1){const p=[...activePointers.values()][0];pointerStart={x:p.x,y:p.y,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};}else dragged=false;return;}const wasDrag=dragged;pointerStart=null;if(wasDrag)return;const p=screenToGround(e.clientX,e.clientY);if(!p)return;if(mode==="build"){const gx=Math.floor(p.x),gz=Math.floor(p.z);if(occupied(gx,gz,selected)){status.textContent="هذه الخلية مشغولة. اختر مساحة فارغة بجوارها.";return;}const cost=costs[selected];if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}coins-=cost;coinsLabel.textContent=String(coins);const item={id:nextId++,kind:selected,gx,gz,rot:(selected==="wall"||selected==="door")?wallRotation:0 as 0|90};placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;}const tx=Math.round(p.x*2)/2,tz=Math.round(p.z*2)/2;const route=findWalkPath(avatar.getPosition().x,avatar.getPosition().z,tx,tz);if(!route||!route.length){status.textContent="لم أجد ممراً آمناً إلى هذه النقطة. اختر مكاناً أقرب أو ممراً أوسع.";return;}walkPath=route;const first=walkPath.shift()!;target=new pc.Vec3(first.x,0,first.z);status.textContent="الأخصائي يسلك أقرب ممر متاح.";});
+canvas.addEventListener("pointerup",e=>{activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;if(!pointerStart){if(activePointers.size===1){const p=[...activePointers.values()][0];pointerStart={x:p.x,y:p.y,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};}else dragged=false;return;}const wasDrag=dragged;pointerStart=null;if(wasDrag)return;const p=screenToGround(e.clientX,e.clientY);if(!p)return;if(mode==="build"){const gx=Math.floor(p.x),gz=Math.floor(p.z);if(selected==="asset"&&!selectedAssetKey){status.textContent="اختر أصلاً من المتجر أولاً.";return;}if(occupied(gx,gz,selected,wallRotation,selectedAssetKey??undefined)){status.textContent="هذه الخلايا مشغولة. اختر مساحة فارغة بجوارها.";return;}const cost=selected==="asset"&&selectedAssetKey?storeAssetSpecs[selectedAssetKey].cost:costs[selected];if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}coins-=cost;coinsLabel.textContent=String(coins);const item:Placed={id:nextId++,kind:selected,gx,gz,rot:(selected==="wall"||selected==="door")?wallRotation:0,assetKey:selected==="asset"?selectedAssetKey??undefined:undefined};placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;}const tx=Math.round(p.x*2)/2,tz=Math.round(p.z*2)/2;const route=findWalkPath(avatar.getPosition().x,avatar.getPosition().z,tx,tz);if(!route||!route.length){status.textContent="لم أجد ممراً آمناً إلى هذه النقطة. اختر مكاناً أقرب أو ممراً أوسع.";return;}walkPath=route;const first=walkPath.shift()!;target=new pc.Vec3(first.x,0,first.z);status.textContent="الأخصائي يسلك أقرب ممر متاح.";});
 canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;});
-function selectBuild(kind:BuildKind){selected=kind;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}
+function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}\nfunction selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));el("#build-hint").textContent="تم اختيار "+spec.label+" من الأصول ثلاثية الأبعاد. يحتاج مساحة "+spec.footprint+"×"+spec.footprint+" خلايا.";}
 moveBtn.addEventListener("click",()=>updateMode("move"));buildBtn.addEventListener("click",()=>updateMode(mode==="build"?"move":"build"));el("#cancel-build").addEventListener("click",()=>updateMode("move"));
-document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEventListener("click",()=>selectBuild(b.dataset.build as BuildKind)));
-document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";el("#catalog-furniture").hidden=cat!=="furniture";selectBuild(cat==="structure"?"wall":cat==="rooms"?"reception":"chair");}));
+document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEventListener("click",()=>selectBuild(b.dataset.build as BuildKind)));\ndocument.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEventListener("click",()=>selectAsset(b.dataset.asset??"")));
+document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";el("#catalog-furniture").hidden=cat!=="furniture";if(cat==="structure")selectBuild("wall");else if(cat==="rooms")selectBuild("reception");else selectAsset("pt-treatment-table");}));
 el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;status.textContent="اتجاه الحائط الآن "+(wallRotation===0?"أفقي":"رأسي")+". اختر الخلية التالية.";});
 viewBtn.addEventListener("click",()=>{focus=!focus;cameraTarget.set(0,0,0);camera.setPosition(cameraTarget.x+(focus?8.5:11),focus?12:15,cameraTarget.z+(focus?8.5:11));camera.lookAt(cameraTarget);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
 let sessionStep=0,sessionScore=0;
