@@ -96,8 +96,7 @@ loadClinicProp("hospital-bed-bay.glb","Treatment beds",-7,-6,4.4);
 const avatar=new pc.Entity("Student avatar");avatar.setPosition(-1,0,1.7);world.addChild(avatar);
 box("Avatar torso",0,.95,0,.42,.72,.32,M.teal,avatar);sphere("Avatar head",0,1.52,0,.34,M.skin,avatar);box("Avatar hair",0,1.69,-.02,.34,.12,.34,M.dark,avatar);
 for(const side of [-1,1]){box("Avatar leg",side*.12,.42,0,.15,.52,.17,M.blue,avatar);box("Avatar shoe",side*.12,.12,.08,.17,.15,.3,M.dark,avatar);box("Avatar arm",side*.28,.98,0,.14,.52,.14,M.skin,avatar);}
-box("Avatar torso",0,.95,0,.42,.72,.32,M.teal,avatar);sphere("Avatar head",0,1.52,0,.34,M.skin,avatar);box("Avatar hair",0,1.69,-.02,.34,.12,.34,M.dark,avatar);
-box("Avatar foot",-.12,.12,.06,.15,.18,.28,M.dark,avatar);box("Avatar foot",.12,.12,.06,.15,.18,.28,M.dark,avatar);
+
 let mode:"move"|"build"="move", selected:BuildKind="reception", target:pc.Vec3|null=null, coins=100000, xp=0, nextId=2, focus=false;
 let placed:Placed[]=[];const saveKey="therason-clinic-world-v2";const entities:pc.Entity[]=[];
 const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25};
