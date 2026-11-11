@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#08152f" />
+    <title>PlayCanvas Prototype — THERASON CLINIC</title>
+  </head>
+  <body>
+    <main class="demo-shell">
+      <header class="demo-head">
+        <a href="/">← Engines</a>
+        <div><span class="eyebrow">PROTOTYPE A</span><h1>PlayCanvas</h1></div>
+        <span class="fps" id="fps">-- FPS</span>
+      </header>
+      <div class="stage"><canvas id="scene" aria-label="Interactive PlayCanvas clinic prototype"></canvas></div>
+      <section class="controls">
+        <p id="status">Tap the floor to move. Use build mode to place a block.</p>
+        <button id="build" type="button">Build mode: off</button>
+        <button id="reset" type="button">Reset avatar</button>
+      </section>
+      <p class="footnote">First-pass benchmark scene · stylized primitives · no external assets</p>
+    </main>
+    <script type="module" src="/src/playcanvas/main.ts"></script>
+  </body>
+</html>
