@@ -65,7 +65,7 @@ function loadClinicModel(url:string,name:string,centerX:number,centerZ:number,ta
   model.syncHierarchy();status.textContent="تم تحميل غرفة العلاج ثلاثية الأبعاد.";if(onReady)onReady();
  });
 }
-loadClinicModel("/assets/clinic-kit/hospital/physical-therapy-room-set.glb","Physical therapy room",-1,-1,4.7,()=>{loading.classList.add("done");});
+loadClinicModel(new URL("../assets/clinic-kit/hospital/physical-therapy-room-set.glb",import.meta.url).href,"Physical therapy room",-1,-1,4.7,()=>{loading.classList.add("done");});
 const avatar=new pc.Entity("Student avatar");avatar.setPosition(-1,0,2.0);world.addChild(avatar);
 box("Avatar torso",0,.95,0,.42,.72,.32,M.teal,avatar);sphere("Avatar head",0,1.52,0,.34,M.skin,avatar);box("Avatar hair",0,1.69,-.02,.34,.12,.34,M.dark,avatar);
 box("Avatar foot",-.12,.12,.06,.15,.18,.28,M.dark,avatar);box("Avatar foot",.12,.12,.06,.15,.18,.28,M.dark,avatar);
