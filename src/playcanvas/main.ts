@@ -46,7 +46,8 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
  }
  return root;
 }
-function loadClinicModel(url:string,name:string,centerX:number,centerZ:number,targetWidth:number,onReady?:()=>void){\n const fallback=()=>{makeRoom("treatment",-3,-3,1);loading.classList.add("done");};
+function loadClinicModel(url:string,name:string,centerX:number,centerZ:number,targetWidth:number,onReady?:()=>void){
+ const fallback=()=>{makeRoom("treatment",-3,-3,1);loading.classList.add("done");};
  app.assets.loadFromUrl(url,"container",(err,asset)=>{
   if(err||!asset?.resource){status.textContent="تعذر تحميل النموذج ثلاثي الأبعاد؛ تم تشغيل التصميم الاحتياطي.";fallback();return;}
   const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
