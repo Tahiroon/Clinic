@@ -1,7 +1,7 @@
 import * as pc from "playcanvas";
 import "../style.css";
 
-type BuildKind = "treatment" | "reception" | "gym" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug";
+type BuildKind = "treatment" | "reception" | "gym" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door";
 type Placed = { id:number; kind:BuildKind; gx:number; gz:number };
 const el=<T extends HTMLElement>(s:string)=>document.querySelector<T>(s)!;
 const canvas=el<HTMLCanvasElement>("#scene"), status=el<HTMLElement>("#status"), fpsLabel=el<HTMLElement>("#fps"), loading=el<HTMLElement>("#loading");
@@ -32,11 +32,30 @@ const camera=new pc.Entity("Portrait isometric camera");camera.addComponent("cam
 const light=new pc.Entity("Soft daylight");light.addComponent("light",{type:"directional",intensity:1.35,castShadows:true,shadowResolution:1024,shadowType:pc.SHADOW_PCF3});light.setEulerAngles(48,35,0);app.root.addChild(light);
 const world=new pc.Entity("Clinic plot");app.root.addChild(world);
 const GRID=1, W=32, D=32, HALF=W/2;
-box("Land foundation",0,-.27,0,W,.5,D,M.ground,world);
-box("Clinic lawn",0,-.005,0,W-.25,.035,D-.25,M.tile,world);
-for(let x=-HALF;x<=HALF;x++)box("Build grid line",x,.012,0,.012,.012,D,M.grid,world);
-for(let z=-HALF;z<=HALF;z++)box("Build grid line",0,.012,z,W,.012,.012,M.grid,world);
-const roomRoot=new pc.Entity("Starter treatment room");world.addChild(roomRoot);
+const floorBase=material(new pc.Color(.72,.75,.72)),floorTile=material(new pc.Color(.82,.84,.8)),floorAlt=material(new pc.Color(.76,.8,.77)),gridLine=material(new pc.Color(.57,.64,.62)),glass=material(new pc.Color(.35,.72,.79));
+box("Clinic structural slab",0,-.22,0,W,.42,D,floorBase,world);
+for(let x=-HALF+2;x<HALF;x+=4)for(let z=-HALF+2;z<HALF;z+=4)box("Porcelain floor tile",x,-.002,z,3.96,.025,3.96,((x+z)%8===0)?floorAlt:floorTile,world);
+for(let x=-HALF;x<=HALF;x++)box("Subtle construction grid",x,.014,0,.008,.008,D,gridLine,world);
+for(let z=-HALF;z<=HALF;z++)box("Subtle construction grid",0,.014,z,W,.008,.008,gridLine,world);
+// Permanent outer shell: a real clinic perimeter with layered wall bands, glazing and structural columns.
+const shell=new pc.Entity("Clinic architectural shell");world.addChild(shell);
+for(const z of [-HALF,HALF]){
+ box("Exterior wall lower",0,1.25,z,W,2.5,.28,M.wall,shell);
+ box("Exterior teal dado",0,.28,z-.02,W,.18,.32,M.teal,shell);
+ box("Exterior wall cap",0,2.55,z,.35,.16,.42,M.white,shell);
+ for(let x=-12;x<=12;x+=4){box("Facade window",x,1.55,z-.16,2.35,1.05,.035,glass,shell);box("Window sill",x,1.0,z-.2,2.5,.09,.16,M.white,shell);box("Window mullion",x,1.55,z-.23,.045,1.05,.04,M.wall,shell);}
+}
+for(const x of [-HALF,HALF]){
+ box("Exterior side wall",x,1.25,0,.28,2.5,D,M.wall,shell);
+ box("Side teal dado",x-.02,.28,0,.32,.18,D,M.teal,shell);
+ for(let z=-12;z<=12;z+=4){box("Side facade window",x-.16,1.55,z,.035,1.05,2.35,glass,shell);box("Side window sill",x-.2,1.0,z,.16,.09,2.5,M.white,shell);}
+}
+for(const x of [-15.8,15.8])for(const z of [-15.8,15.8])box("Structural corner column",x,1.5,z,.48,3,.48,M.pale,shell);
+box("Entrance left pier",-2,1.35,-HALF,.35,2.7,.42,M.wall,shell);
+box("Entrance right pier",2,1.35,-HALF,.35,2.7,.42,M.wall,shell);
+box("Entrance canopy",0,2.8,-HALF,4.6,.22,1.1,M.teal,shell);
+box("Clinic entrance sign",0,3.05,-HALF-.05,2.4,.42,.08,M.white,shell);
+const roomRoot=new pc.Entity("Open clinic interior");world.addChild(roomRoot);
 function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:number){
  const root=new pc.Entity("Room "+id);root.setPosition(gx,0,gz);world.addChild(root);
  const floor=kind==="gym"?material(new pc.Color(.45,.57,.59)):M.room;
@@ -79,32 +98,7 @@ function loadClinicModel(url:string,name:string,centerX:number,centerZ:number,ta
   model.syncHierarchy();status.textContent="تم تحميل غرفة العلاج ثلاثية الأبعاد.";if(onReady)onReady();
  });
 }
-// Vite bundles this licensed model with the game instead of exposing a standalone public download.
-const starterRoomAsset=new URL("../assets/clinic-kit/hospital/physical-therapy-room-set.glb",import.meta.url).href;
-loadClinicModel(starterRoomAsset,"Physical therapy room",-1,-1,4.7,()=>{loading.classList.add("done");});
-
-function loadClinicProp(file:string,label:string,x:number,z:number,width:number){
- const url=new URL("../assets/clinic-kit/hospital/"+file,import.meta.url).href;
- app.assets.loadFromUrl(url,"container",(err,asset)=>{
-  if(err||!asset?.resource)return;
-  const entity=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
-  entity.name=label;world.addChild(entity);entity.syncHierarchy();app.root.syncHierarchy();
-  const meshes=entity.findComponents("render").flatMap(r=>r.meshInstances);
-  if(!meshes.length){entity.destroy();return;}
-  let minX=Infinity,maxX=-Infinity,minY=Infinity,minZ=Infinity,maxZ=-Infinity;
-  for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
-  const scale=width/Math.max(maxX-minX,maxZ-minZ,.001);entity.setLocalScale(scale,scale,scale);entity.syncHierarchy();app.root.syncHierarchy();
-  const all=entity.findComponents("render").flatMap(r=>r.meshInstances);minX=Infinity;maxX=-Infinity;minY=Infinity;minZ=Infinity;maxZ=-Infinity;
-  for(const mesh of all){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
-  entity.setPosition(x-(minX+maxX)/2,-minY,z-(minZ+maxZ)/2);
- });
-}
-loadClinicProp("hospital-waiting-room.glb","Waiting room",5,4,5.5);
-loadClinicProp("hospital-reception-desk.glb","Reception desk asset",5,-3,3.2);
-loadClinicProp("hospital-equipment-set.glb","Therapy equipment", -7,5,4.2);
-loadClinicProp("hospital-signage-set.glb","Clinic signage",1,7,3.4);
-loadClinicProp("hospital-bed-bay.glb","Treatment beds",-7,-6,4.4);
-
+// The starter clinic is intentionally an open, empty architectural shell; students design their own rooms.
 const avatar=new pc.Entity("Student avatar");avatar.setPosition(-1,0,1.7);world.addChild(avatar);
 let avatarAnim:any=null;let avatarClipNames=new Set<string>();
 const characterAssets:Record<string,string>={
@@ -144,7 +138,7 @@ loadHumanoid(characterAssets.patient,patientNpc,1.62);
 
 let mode:"move"|"build"="move", selected:BuildKind="reception", target:pc.Vec3|null=null, coins=100000, xp=0, nextId=2, focus=false;
 let placed:Placed[]=[];const saveKey="therason-clinic-world-v2";const entities:pc.Entity[]=[];
-const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25};
+const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22};
 function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:2,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function load(){try{const s=localStorage.getItem(saveKey);if(!s)return;const v=JSON.parse(s);if(v.v!==2)return;coins=100000;xp=Number.isFinite(v.xp)?v.xp:0;placed=Array.isArray(v.placed)?v.placed.slice(0,60):[];coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";for(const p of placed)drawPlaced(p);}catch{}}
 function drawPlaced(p:Placed){const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"||p.kind==="gym"||p.kind==="treatment"){const r=makeRoom(p.kind,p.gx,p.gz,p.id);entities.push(r);return;}
@@ -158,11 +152,13 @@ function drawPlaced(p:Placed){const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"|
  if(p.kind==="wallbars"){for(let i=0;i<6;i++)box("Wall bar",0,.35+i*.2,0,.85,.045,.05,M.wood2,root);for(const x of [-.42,.42])box("Wall frame",x,.85,0,.06,1.2,.07,M.wood,root);}
  if(p.kind==="lamp"){box("Lamp base",0,.06,0,.35,.1,.35,M.dark,root);box("Lamp stem",0,.62,0,.07,1.1,.07,M.wood2,root);sphere("Lamp shade",0,1.2,0,.25,M.yellow,root);}
  if(p.kind==="rug"){box("Exercise rug",0,.035,0,.95,.06,.95,M.blue,root);}
+ if(p.kind==="wall"){box("Interior partition",0,1.3,0,1,.12,2.6,M.wall,root);box("Wall teal trim",0,.22,.07,1,.12,.08,M.teal,root);box("Wall cap",0,2.62,0,1.05,.12,.18,M.white,root);}
+ if(p.kind==="door"){box("Door left jamb",-.43,1.25,0,.12,2.5,.18,M.white,root);box("Door right jamb",.43,1.25,0,.12,2.5,.18,M.white,root);box("Door lintel",0,2.48,0,1,.16,.18,M.white,root);box("Door leaf",-.22,1.08,.09,.42,2.12,.055,M.wood2,root);}
 }
 function footprint(kind:BuildKind){return kind==="treatment"||kind==="reception"||kind==="gym"?4:1;}
 function footprintAt(gx:number,gz:number,kind:BuildKind){return {x:gx,z:gz,w:footprint(kind),d:footprint(kind)};}
 function rectanglesOverlap(a:{x:number;z:number;w:number;d:number},b:{x:number;z:number;w:number;d:number}){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.z<b.z+b.d&&a.z+a.d>b.z;}
-const starterFootprint={x:-3,z:-3,w:4,d:4};
+const starterFootprint={x:99,z:99,w:0,d:0};
 function occupied(gx:number,gz:number,kind:BuildKind){
  const a=footprintAt(gx,gz,kind);
  if(a.x< -HALF||a.z< -HALF||a.x+a.w>HALF||a.z+a.d>HALF)return true;
@@ -173,9 +169,9 @@ function canAvatarStand(x:number,z:number){
  const r=.22;
  if(x-r< -HALF||x+r>HALF||z-r< -HALF||z+r>HALF)return false;
  const player={x:x-r,z:z-r,w:r*2,d:r*2};
- const roomWalls=[{x:-3,z:-3,w:4,d:.16},{x:-3,z:.84,w:4,d:.16},{x:-3,z:-3,w:.16,d:4},{x:.84,z:-3,w:.16,d:4}];
+ const roomWalls=[{x:-HALF,z:-HALF,w:W,d:.18},{x:-HALF,z:HALF-.18,w:W,d:.18},{x:-HALF,z:-HALF,w:.18,d:D},{x:HALF-.18,z:-HALF,w:.18,d:D}];
  if(roomWalls.some(w=>rectanglesOverlap(player,w)))return false;
- const starterFurniture=[{x:-1.1,z:-1.9,w:1.9,d:.9},{x:-2.5,z:-.8,w:.55,d:.55}];
+ const starterFurniture:{x:number;z:number;w:number;d:number}[]=[];
  if(starterFurniture.some(f=>rectanglesOverlap(player,f)))return false;
  return !placed.some(p=>rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind)));
 }
@@ -196,7 +192,7 @@ canvas.addEventListener("pointerdown",e=>{activePointers.set(e.pointerId,{x:e.cl
 canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)camera.camera!.orthoHeight=Math.max(9,Math.min(16,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraTarget.set(Math.max(-5,Math.min(5,pointerStart.tx+shiftX)),0,Math.max(-5,Math.min(5,pointerStart.tz+shiftZ)));camera.setPosition(cameraTarget.x+11,15,cameraTarget.z+11);camera.lookAt(cameraTarget);}});
 canvas.addEventListener("pointerup",e=>{activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;if(!pointerStart){if(activePointers.size===1){const p=[...activePointers.values()][0];pointerStart={x:p.x,y:p.y,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};}else dragged=false;return;}const wasDrag=dragged;pointerStart=null;if(wasDrag)return;const p=screenToGround(e.clientX,e.clientY);if(!p)return;if(mode==="build"){const gx=Math.floor(p.x),gz=Math.floor(p.z);if(occupied(gx,gz,selected)){status.textContent="هذه الخلية مشغولة. اختر مساحة فارغة بجوارها.";return;}const cost=costs[selected];if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}coins-=cost;coinsLabel.textContent=String(coins);const item={id:nextId++,kind:selected,gx,gz};placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;}const tx=Math.round(p.x*2)/2,tz=Math.round(p.z*2)/2;if(!canAvatarStand(tx,tz)){status.textContent="المكان محجوز بجدار أو جهاز. اختر ممراً خالياً.";return;}target=new pc.Vec3(tx,0,tz);status.textContent="شخصيتك تتحرك إلى الموقع المحدد.";});
 canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;});
-function selectBuild(kind:BuildKind){selected=kind;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة في الشبكة لوضعها.";}
+function selectBuild(kind:BuildKind){selected=kind;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}
 moveBtn.addEventListener("click",()=>updateMode("move"));buildBtn.addEventListener("click",()=>updateMode(mode==="build"?"move":"build"));el("#cancel-build").addEventListener("click",()=>updateMode("move"));
 document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEventListener("click",()=>selectBuild(b.dataset.build as BuildKind)));
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const rooms=b.dataset.category==="rooms";el("#catalog-rooms").hidden=!rooms;el("#catalog-furniture").hidden=rooms;selectBuild(rooms?"reception":"chair");}));
