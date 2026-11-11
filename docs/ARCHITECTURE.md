@@ -1,6 +1,6 @@
 # THERASON CLINIC — Technical Architecture
 
-**Status:** Initial proposal | **Branch:** clinic-dev
+**Status:** Active implementation | **Selected engine:** PlayCanvas | **Branch:** clinic-dev
 
 ## Goals
 1. Separate 3D runtime from clinical learning rules.
