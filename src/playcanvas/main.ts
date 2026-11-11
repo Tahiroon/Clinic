@@ -1,7 +1,7 @@
 import * as pc from "playcanvas";
 import "../style.css";
 
-type BuildKind = "treatment" | "reception" | "gym" | "chair" | "plant" | "cabinet";
+type BuildKind = "treatment" | "reception" | "gym" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug";
 type Placed = { id:number; kind:BuildKind; gx:number; gz:number };
 const el=<T extends HTMLElement>(s:string)=>document.querySelector<T>(s)!;
 const canvas=el<HTMLCanvasElement>("#scene"), status=el<HTMLElement>("#status"), fpsLabel=el<HTMLElement>("#fps"), loading=el<HTMLElement>("#loading");
@@ -100,7 +100,7 @@ box("Avatar torso",0,.95,0,.42,.72,.32,M.teal,avatar);sphere("Avatar head",0,1.5
 box("Avatar foot",-.12,.12,.06,.15,.18,.28,M.dark,avatar);box("Avatar foot",.12,.12,.06,.15,.18,.28,M.dark,avatar);
 let mode:"move"|"build"="move", selected:BuildKind="reception", target:pc.Vec3|null=null, coins=100000, xp=0, nextId=2, focus=false;
 let placed:Placed[]=[];const saveKey="therason-clinic-world-v2";const entities:pc.Entity[]=[];
-const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30};
+const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25};
 function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:2,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function load(){try{const s=localStorage.getItem(saveKey);if(!s)return;const v=JSON.parse(s);if(v.v!==2)return;coins=100000;xp=Number.isFinite(v.xp)?v.xp:0;placed=Array.isArray(v.placed)?v.placed.slice(0,60):[];coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";for(const p of placed)drawPlaced(p);}catch{}}
 function drawPlaced(p:Placed){const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"||p.kind==="gym"||p.kind==="treatment"){const r=makeRoom(p.kind,p.gx,p.gz,p.id);entities.push(r);return;}
@@ -108,6 +108,12 @@ function drawPlaced(p:Placed){const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"|
  if(p.kind==="chair"){box("Chair seat",0,.38,0,.6,.15,.6,M.teal,root);box("Chair back",0,.75,-.22,.6,.6,.13,M.blue,root);for(const a of [-.22,.22])for(const b of [-.22,.22])box("Chair leg",a,.16,b,.06,.32,.06,M.dark,root);}
  if(p.kind==="plant"){box("Plant pot",0,.2,0,.38,.4,.38,M.wood2,root);sphere("Plant leaves",0,.72,0,.52,M.green,root);sphere("Plant leaf",.2,.88,.04,.3,M.green,root);}
  if(p.kind==="cabinet"){box("Cabinet body",0,.6,0,.7,1.2,.42,M.wood2,root);box("Cabinet door",0,.6,.22,.62,1.08,.03,M.wood,root);}
+ if(p.kind==="parallel"){for(const x of [-.28,.28]){box("Parallel support",x,.48,0,.07,.9,.07,M.wood2,root);box("Parallel rail",x,.94,0,.07,.07,.95,M.yellow,root);}}
+ if(p.kind==="bike"){box("Bike frame",0,.48,0,.08,.75,.08,M.dark,root);sphere("Bike wheel",-.28,.35,0,.34,M.dark,root);sphere("Bike wheel",.28,.35,0,.34,M.dark,root);box("Bike seat",0,.85,-.12,.42,.1,.3,M.blue,root);box("Bike handle",0,.95,.3,.55,.07,.07,M.teal,root);}
+ if(p.kind==="treadmill"){box("Treadmill deck",0,.22,0,.85,.12,1.15,M.dark,root);box("Treadmill belt",0,.3,0,.72,.025,1.02,M.blue,root);for(const x of [-.35,.35])box("Treadmill post",x,.82,-.42,.07,1,.07,M.teal,root);box("Treadmill bar",0,1.28,-.42,.8,.08,.08,M.dark,root);}
+ if(p.kind==="wallbars"){for(let i=0;i<6;i++)box("Wall bar",0,.35+i*.2,0,.85,.045,.05,M.wood2,root);for(const x of [-.42,.42])box("Wall frame",x,.85,0,.06,1.2,.07,M.wood,root);}
+ if(p.kind==="lamp"){box("Lamp base",0,.06,0,.35,.1,.35,M.dark,root);box("Lamp stem",0,.62,0,.07,1.1,.07,M.wood2,root);sphere("Lamp shade",0,1.2,0,.25,M.yellow,root);}
+ if(p.kind==="rug"){box("Exercise rug",0,.035,0,.95,.06,.95,M.blue,root);}
 }
 function footprint(kind:BuildKind){return kind==="treatment"||kind==="reception"||kind==="gym"?4:1;}
 function footprintAt(gx:number,gz:number,kind:BuildKind){return {x:gx,z:gz,w:footprint(kind),d:footprint(kind)};}
@@ -146,7 +152,7 @@ canvas.addEventListener("pointerdown",e=>{activePointers.set(e.pointerId,{x:e.cl
 canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)camera.camera!.orthoHeight=Math.max(9,Math.min(16,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraTarget.set(Math.max(-5,Math.min(5,pointerStart.tx+shiftX)),0,Math.max(-5,Math.min(5,pointerStart.tz+shiftZ)));camera.setPosition(cameraTarget.x+11,15,cameraTarget.z+11);camera.lookAt(cameraTarget);}});
 canvas.addEventListener("pointerup",e=>{activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;if(!pointerStart){if(activePointers.size===1){const p=[...activePointers.values()][0];pointerStart={x:p.x,y:p.y,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};}else dragged=false;return;}const wasDrag=dragged;pointerStart=null;if(wasDrag)return;const p=screenToGround(e.clientX,e.clientY);if(!p)return;if(mode==="build"){const gx=Math.floor(p.x),gz=Math.floor(p.z);if(occupied(gx,gz,selected)){status.textContent="هذه الخلية مشغولة. اختر مساحة فارغة بجوارها.";return;}const cost=costs[selected];if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}coins-=cost;coinsLabel.textContent=String(coins);const item={id:nextId++,kind:selected,gx,gz};placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;}const tx=Math.round(p.x*2)/2,tz=Math.round(p.z*2)/2;if(!canAvatarStand(tx,tz)){status.textContent="المكان محجوز بجدار أو جهاز. اختر ممراً خالياً.";return;}target=new pc.Vec3(tx,0,tz);status.textContent="شخصيتك تتحرك إلى الموقع المحدد.";});
 canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;});
-function selectBuild(kind:BuildKind){selected=kind;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة في الشبكة لوضعها.";}
+function selectBuild(kind:BuildKind){selected=kind;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة في الشبكة لوضعها.";}
 moveBtn.addEventListener("click",()=>updateMode("move"));buildBtn.addEventListener("click",()=>updateMode(mode==="build"?"move":"build"));el("#cancel-build").addEventListener("click",()=>updateMode("move"));
 document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEventListener("click",()=>selectBuild(b.dataset.build as BuildKind)));
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const rooms=b.dataset.category==="rooms";el("#catalog-rooms").hidden=!rooms;el("#catalog-furniture").hidden=rooms;selectBuild(rooms?"reception":"chair");}));
