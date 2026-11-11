@@ -9,14 +9,14 @@ const stage=el<HTMLElement>(".stage"), moveBtn=el<HTMLButtonElement>("#move-mode
 const buildPanel=el<HTMLElement>("#build-panel"), saveState=el<HTMLElement>("#save-state"), coinsLabel=el<HTMLElement>("#coins"), sessionDialog=el<HTMLDialogElement>("#session-dialog");
 const app=new pc.Application(canvas,{graphicsDeviceOptions:{antialias:false,alpha:false,powerPreference:"low-power"}});
 app.setCanvasFillMode(pc.FILLMODE_NONE); app.setCanvasResolution(pc.RESOLUTION_AUTO); app.graphicsDevice.maxPixelRatio=Math.min(window.devicePixelRatio||1,1.15);
-const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;if(w>0&&h>0){app.resizeCanvas(w,h);camera.camera!.orthoHeight=Math.max(8.2,Math.min(13.5,12.2/(w/h)));}};
+const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;if(w>0&&h>0){app.resizeCanvas(w,h);camera.camera!.orthoHeight=Math.max(8.4,Math.min(10.2,9.4/(w/h)));}};
 const observer=new ResizeObserver(resize);observer.observe(stage);
 app.scene.ambientLight=new pc.Color(.78,.82,.86);
 function material(c:pc.Color){const m=new pc.StandardMaterial();m.diffuse=c;m.update();return m;}
 const M={ground:material(new pc.Color(.32,.48,.43)),tile:material(new pc.Color(.43,.59,.51)),grid:material(new pc.Color(.25,.4,.36)),room:material(new pc.Color(.78,.82,.79)),wall:material(new pc.Color(.88,.91,.86)),wallSide:material(new pc.Color(.53,.68,.69)),wood:material(new pc.Color(.48,.33,.23)),wood2:material(new pc.Color(.68,.49,.31)),teal:material(new pc.Color(.13,.48,.55)),blue:material(new pc.Color(.18,.35,.58)),pale:material(new pc.Color(.79,.9,.88)),green:material(new pc.Color(.2,.53,.36)),skin:material(new pc.Color(.7,.49,.36)),dark:material(new pc.Color(.1,.16,.21)),white:material(new pc.Color(.93,.94,.87)),yellow:material(new pc.Color(.85,.65,.27))};
 function box(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){const e=new pc.Entity(name);e.addComponent("model",{type:"box"});e.setPosition(x,y,z);e.setLocalScale(sx,sy,sz);e.model!.material=m;parent.addChild(e);return e;}
 function sphere(name:string,x:number,y:number,z:number,s:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){const e=new pc.Entity(name);e.addComponent("model",{type:"sphere"});e.setPosition(x,y,z);e.setLocalScale(s,s,s);e.model!.material=m;parent.addChild(e);return e;}
-const camera=new pc.Entity("Portrait isometric camera");camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:10,clearColor:new pc.Color(.55,.7,.72),nearClip:.1,farClip:150});camera.setPosition(12,15,12);camera.lookAt(0,0,0);app.root.addChild(camera);
+const camera=new pc.Entity("Portrait isometric camera");camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:10,clearColor:new pc.Color(.55,.7,.72),nearClip:.1,farClip:150});camera.setPosition(10,14,10);camera.lookAt(-1,0,-1);app.root.addChild(camera);
 const light=new pc.Entity("Soft daylight");light.addComponent("light",{type:"directional",intensity:1.15});light.setEulerAngles(48,35,0);app.root.addChild(light);
 const world=new pc.Entity("Clinic plot");app.root.addChild(world);
 const GRID=1, W=16, D=16, HALF=W/2;
@@ -46,8 +46,26 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
  }
  return root;
 }
-makeRoom("treatment",-3,-3,1);
-const avatar=new pc.Entity("Student avatar");avatar.setPosition(-1.8,0,1.0);world.addChild(avatar);
+function loadClinicModel(url:string,name:string,centerX:number,centerZ:number,targetWidth:number,onReady?:()=>void){
+ app.assets.loadFromUrl(url,"container",(err,asset)=>{
+  if(err||!asset?.resource){status.textContent="تعذر تحميل النموذج ثلاثي الأبعاد؛ سنستخدم التصميم الاحتياطي.";return;}
+  const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
+  model.name=name;world.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
+  const meshes=model.findComponents("render").flatMap(r=>r.meshInstances);
+  if(!meshes.length){model.destroy();status.textContent="النموذج لا يحتوي مجسمات قابلة للعرض.";return;}
+  let minX=Infinity,minY=Infinity,minZ=Infinity,maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
+  for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
+  const width=maxX-minX,depth=maxZ-minZ,scale=targetWidth/Math.max(width,depth,.001);
+  model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
+  const scaledMeshes=model.findComponents("render").flatMap(r=>r.meshInstances);
+  minY=Infinity;minX=Infinity;maxX=-Infinity;minZ=Infinity;maxZ=-Infinity;
+  for(const mesh of scaledMeshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
+  model.setPosition(centerX-(minX+maxX)/2,-minY,centerZ-(minZ+maxZ)/2);
+  model.syncHierarchy();status.textContent="تم تحميل غرفة العلاج ثلاثية الأبعاد.";if(onReady)onReady();
+ });
+}
+loadClinicModel("/assets/clinic-kit/hospital/physical-therapy-room-set.glb","Physical therapy room",-1,-1,4.7,()=>{loading.classList.add("done");});
+const avatar=new pc.Entity("Student avatar");avatar.setPosition(-1,0,2.0);world.addChild(avatar);
 box("Avatar torso",0,.95,0,.42,.72,.32,M.teal,avatar);sphere("Avatar head",0,1.52,0,.34,M.skin,avatar);box("Avatar hair",0,1.69,-.02,.34,.12,.34,M.dark,avatar);
 box("Avatar foot",-.12,.12,.06,.15,.18,.28,M.dark,avatar);box("Avatar foot",.12,.12,.06,.15,.18,.28,M.dark,avatar);
 let mode:"move"|"build"="move", selected:BuildKind="reception", target:pc.Vec3|null=null, coins=120, xp=0, nextId=2, focus=false;
@@ -66,14 +84,14 @@ function updateMode(next:"move"|"build"){mode=next;moveBtn.classList.toggle("act
 function screenToGround(clientX:number,clientY:number){const r=canvas.getBoundingClientRect(),x=(clientX-r.left)*(canvas.width/r.width),y=(clientY-r.top)*(canvas.height/r.height);const a=camera.camera!.screenToWorld(x,y,.1),b=camera.camera!.screenToWorld(x,y,100),d=b.sub(a);if(Math.abs(d.y)<.0001)return null;const t=-a.y/d.y;if(t<0)return null;const p=a.add(d.mulScalar(t));if(Math.abs(p.x)>HALF||Math.abs(p.z)>HALF)return null;return p;}
 let pointerStart:{x:number;y:number;cx:number;cz:number}|null=null,dragged=false;
 canvas.addEventListener("pointerdown",e=>{pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z};dragged=false;canvas.setPointerCapture(e.pointerId);});
-canvas.addEventListener("pointermove",e=>{if(!pointerStart||mode==="build")return;const dx=e.clientX-pointerStart.x,dy=e.clientY-(pointerStart.y);if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight);camera.setPosition(pointerStart.cx-dx*scale*.7,15,pointerStart.cz+dy*scale*.7);camera.lookAt(0,0,0);}});
+canvas.addEventListener("pointermove",e=>{if(!pointerStart||mode==="build")return;const dx=e.clientX-pointerStart.x,dy=e.clientY-(pointerStart.y);if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight);camera.setPosition(pointerStart.cx-dx*scale*.7,14,pointerStart.cz+dy*scale*.7);camera.lookAt(-1,0,-1);}});
 canvas.addEventListener("pointerup",e=>{if(!pointerStart)return;const wasDrag=dragged;pointerStart=null;if(wasDrag)return;const p=screenToGround(e.clientX,e.clientY);if(!p)return;if(mode==="build"){const gx=Math.floor(p.x),gz=Math.floor(p.z);if(occupied(gx,gz)){status.textContent="هذه الخلية مشغولة. اختر مساحة فارغة بجوارها.";return;}const cost=costs[selected];if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}coins-=cost;coinsLabel.textContent=String(coins);const item={id:nextId++,kind:selected,gx,gz};placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;}target=new pc.Vec3(Math.round(p.x*2)/2,0,Math.round(p.z*2)/2);status.textContent="شخصيتك تتحرك إلى الموقع المحدد.";});
 canvas.addEventListener("pointercancel",()=>{pointerStart=null;});
 function selectBuild(kind:BuildKind){selected=kind;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة في الشبكة لوضعها.";}
 moveBtn.addEventListener("click",()=>updateMode("move"));buildBtn.addEventListener("click",()=>updateMode(mode==="build"?"move":"build"));el("#cancel-build").addEventListener("click",()=>updateMode("move"));
 document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEventListener("click",()=>selectBuild(b.dataset.build as BuildKind)));
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const rooms=b.dataset.category==="rooms";el("#catalog-rooms").hidden=!rooms;el("#catalog-furniture").hidden=rooms;selectBuild(rooms?"reception":"chair");}));
-viewBtn.addEventListener("click",()=>{focus=!focus;camera.setPosition(focus?9:12,focus?12:15,focus?9:12);camera.lookAt(0,0,0);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
+viewBtn.addEventListener("click",()=>{focus=!focus;camera.setPosition(focus?7:10,focus?11:14,focus?7:10);camera.lookAt(-1,0,-1);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
 let sessionStep=0,sessionScore=0;
 const steps=[
  {title:"استقبال المريض",intro:"وصل مريض جديد إلى عيادتك. ابدأ الجلسة بخطوة آمنة ومنظمة.",question:"ما أول خطوة مناسبة؟",options:[["safe","التحقق من علامات الخطر وأخذ التاريخ المرضي",true,"اختيار ممتاز. سلامة المريض وجمع المعلومات يسبقان أي تدخل."],["exercise","بدء التمارين مباشرة",false,"لا تبدأ التدخل قبل فهم الحالة والتحقق من علامات الخطر."],["diagnosis","تحديد التشخيص النهائي فوراً",false,"المعلومات الحالية لا تكفي لتشخيص نهائي. ابدأ بالتقييم."]]},
