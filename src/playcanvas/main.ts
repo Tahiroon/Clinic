@@ -9,8 +9,20 @@ const stage=el<HTMLElement>(".stage"), moveBtn=el<HTMLButtonElement>("#move-mode
 const buildPanel=el<HTMLElement>("#build-panel"), saveState=el<HTMLElement>("#save-state"), coinsLabel=el<HTMLElement>("#coins"), sessionDialog=el<HTMLDialogElement>("#session-dialog");
 const app=new pc.Application(canvas,{graphicsDeviceOptions:{antialias:false,alpha:false,powerPreference:"low-power"}});
 app.setCanvasFillMode(pc.FILLMODE_NONE); app.setCanvasResolution(pc.RESOLUTION_AUTO); app.graphicsDevice.maxPixelRatio=Math.min(window.devicePixelRatio||1,1.15);
-const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;if(w>0&&h>0){app.resizeCanvas(w,h);camera.camera!.orthoHeight=12.8;}};
-const observer=new ResizeObserver(resize);observer.observe(stage);
+let lastViewportWidth=0,lastViewportHeight=0;
+const resize=()=>{
+ const rect=stage.getBoundingClientRect(),w=Math.round(rect.width),h=Math.round(rect.height);
+ if(w<2||h<2)return;
+ if(w===lastViewportWidth&&h===lastViewportHeight&&canvas.width>0)return;
+ lastViewportWidth=w;lastViewportHeight=h;
+ app.resizeCanvas(w,h);
+ const aspect=w/h;
+ camera.camera!.orthoHeight=aspect<.58?13.4:aspect<.78?13.0:12.4;
+};
+const observer=new ResizeObserver(()=>requestAnimationFrame(resize));observer.observe(stage);
+window.addEventListener("resize",()=>requestAnimationFrame(resize),{passive:true});
+window.addEventListener("orientationchange",()=>window.setTimeout(resize,120),{passive:true});
+window.visualViewport?.addEventListener("resize",()=>requestAnimationFrame(resize),{passive:true});
 app.scene.ambientLight=new pc.Color(.78,.82,.86);
 function material(c:pc.Color){const m=new pc.StandardMaterial();m.diffuse=c;m.update();return m;}
 const M={ground:material(new pc.Color(.32,.48,.43)),tile:material(new pc.Color(.43,.59,.51)),grid:material(new pc.Color(.25,.4,.36)),room:material(new pc.Color(.78,.82,.79)),wall:material(new pc.Color(.88,.91,.86)),wallSide:material(new pc.Color(.53,.68,.69)),wood:material(new pc.Color(.48,.33,.23)),wood2:material(new pc.Color(.68,.49,.31)),teal:material(new pc.Color(.13,.48,.55)),blue:material(new pc.Color(.18,.35,.58)),pale:material(new pc.Color(.79,.9,.88)),green:material(new pc.Color(.2,.53,.36)),skin:material(new pc.Color(.7,.49,.36)),dark:material(new pc.Color(.1,.16,.21)),white:material(new pc.Color(.93,.94,.87)),yellow:material(new pc.Color(.85,.65,.27))};
