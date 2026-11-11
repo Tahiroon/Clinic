@@ -23,13 +23,15 @@ const observer=new ResizeObserver(()=>requestAnimationFrame(resize));observer.ob
 window.addEventListener("resize",()=>requestAnimationFrame(resize),{passive:true});
 window.addEventListener("orientationchange",()=>window.setTimeout(resize,120),{passive:true});
 window.visualViewport?.addEventListener("resize",()=>requestAnimationFrame(resize),{passive:true});
-app.scene.ambientLight=new pc.Color(.78,.82,.86);
+app.scene.ambientLight=new pc.Color(.62,.68,.76);
+app.scene.gammaCorrection=pc.GAMMA_SRGB;
+app.scene.toneMapping=pc.TONEMAP_ACES;
 function material(c:pc.Color){const m=new pc.StandardMaterial();m.diffuse=c;m.update();return m;}
 const M={ground:material(new pc.Color(.32,.48,.43)),tile:material(new pc.Color(.43,.59,.51)),grid:material(new pc.Color(.25,.4,.36)),room:material(new pc.Color(.78,.82,.79)),wall:material(new pc.Color(.88,.91,.86)),wallSide:material(new pc.Color(.53,.68,.69)),wood:material(new pc.Color(.48,.33,.23)),wood2:material(new pc.Color(.68,.49,.31)),teal:material(new pc.Color(.13,.48,.55)),blue:material(new pc.Color(.18,.35,.58)),pale:material(new pc.Color(.79,.9,.88)),green:material(new pc.Color(.2,.53,.36)),skin:material(new pc.Color(.7,.49,.36)),dark:material(new pc.Color(.1,.16,.21)),white:material(new pc.Color(.93,.94,.87)),yellow:material(new pc.Color(.85,.65,.27))};
-function box(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){const e=new pc.Entity(name);e.addComponent("model",{type:"box"});e.setPosition(x,y,z);e.setLocalScale(sx,sy,sz);e.model!.material=m;parent.addChild(e);return e;}
+function box(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){const e=new pc.Entity(name);e.addComponent("model",{type:"box"});e.setPosition(x,y,z);e.setLocalScale(sx,sy,sz);e.model!.material=m;e.model!.castShadows=true;e.model!.receiveShadows=true;parent.addChild(e);return e;}
 function sphere(name:string,x:number,y:number,z:number,s:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){const e=new pc.Entity(name);e.addComponent("model",{type:"sphere"});e.setPosition(x,y,z);e.setLocalScale(s,s,s);e.model!.material=m;parent.addChild(e);return e;}
 const camera=new pc.Entity("Portrait isometric camera");camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:10,clearColor:new pc.Color(.55,.7,.72),nearClip:.1,farClip:150});const cameraTarget=new pc.Vec3(0,0,0);camera.setPosition(11,15,11);camera.lookAt(cameraTarget);app.root.addChild(camera);
-const light=new pc.Entity("Soft daylight");light.addComponent("light",{type:"directional",intensity:1.35,castShadows:true,shadowResolution:1024,shadowType:pc.SHADOW_PCF3});light.setEulerAngles(48,35,0);app.root.addChild(light);
+const light=new pc.Entity("Soft daylight");light.addComponent("light",{type:"directional",intensity:1.65,castShadows:true,shadowResolution:2048,shadowType:pc.SHADOW_PCF3,shadowDistance:55,normalOffsetBias:.035,bias:.04});light.setEulerAngles(48,35,0);app.root.addChild(light);
 const world=new pc.Entity("Clinic plot");app.root.addChild(world);
 const GRID=1, W=32, D=32, HALF=W/2;
 const floorBase=material(new pc.Color(.72,.75,.72)),floorTile=material(new pc.Color(.82,.84,.8)),floorAlt=material(new pc.Color(.76,.8,.77)),gridLine=material(new pc.Color(.57,.64,.62)),glass=material(new pc.Color(.35,.72,.79));
@@ -103,7 +105,7 @@ function loadClinicModel(url:string,name:string,centerX:number,centerZ:number,ta
 }
 // The starter clinic is intentionally an open, empty architectural shell; students design their own rooms.
 const avatar=new pc.Entity("Student avatar");avatar.setPosition(-1,0,1.7);world.addChild(avatar);
-let avatarAnim:any=null;let avatarClipNames=new Set<string>();
+let avatarAnim:any=null;let avatarClipNames:string[]=[];
 const characterAssets:Record<string,string>={
  student:new URL("../assets/characters/Student.glb",import.meta.url).href,
  doctor:new URL("../assets/characters/WhiteCoatDoctor.glb",import.meta.url).href,
@@ -127,20 +129,22 @@ function loadHumanoid(url:string,parent:pc.Entity,height:number,onReady?:(entity
   model.addComponent("anim",{activate:true,speed:1});
   const anim:any=(model as any).anim;if(!anim){if(onReady)onReady(model);return;}
   const clips:any[]=asset.resource.animations??[];
-  for(const clip of clips){const track:any=clip.resource;if(track)anim.assignAnimation(track.name,track);}
-  const idle=clips.map(a=>a.resource).find((a:any)=>/idle/i.test(a?.name??""));
-  if(idle&&anim.baseLayer)anim.baseLayer.play(idle.name);
+  const names:string[]=[];
+  for(const clip of clips){const track:any=clip.resource;if(track){const clipName=String(track.name||clip.name||"");if(clipName){anim.assignAnimation(clipName,track);names.push(clipName);}}}
+  (model as any).__clinicClips=names;
+  const idleName=names.find(n=>/idle|stand|rest/i.test(n))??names[0];
+  if(idleName&&anim.baseLayer){try{anim.baseLayer.play(idleName,.18);}catch{}}
   if(onReady)onReady(model);
  });
 }
-loadHumanoid(characterAssets.student,avatar,1.72,model=>{avatarAnim=(model as any).anim??null;avatarClipNames=new Set((avatarAnim?.baseLayer?.states??[]).map((x:any)=>String(x).toLowerCase()));status.textContent="شخصيتك جاهزة؛ تحرك داخل العيادة.";});
+loadHumanoid(characterAssets.doctor,avatar,1.72,model=>{avatarAnim=(model as any).anim??null;avatarClipNames=(model as any).__clinicClips??[];status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";});
 const doctorNpc=new pc.Entity("Clinic doctor");doctorNpc.setPosition(3,0,-1);world.addChild(doctorNpc);
-loadHumanoid(characterAssets.doctor,doctorNpc,1.72);
+loadHumanoid(characterAssets.nurse,doctorNpc,1.68);
 const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(4,0,2);world.addChild(patientNpc);
 loadHumanoid(characterAssets.patient,patientNpc,1.62);
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", target:pc.Vec3|null=null, coins=100000, xp=0, nextId=2, focus=false, wallRotation:0|90=0;
-let placed:Placed[]=[];const saveKey="therason-clinic-world-v2";const entities:pc.Entity[]=[];
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v2";const entities:pc.Entity[]=[];
 const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22};
 function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:2,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function load(){try{const s=localStorage.getItem(saveKey);if(!s)return;const v=JSON.parse(s);if(v.v!==2)return;coins=100000;xp=Number.isFinite(v.xp)?v.xp:0;placed=Array.isArray(v.placed)?v.placed.slice(0,60):[];coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";for(const p of placed)drawPlaced(p);}catch{}}
@@ -169,24 +173,51 @@ function occupied(gx:number,gz:number,kind:BuildKind){
  return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind)));
 }
 function canAvatarStand(x:number,z:number){
- const r=.22;
+ const r=.28;
  if(x-r< -HALF||x+r>HALF||z-r< -HALF||z+r>HALF)return false;
  const player={x:x-r,z:z-r,w:r*2,d:r*2};
- const roomWalls=[{x:-HALF,z:-HALF,w:W,d:.18},{x:-HALF,z:HALF-.18,w:W,d:.18},{x:-HALF,z:-HALF,w:.18,d:D},{x:HALF-.18,z:-HALF,w:.18,d:D}];
- if(roomWalls.some(w=>rectanglesOverlap(player,w)))return false;
- const starterFurniture:{x:number;z:number;w:number;d:number}[]=[];
- if(starterFurniture.some(f=>rectanglesOverlap(player,f)))return false;
+ const boundary=[{x:-HALF,z:-HALF,w:W,d:.22},{x:-HALF,z:HALF-.22,w:W,d:.22},{x:-HALF,z:-HALF,w:.22,d:D},{x:HALF-.22,z:-HALF,w:.22,d:D}];
+ if(boundary.some(w=>rectanglesOverlap(player,w)))return false;
  return !placed.some(p=>rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind)));
 }
-function moveAvatarSafely(dx:number,dz:number){
- const p=avatar.getPosition(),distance=Math.hypot(dx,dz),steps=Math.max(1,Math.ceil(distance/.12));
- let x=p.x,z=p.z;
- for(let i=1;i<=steps;i++){
-  const nx=p.x+dx*i/steps,nz=p.z+dz*i/steps;
-  if(canAvatarStand(nx,nz)){x=nx;z=nz;}else break;
+function findWalkPath(sx:number,sz:number,tx:number,tz:number){
+ const step=.5,cell=(v:number)=>Math.round(v/step),key=(x:number,z:number)=>x+","+z;
+ const start={x:cell(sx),z:cell(sz)},goal={x:cell(tx),z:cell(tz)};
+ const worldPoint=(x:number,z:number)=>({x:x*step,z:z*step});
+ const walkable=(x:number,z:number)=>{const p=worldPoint(x,z);return canAvatarStand(p.x,p.z);};
+ // If the tapped point is blocked, find the nearest reachable free cell around it.
+ let end=goal;
+ if(!walkable(end.x,end.z)){
+  let found:{x:number;z:number}|null=null;
+  for(let radius=1;radius<=5&&!found;radius++)for(let dx=-radius;dx<=radius&&!found;dx++)for(let dz=-radius;dz<=radius&&!found;dz++){
+   if(Math.max(Math.abs(dx),Math.abs(dz))!==radius)continue;
+   const q={x:goal.x+dx,z:goal.z+dz};if(walkable(q.x,q.z))found=q;
+  }
+  if(!found)return null;end=found;
  }
- avatar.setPosition(x,0,z);
- return Math.hypot(x-p.x,z-p.z)>0.001;
+ const open=[{...start,g:0,f:Math.hypot(end.x-start.x,end.z-start.z)}],came=new Map<string,string>(),cost=new Map<string,number>([[key(start.x,start.z),0]]),closed=new Set<string>();
+ const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+ let iterations=0;
+ while(open.length&&iterations++<5000){
+  open.sort((a,b)=>a.f-b.f);const cur=open.shift()!,ck=key(cur.x,cur.z);
+  if(ck===key(end.x,end.z)){
+   const path:{x:number;z:number}[]=[];let k=ck;
+   while(k!==key(start.x,start.z)){const [x,z]=k.split(",").map(Number);path.push(worldPoint(x,z));const prev=came.get(k);if(!prev)break;k=prev;}
+   return path.reverse();
+  }
+  if(closed.has(ck))continue;closed.add(ck);
+  for(const [dx,dz] of dirs){const nx=cur.x+dx,nz=cur.z+dz,nk=key(nx,nz);if(closed.has(nk)||!walkable(nx,nz))continue;
+   if(dx!==0&&dz!==0&&(!walkable(cur.x+dx,cur.z)||!walkable(cur.x,cur.z+dz)))continue;
+   const ng=cur.g+(dx&&dz?1.414:1);if(ng>=(cost.get(nk)??Infinity))continue;
+   cost.set(nk,ng);came.set(nk,ck);open.push({x:nx,z:nz,g:ng,f:ng+Math.hypot(end.x-nx,end.z-nz)});
+  }
+ }
+ return null;
+}
+function moveAvatarSafely(dx:number,dz:number){
+ const p=avatar.getPosition(),distance=Math.hypot(dx,dz),steps=Math.max(1,Math.ceil(distance/.1));let x=p.x,z=p.z;
+ for(let i=1;i<=steps;i++){const nx=p.x+dx*i/steps,nz=p.z+dz*i/steps;if(canAvatarStand(nx,nz)){x=nx;z=nz;}else break;}
+ avatar.setPosition(x,0,z);return Math.hypot(x-p.x,z-p.z)>.001;
 }
 function updateMode(next:"move"|"build"){mode=next;moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"اختر غرفة أو قطعة ثم المس خلية فارغة في الشبكة.";}
 function screenToGround(clientX:number,clientY:number){const r=canvas.getBoundingClientRect(),x=(clientX-r.left)*(canvas.width/r.width),y=(clientY-r.top)*(canvas.height/r.height);const a=camera.camera!.screenToWorld(x,y,.1),b=camera.camera!.screenToWorld(x,y,100),d=b.sub(a);if(Math.abs(d.y)<.0001)return null;const t=-a.y/d.y;if(t<0)return null;const p=a.add(d.mulScalar(t));if(Math.abs(p.x)>HALF||Math.abs(p.z)>HALF)return null;return p;}
@@ -213,9 +244,25 @@ function renderStep(){const s=steps[sessionStep];el("#session-step").textContent
 sessionBtn.addEventListener("click",()=>{sessionStep=0;sessionScore=0;renderStep();sessionDialog.showModal();});
 el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
 load();coins=100000;coinsLabel.textContent=String(coins);
-let locomotionState="Idle";
-function setLocomotion(state:string){if(!avatarAnim||locomotionState===state)return;if(!avatarClipNames.has(state.toLowerCase()))return;avatarAnim.baseLayer?.transition(state,.22);locomotionState=state;}
-app.on("update",(dt:number)=>{if(target){const p=avatar.getPosition(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);if(d<.07){target=null;setLocomotion("Idle");}else{setLocomotion("Walk");const step=Math.min(d,dt*2.0);const moved=moveAvatarSafely(dx/d*step,dz/d*step);if(moved)avatar.setEulerAngles(0,Math.atan2(dx,dz)*180/Math.PI,0);else{target=null;setLocomotion("Idle");status.textContent="لا يمكن المرور من هنا؛ يوجد جهاز أو جدار في الطريق.";}}}else setLocomotion("Idle");});
+let locomotionState="";
+function setLocomotion(moving:boolean){
+ if(!avatarAnim||!avatarClipNames.length)return;
+ const desired=moving?(avatarClipNames.find(n=>/walk|walking|run/i.test(n))??avatarClipNames[0]):(avatarClipNames.find(n=>/idle|stand|rest/i.test(n))??avatarClipNames[0]);
+ if(!desired||locomotionState===desired)return;
+ try{avatarAnim.baseLayer?.play(desired,.2);locomotionState=desired;}catch{}
+}
+app.on("update",(dt:number)=>{
+ if(!target)return;
+ const p=avatar.getPosition(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
+ if(d<.09){
+  if(walkPath.length){const next=walkPath.shift()!;target=new pc.Vec3(next.x,0,next.z);}
+  else{target=null;setLocomotion(false);}
+ }else{
+  setLocomotion(true);const step=Math.min(d,dt*1.45),moved=moveAvatarSafely(dx/d*step,dz/d*step);
+  if(moved)avatar.setEulerAngles(0,Math.atan2(dx,dz)*180/Math.PI,0);
+  else{target=null;walkPath=[];setLocomotion(false);status.textContent="تعذر إكمال المسار؛ اختر نقطة أخرى."; }
+ }
+});
 let frames=0,elapsed=0;app.on("postupdate",(dt:number)=>{frames++;elapsed+=dt;if(elapsed>=1){fpsLabel.textContent=Math.round(frames/elapsed)+" FPS";frames=0;elapsed=0;}});
 app.start();resize();requestAnimationFrame(resize);window.setTimeout(()=>{if(loading.classList.contains("done"))return;status.textContent="نحمّل أصول العيادة...";},4500);window.setTimeout(()=>el("#camera-hint").classList.add("hide"),6500);
 window.addEventListener("pagehide",()=>{observer.disconnect();app.destroy();},{once:true});
