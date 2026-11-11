@@ -22,7 +22,12 @@
 </nav>
 <section class="build-panel" id="build-panel" hidden>
 <div class="panel-heading"><div><p class="eyebrow">وضع البناء</p><h2>طوّر مساحة عيادتك</h2></div><button class="small-action" id="cancel-build" type="button">إنهاء البناء</button></div>
-<div class="build-tabs"><button class="build-tab active" data-category="rooms" type="button">الغرف</button><button class="build-tab" data-category="furniture" type="button">الأثاث</button></div>
+<div class="build-tabs"><button class="build-tab active" data-category="structure" type="button">الجدران</button><button class="build-tab" data-category="rooms" type="button">الغرف</button><button class="build-tab" data-category="furniture" type="button">الأثاث</button></div>
+<div class="catalog" id="catalog-structure">
+<button class="catalog-item selected" data-build="wall" type="button"><span class="catalog-art room-art"></span><b>حائط</b><small>8 عملات</small></button>
+<button class="catalog-item" data-build="door" type="button"><span class="catalog-art reception-art"></span><b>باب</b><small>22 عملة</small></button>
+<button class="catalog-item" id="rotate-wall" type="button"><span class="catalog-art gym-art">↻</span><b>تدوير الحائط</b><small>90 درجة</small></button>
+</div>
 <div class="catalog" id="catalog-rooms">
 <button class="catalog-item selected" data-build="treatment" type="button"><span class="catalog-art room-art"></span><b>غرفة علاج</b><small>مجانية · البداية</small></button>
 <button class="catalog-item" data-build="reception" type="button"><span class="catalog-art reception-art"></span><b>استقبال</b><small>60 عملة</small></button>
