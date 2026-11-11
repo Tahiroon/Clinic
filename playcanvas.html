@@ -50,5 +50,27 @@
 <footer>THERASON CLINIC <span>·</span> Learn by reasoning</footer>
 </main>
 <dialog id="session-dialog" class="case-dialog"><form method="dialog" class="case-content"><button class="dialog-close" aria-label="إغلاق" value="close">×</button><p class="eyebrow" id="session-step">الجلسة التعليمية · 1 من 5</p><h2 id="session-title">استقبال المريض</h2><p class="case-intro" id="session-intro">وصل مريض جديد إلى عيادتك. ابدأ الجلسة بخطوة آمنة ومنظمة.</p><div class="patient-brief" id="patient-brief"><b>حالة تدريبية افتراضية</b><span>مريض عمره 32 عاماً، يشكو من ألم أسفل الظهر منذ 10 أيام بعد رفع جسم ثقيل.</span></div><h3 id="session-question">ما الخطوة المناسبة الآن؟</h3><div class="case-options" id="session-options"><button type="button" data-choice="safe">التحقق من علامات الخطر وأخذ التاريخ المرضي</button><button type="button" data-choice="exercise">بدء التمارين مباشرة</button><button type="button" data-choice="diagnosis">تحديد التشخيص النهائي فوراً</button></div><p class="case-feedback" id="session-feedback" aria-live="polite">اختر إجابتك لتحصل على تغذية راجعة.</p><button class="case-done" id="session-next" type="button" disabled>التالي</button></form></dialog>
+<script>
+/* Show a useful boot failure instead of an endless loading spinner if the game module fails. */
+(function(){
+ const fail=function(message){
+  const cover=document.getElementById("loading");
+  if(!cover||cover.classList.contains("done"))return;
+  cover.classList.add("failed");
+  const title=cover.querySelector("b"),detail=cover.querySelector("small");
+  if(title)title.textContent="تعذر تحميل اللعبة";
+  if(detail)detail.textContent=String(message||"حدث خطأ أثناء تشغيل اللعبة").slice(0,150);
+ };
+ window.addEventListener("error",function(e){fail(e.message||"خطأ في ملفات اللعبة");});
+ window.addEventListener("unhandledrejection",function(e){fail(e.reason?.message||"تعذر إكمال تحميل أحد مكونات اللعبة");});
+ window.setTimeout(function(){
+  const cover=document.getElementById("loading");
+  if(cover&&!cover.classList.contains("done")){
+   const detail=cover.querySelector("small");
+   if(detail)detail.textContent="ما زال التشغيل متأخراً. أعد تحميل الصفحة إذا استمر الانتظار.";
+  }
+ },12000);
+})();
+</script>
 <script type="module" src="/src/playcanvas/main.ts"></script>
 </body></html>
