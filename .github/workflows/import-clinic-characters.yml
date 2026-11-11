@@ -1,0 +1,52 @@
+name: Import rigged clinic characters
+
+on:
+  push:
+    branches: [clinic-dev]
+    paths:
+      - ".github/workflows/import-clinic-characters.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  import-characters:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: clinic-dev
+          fetch-depth: 0
+      - name: Download CC0 rigged medical characters
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p src/assets/characters
+          base="https://gobkit.com/freebies/human005"
+          for name in Student WhiteCoatDoctor WardPatient WardNurse; do
+            case "$name" in
+              Student) url="https://gobkit.com/freebies/human015/Student.glb" ;;
+              *) url="$base/$name.glb" ;;
+            esac
+            curl --fail --location --retry 3 --retry-delay 2 "$url" -o "src/assets/characters/$name.glb"
+            test -s "src/assets/characters/$name.glb"
+          done
+          cat > src/assets/characters/ASSET-SOURCES.md <<'EOF'
+          # Character assets
+          Source: Gobkit Free Character Packs — https://gobkit.com/freebies
+          License: CC0 1.0 (public domain). Commercial and personal use, modification and redistribution permitted without attribution.
+          Included characters: Student (human015), WhiteCoatDoctor, WardPatient, WardNurse (human005).
+          Rigged humanoid GLB files with named Idle, Walk, Run, Death, Hit, Attack and Special animation clips.
+          EOF
+          file src/assets/characters/*.glb
+      - name: Commit characters to clinic-dev
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/assets/characters
+          git commit -m "Import CC0 rigged animated clinic characters"
+          git fetch origin clinic-dev
+          git rebase origin/clinic-dev
+          git push origin HEAD:clinic-dev
