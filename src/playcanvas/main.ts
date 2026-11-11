@@ -10,8 +10,10 @@ const resetButton = document.querySelector<HTMLButtonElement>("#reset")!;
 const app = new pc.Application(canvas, {
   graphicsDeviceOptions: { antialias: false, alpha: false, powerPreference: "low-power" }
 });
-app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+app.setCanvasFillMode(pc.FILLMODE_NONE);
 app.setCanvasResolution(pc.RESOLUTION_AUTO);
+const resizeObserver = new ResizeObserver(() => app.resizeCanvas(canvas.clientWidth, canvas.clientHeight));
+resizeObserver.observe(canvas);
 app.graphicsDevice.maxPixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
 app.scene.ambientLight = new pc.Color(0.72, 0.76, 0.82);
 
@@ -142,5 +144,5 @@ app.on("update", (dt: number) => {
 });
 app.start();
 
-window.addEventListener("resize", () => app.resizeCanvas());
+window.addEventListener("pagehide", () => resizeObserver.disconnect(), { once: true });
 window.addEventListener("pagehide", () => app.destroy(), { once: true });
