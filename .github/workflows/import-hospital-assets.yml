@@ -49,7 +49,8 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -rf public/assets/clinic-kit/hospital\n          git add src/assets/clinic-kit/hospital public/assets/clinic-kit/hospital
+          rm -rf public/assets/clinic-kit/hospital
+          git add src/assets/clinic-kit/hospital public/assets/clinic-kit/hospital
           if git diff --cached --quiet; then
             echo "No new asset changes."
             exit 0
