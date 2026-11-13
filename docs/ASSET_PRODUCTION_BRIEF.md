@@ -4,12 +4,15 @@
 **Runtime:** PlayCanvas | **Branch:** clinic-dev | **World scale:** 1 unit = 1 metre.
 
 ## Art direction
-- Portrait-first, isometric/three-quarter 3D management-game presentation.
-- Inspired by the readable rooms, staff scale and management camera of Two Point Hospital, without copying its characters, architecture, UI, branding or layouts.
-- Premium stylized realism: believable human proportions, recognizable physiotherapy equipment, readable room partitions, doors and furniture.
-- Calm modern rehabilitation-clinic identity: deep navy, teal/cyan accents, warm off-white walls, muted green landscaping and natural daylight.
-- Avoid toy-like miniature people, excessive gloss, clutter and oversized empty hospital halls. The starter property intentionally has generous buildable lawn; landscape it with grass, a clear path and edge planting rather than filling it with a prebuilt clinic.
-- Roofless/cutaway rooms should be readable from the camera: consistent wall height, visible door clearance, distinct floor materials and believable furniture scale.
+
+- Portrait-first isometric/three-quarter 3D management-game presentation.
+- Learn from the visual readability of Two Point Hospital: roofless/cutaway rooms, visible furniture, clear corridors, colorful room identities, friendly small characters, readable activity and an information-rich but compact HUD.
+- Do not copy Two Point Hospital characters, architecture, interface, exact room compositions, branding or assets.
+- **Stylized 3D cartoon**, not premium photorealism: rounded silhouettes, clean bevels, expressive proportions, bold readable props, saturated but controlled colors, soft shadows and bright daylight.
+- THERASON palette: navy framing and signage, cyan/teal highlights, aqua details, warm white walls, with selective cheerful room colors.
+- Every room needs distinct floor material, colored wall trim, visible doors/windows, ceiling lights, room sign, furniture and decoration.
+- Avoid plain white boxes, dark gloomy hospital corridors, generic stock-room appearance and mismatched art styles.
+- Prefer reusing the already imported Shuriken Studio hospital GLB kit and Gobkit CC0 humanoids as one consistent asset family. New additions must match their scale and shading and have a verified license.
 
 ## Starter-world dimensions
 - Starter property: approximately 14 m wide × 28 m deep, composed for portrait viewing, with a continuous outdoor lawn and a clear entrance path.
@@ -24,14 +27,16 @@
 - Keep all pivots at ground contact / logical placement center and all models in metre scale.
 
 ## Priority A — first production assets
-1. **Physiotherapist player:** one adult physiotherapist, neutral professional outfit with THERASON-compatible teal/navy accents, believable body proportions, clean rig, idle/walk/turn animations.
-2. **Patient visitor:** one adult patient character with a separate rig and idle/standing/sitting options. Patients are visitors, not employees.
-3. **Clinic modular shell:** straight wall, corner wall, shared partition, doorway, door frame, window frame, glass pane, wall cap, plinth and exterior sign.
-4. **Treatment table:** recognizable adjustable physiotherapy plinth with legs, mattress, head section and paper roll.
-5. **Reception desk:** compact realistic desk with monitor and storage; optional receptionist NPC is a later feature.
-6. **Waiting row:** modular 3–4 seat waiting row with correct seat height and enough side-lane clearance for the player.
-7. **Storage cabinet:** compact medical storage with doors/handles.
-8. **Outdoor kit:** grass ground, path pavers, low hedge segments/corners, one layered low-poly tree, one shrub, planter and simple clinic entrance sign.
+
+1. **Physiotherapist player:** one adult physiotherapist with neutral professional clothing and THERASON teal/navy accents, clean rig and idle/walk/turn animations.
+2. **Patient visitors:** a small set of adult patient variants with idle/walk/sit animations.
+3. **Room architecture kit:** modular cutaway walls, doors, windows, trims, signs, room labels and floor tile variants.
+4. **Treatment room kit:** adjustable treatment table, storage, stool, privacy curtain, wall chart and clinical sink.
+5. **Reception kit:** reception counter, monitor, waiting chairs, queue markers and optional receptionist character.
+6. **Assessment kit:** examination couch, desk, patient chair, measurement props and wall charts.
+7. **Exercise kit:** parallel bars, mats, therapy bike, treadmill, wall bars, resistance bands, balance equipment and exercise balls.
+8. **Decor kit:** plants, clocks, posters, bins, lamps, wall art, water dispenser and small comfort items.
+9. **Outdoor kit:** grass, paths, low hedges, layered trees, shrubs, planters and a clinic entrance sign.
 
 ## Priority B — first equipment catalogue
 - Parallel bars with correct handrail height.
@@ -69,10 +74,11 @@
 - `env_grass_plot_v01.glb`
 
 ## Exclusions for the first release
-- No nurse, employed doctor, cleaner, assistant or staff roster.
-- No crowds or complex NPC simulation.
+
+- No staff roster, nurses, employed doctors, cleaners, assistants or staff-room assets.
+- No crowds or complex NPC workforce simulation.
 - No full-size hospital building or multi-floor architecture.
-- No high-cost real-time reflections, heavy post-processing or 4K assets.
+- No high-cost reflections, heavy post-processing or 4K assets.
 - No unlicensed downloaded assets.
 
 ## Acceptance before an asset enters the game
