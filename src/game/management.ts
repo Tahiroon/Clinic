@@ -83,7 +83,7 @@ export function advanceSimulation(s:ManagementState,realSeconds:number){
   if(s.minuteOfDay>=1440){s.minuteOfDay=0;s.day++;event(s,"milestone","بدأ يوم جديد في العيادة.");}
   if(s.minuteOfDay>=8*60&&s.minuteOfDay<18*60){
    s.arrivalAccumulator+=step;
-   if(s.arrivalAccumulator>=14){s.arrivalAccumulator=0;if(getActivePatientCount(s)<12)addPatient(s);}
+   if(s.arrivalAccumulator>=28){s.arrivalAccumulator=0;if(getActivePatientCount(s)<12)addPatient(s);}
   }
   for(const p of s.patients){
    if(p.stage==="discharged"||p.stage==="left")continue;
