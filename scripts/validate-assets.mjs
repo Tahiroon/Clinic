@@ -165,9 +165,17 @@ try {
   console.log("✓ Player physiotherapist, patient flow, optional receptionist upgrade, economy and simulation controls are wired");
   console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
   if (!/addRoomWallRun\(root,"x",-halfW,width,halfD,"solid"\)/.test(source) ||
-      !/Frosted clinic glazing/.test(source) || !/Wall structural frame post/.test(source) ||
-      !/Wall continuous upper cap/.test(source) || !/Wall cyan identity rail/.test(source)) {
-    throw new Error("Clinic rooms must use the modular framed-glazing wall kit");
+      !/Recessed wall panel shadow line/.test(source) || !/Raised wall panel face/.test(source) ||
+      !/Wall protective skirting/.test(source) || !/Wall top coping/.test(source)) {
+    throw new Error("Clinic rooms must use the restrained recessed-panel wall system");
+  }
+  if (!/Starter clinic glazed entrance left leaf/.test(source) ||
+      !/Starter clinic roof fascia/.test(source) || !/THERASON sign shadow backing/.test(source)) {
+    throw new Error("Starter clinic pavilion facade must include its layered entrance and roof identity");
+  }
+  if (!/SHADOW_PCSS_32F/.test(source) || !/shadowSamples=8/.test(source) ||
+      !/addContactShadow/.test(source) || !/avatarContactShadow/.test(source)) {
+    throw new Error("Adaptive real and contact shadow systems must remain enabled");
   }
   const drawPlacedSource=source.slice(source.indexOf("function drawPlaced(p:Placed)"),source.indexOf("\nfunction footprint("));
   if (/loadClinicAsset\(\{id:p\.id\*1000/.test(drawPlacedSource)) throw new Error("Rooms must be empty until the player buys and places equipment");
@@ -176,7 +184,8 @@ try {
   if (!/id="store-panel"/.test(html) || !/data-store-category/.test(html) || (html.match(/class="store-item"/g)||[]).length < 16) {
     throw new Error("The dedicated categorized equipment shop is incomplete");
   }
-  console.log("✓ Modern clinic architecture uses framed glazing, protective lower panels and cyan identity rails");
+  console.log("✓ Restrained recessed-panel architecture and layered starter-clinic pavilion are wired");
+  console.log("✓ High-end PCSS shadows and low-end contact-shadow fallback are wired");
   console.log("✓ Dedicated mobile equipment store contains categorized, priced clinical assets");
   if (!/function showStorePreview\(key:string\)/.test(source) ||
       !/getClinicContainer\(url\)\.then\(asset=>/.test(source) ||
