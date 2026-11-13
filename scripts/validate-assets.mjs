@@ -60,13 +60,13 @@ try {
   const html = await readFile(resolve(root, "playcanvas.html"), "utf8");
   // Verify every visible shop item resolves to a real bundled GLB and, when specified,
   // to a node that actually exists inside that exact GLB file.
-  const urlEntries = [...source.matchAll(/"([^"]+\\.glb)":new URL\\("\\.\\.\\/assets\\/([^"]+\\.glb)",import\\.meta\\.url\\)/g)];
+  const urlEntries = [...source.matchAll(/"([^"]+\.glb)":new URL\("\.\.\/assets\/([^"]+\.glb)",import\.meta\.url\)/g)];
   const urlPaths = new Map(urlEntries.map((match) => [match[1], "src/assets/" + match[2]]));
   const specsStart = source.indexOf("const storeAssetSpecs:");
   const specsEnd = source.indexOf("const clinicAssetUrls:", specsStart);
   if (specsStart < 0 || specsEnd < 0) throw new Error("Store asset registry or URL registry is missing");
   const specsSource = source.slice(specsStart, specsEnd);
-  const storeSpecs = [...specsSource.matchAll(/"([^"]+)":\\{file:"([^"]+)",node:"([^"]+)"/g)];
+  const storeSpecs = [...specsSource.matchAll(/"([^"]+)":\{file:"([^"]+)",node:"([^"]+)"/g)];
   const storeKeys = new Set(storeSpecs.map((match) => match[1]));
   if (!storeSpecs.length) throw new Error("No 3D store items were found");
   for (const [,key,file,node] of storeSpecs) {
