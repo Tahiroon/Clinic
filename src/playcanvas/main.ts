@@ -235,15 +235,15 @@ const avatar=new pc.Entity("Player physiotherapist");world.addChild(avatar);avat
 let walkVelocity=0;
 let avatarAnim:any=null;let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
- student:new URL("../assets/characters/Student.glb",import.meta.url).href,
+ physiotherapist:new URL("../assets/characters/Physiotherapist.glb",import.meta.url).href,
  patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,
  receptionist:new URL("../assets/characters/Receptionist.glb",import.meta.url).href,
 };
 type HumanoidRig={entity:pc.Entity;anim:any;clips:string[];idle:string;walk:string};
 type FallbackRig={entity:pc.Entity;update:(dt:number,moving:boolean)=>void};
-function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"|"receptionist"):FallbackRig{
+function createFallbackHumanoid(parent:pc.Entity,kind:"physiotherapist"|"patient"|"receptionist"):FallbackRig{
  const root=new pc.Entity("Fallback character rig · "+kind);parent.addChild(root);
- const shirt=kind==="student"?M.white:kind==="receptionist"?M.teal:M.pale,trousers=kind==="student"?M.blue:kind==="receptionist"?M.dark:M.teal;
+ const shirt=kind==="physiotherapist"?M.white:kind==="receptionist"?M.teal:M.pale,trousers=kind==="physiotherapist"?M.blue:kind==="receptionist"?M.dark:M.teal;
  box("Humanoid torso",0,1.02,0,.42,.62,.27,shirt,root);
  box("Humanoid neck",0,1.38,0,.11,.14,.12,M.skin,root);
  sphere("Humanoid head",0,1.57,0,.155,M.skin,root);
@@ -262,7 +262,7 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"|"recep
   sphere("Humanoid hand",0,-.61,.015,.085,M.skin,pivot);
   armPivots.push(pivot);
  }
- if(kind==="student")box("Physiotherapist ID badge",.12,1.18,-.15,.1,.13,.025,trim,root);
+ if(kind==="physiotherapist")box("Physiotherapist ID badge",.12,1.18,-.15,.1,.13,.025,trim,root);
  if(kind==="receptionist")box("Receptionist name badge",.12,1.18,-.15,.1,.13,.025,M.yellow,root);
  let phase=0;
  return {entity:root,update:(dt,moving)=>{
@@ -340,10 +340,10 @@ function transitionHumanoid(rig:HumanoidRig|null,moving:boolean){
  try{rig.anim.baseLayer.transition(desired,moving ? 0.22 : 0.3);rig.anim.speed=moving?1:1;}
  catch{try{rig.anim.baseLayer.play(desired);}catch{}}
 }
-const studentFallback=createFallbackHumanoid(avatar,"student");
-let playerFallbackRig:FallbackRig|null=studentFallback;
-loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
- studentFallback.entity.destroy();playerFallbackRig=null;
+const physiotherapistFallback=createFallbackHumanoid(avatar,"physiotherapist");
+let playerFallbackRig:FallbackRig|null=physiotherapistFallback;
+loadHumanoid(characterAssets.physiotherapist,avatar,1.72,true,rig=>{
+ physiotherapistFallback.entity.destroy();playerFallbackRig=null;
  avatarAnim=rig.anim;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
