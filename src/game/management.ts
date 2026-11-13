@@ -16,7 +16,7 @@ export interface ClinicRoom {
 }
 export interface ClinicEvent { id: number; minute: number; kind: "arrival" | "warning" | "income" | "treatment" | "staff"; message: string; }
 export interface ManagementState {
-  version: 1; day: number; minuteOfDay: number; speed: 0 | 1 | 2 | 3;
+  version: 1; day: number; minuteOfDay: number; speed: 0 | 1 | 2 | 3; clinicOpen: boolean;
   balance: number; reputation: number; experience: number; treated: number; arrivals: number;
   staff: StaffMember[]; patients: ClinicPatient[]; rooms: ClinicRoom[]; events: ClinicEvent[];
   nextStaffId: number; nextPatientId: number; nextRoomId: number; nextEventId: number;
