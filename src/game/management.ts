@@ -106,7 +106,11 @@ export function advanceSimulation(s:ManagementState,realSeconds:number){
       if(p.stage==="discharged"||p.stage==="left")continue;
       p.waitMinutes+=step;
       if(p.stage==="arriving"){p.stage=reception?"reception":"waiting";}
-      if(p.stage==="reception"&&s.staff.some(m=>m.role==="receptionist"&&m.energy>5)){p.stage="waiting";p.waitMinutes=0;}
+      if(p.stage==="reception"){
+        const receptionist=s.staff.find(m=>m.role==="receptionist"&&m.energy>5&&m.status!=="break");
+        if(receptionist){p.stage="waiting";p.waitMinutes=0;receptionist.status="working";}
+        else{p.patience=Math.max(0,p.patience-step*.42);if(p.patience<=0){p.stage="left";s.reputation=Math.max(0,s.reputation-1);event(s,"warning",p.name+" غادر قبل التسجيل لعدم وجود موظف استقبال.");}}
+      }
       if(p.stage==="waiting"){
         p.patience=Math.max(0,p.patience-step*.32);p.mood=Math.max(0,p.mood-step*.18);
         if(assessment&&availablePhysio(s)&&p.waitMinutes>=3){p.stage="assessment";p.assignedStaffId=availablePhysio(s)!.id;event(s,"treatment",p.name+" دخل غرفة التقييم.");}
@@ -114,15 +118,15 @@ export function advanceSimulation(s:ManagementState,realSeconds:number){
       }else if(p.stage==="assessment"){
         const staff=s.staff.find(m=>m.id===p.assignedStaffId);
         if(!staff||!assessment){p.stage="waiting";p.assignedStaffId=null;continue;}
-        staff.status="working";staff.energy=Math.max(0,staff.energy-step*.025);
+        staff.status="working";staff.energy=Math.max(0,staff.energy-step*.12);
         if(p.progress<25)p.progress+=step*(.8+staff.skill/100);
         if(p.progress>=25){p.stage="treatment";p.progress=0;event(s,"treatment",p.name+" أكمل التقييم وانتقل للعلاج.");}
       }else if(p.stage==="treatment"){
         const staff=s.staff.find(m=>m.id===p.assignedStaffId);
-        const destination= p.need==="mobility"||p.need==="sports"?exercise:treatment;
+        const destination=(p.need==="mobility"||p.need==="sports")&&exercise?exercise:treatment;
         if(!destination){p.stage="waiting";p.assignedStaffId=null;continue;}
         if(!staff){p.stage="waiting";continue;}
-        staff.status="working";staff.energy=Math.max(0,staff.energy-step*.035);
+        staff.status="working";staff.energy=Math.max(0,staff.energy-step*.18);
         if(p.progress<35)p.progress+=step*(.65+staff.skill/120);
         if(p.progress>=35){
           p.stage="discharged";p.satisfaction=Math.max(35,Math.min(100,p.patience*.55+p.mood*.45));
