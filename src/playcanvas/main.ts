@@ -447,14 +447,16 @@ function loadWaitingSeats(parent:pc.Entity){
   if(!seats){source.destroy();throw new Error("ChairRow_4 missing from waiting-room asset");}
   source.removeChild(seats);source.destroy();
   seats.setLocalPosition(0,0,0);seats.setLocalScale(1,1,1);
+  // Rotate the four-seat row along the reception's right wall, preserving a clear central lane to the treatment doorway.
+  seats.setLocalEulerAngles(0,90,0);
   parent.addChild(seats);seats.syncHierarchy();app.root.syncHierarchy();
   let bounds=renderBounds(seats);
   if(!bounds||bounds.width<.1||bounds.depth<.1){seats.destroy();throw new Error("Waiting seats have invalid bounds");}
-  const scale=Math.min(2.2/bounds.width,.95/bounds.depth,1.05/bounds.height);
+  const scale=Math.min(.95/bounds.width,2.2/bounds.depth,1.05/bounds.height);
   seats.setLocalScale(scale,scale,scale);seats.syncHierarchy();app.root.syncHierarchy();
   bounds=renderBounds(seats);
   if(!bounds)throw new Error("Waiting seats have no render meshes");
-  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(.2,0,.7),new pc.Vec3());
+  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(2.45,0,1.45),new pc.Vec3());
   const current=seats.getPosition();
   seats.setPosition(current.x+target.x-(bounds.minX+bounds.maxX)/2,current.y-bounds.minY,current.z+target.z-(bounds.minZ+bounds.maxZ)/2);
   seats.syncHierarchy();app.root.syncHierarchy();
@@ -706,8 +708,8 @@ function canAvatarStand(x:number,z:number){
    if(walls.some(w=>rectanglesOverlap(player,w)))return false;
    const furniture:{x:number;z:number;w:number;d:number}[]=p.kind==="reception"?[
     {x:gx,z:gz+2.55,w:1.7,d:.9},
-    // Offset the real four-seat row to the left so the right-hand lane stays open to the internal door.
-    {x:gx+.1,z:gz+1.225,w:2.2,d:.95}
+    // Seats are rotated along the right wall; keep their collision box in sync with the visible 0.95×2.2 m row.
+    {x:gx+2.95,z:gz+.35,w:.95,d:2.2}
    ]:p.kind==="treatment"?[]:[
     {x:gx+.15,z:gz+2.05,w:.2,d:1.1},
     {x:gx+1.95,z:gz+2.05,w:.2,d:1.1},
