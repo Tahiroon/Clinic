@@ -85,6 +85,7 @@ const trim=material(new pc.Color(.10,.39,.47));
 const roofAccent=material(new pc.Color(.16,.28,.38));
 const lawnBase=material(new pc.Color(.25,.39,.24));
 const outdoorTreePositions:[number,number][]=[[-5.65,-11.4],[5.65,-11.4],[-5.65,11.4],[5.65,11.4]];
+const outdoorShrubPositions:[number,number][]=[[-5.9,-5.5],[5.9,-2.5],[-5.9,4.2],[5.9,6.0]];
 // The property is a continuous outdoor lawn. Only constructed rooms receive a finished interior floor.
 box("Owned green property · expandable land",0,-.22,0,W,.42,D,lawnBase,world);
 box("Main entrance garden path",0,.018,-8.45,1.75,.045,11.0,pathMat,world);
@@ -98,7 +99,7 @@ for(const [x,z] of outdoorTreePositions){
  const crown=sphere("Outdoor tree crown",x,1.95,z,.76,M.green,world);crown.setLocalScale(.9,1.15,.86);
  const crownTop=sphere("Outdoor tree crown highlight",x+.08,2.48,z+.04,.52,grassAlt,world);crownTop.setLocalScale(.9,1.05,.88);
 }
-for(const [x,z] of [[-5.9,-5.5],[5.9,-2.5],[-5.9,4.2],[5.9,6.0]] as [number,number][]){
+for(const [x,z] of outdoorShrubPositions){
  box("Outdoor planter",x,.17,z,.56,.34,.78,M.wood2,world);
  const shrub=sphere("Outdoor shrub",x,.62,z,.37,M.green,world);shrub.setLocalScale(1.12,.8,.95);
 }
@@ -344,7 +345,7 @@ const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 let patientFallbackRig:FallbackRig|null=patientFallback;
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>{patientFallback.entity.destroy();patientFallbackRig=null;});
 
-let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=5, focus=false, wallRotation:0|90=0;
+let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=4, focus=false, wallRotation:0|90=0;
 let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v1")||0);return saved===1?0:Math.max(0,Math.min(4,saved));}catch{return 0;}})();
 
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v9";
@@ -646,7 +647,15 @@ function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string
  if(a.x< -HALF_X+.24||a.z< -HALF_Z+.24||a.x+a.w>HALF_X-.24||a.z+a.d>HALF_Z-.24)return true;
  const candidateRoom=isRoomKind(kind);
  if(candidateRoom){
-  // A new room may not cover an existing room, wall, doorway or furnishing.
+  // Preserve the entrance route, property edging and landscaping as the clinic expands.
+  const fixedOutdoor=[
+   {x:-HALF_X,z:-HALF_Z,w:W,d:.18},{x:-HALF_X,z:HALF_Z-.18,w:W,d:.18},
+   {x:-HALF_X,z:-HALF_Z,w:.18,d:D},{x:HALF_X-.18,z:-HALF_Z,w:.18,d:D},
+   {x:-.875,z:-HALF_Z,w:1.75,d:11.0},
+   ...outdoorTreePositions.map(([x,z])=>({x:x-.42,z:z-.42,w:.84,d:.84})),
+   ...outdoorShrubPositions.map(([x,z])=>({x:x-.34,z:z-.48,w:.68,d:.96}))
+  ];
+  if(fixedOutdoor.some(obstacle=>rectanglesOverlap(a,obstacle)))return true;
   return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey)));
  }
  // New furnishings and partitions must belong to a room's usable interior.
@@ -706,7 +715,7 @@ function canAvatarStand(x:number,z:number){
   {x:-HALF_X,z:HALF_Z-.18,w:W,d:.18}
  ];
  if(outdoorBarriers.some(w=>rectanglesOverlap(player,w)))return false;
- const gardenProps=outdoorTreePositions.map(([gx,gz])=>({x:gx-.38,z:gz-.38,w:.76,d:.76}));
+ const gardenProps=[...outdoorTreePositions.map(([gx,gz])=>({x:gx-.42,z:gz-.42,w:.84,d:.84})),...outdoorShrubPositions.map(([gx,gz])=>({x:gx-.34,z:gz-.48,w:.68,d:.96}))];
  if(gardenProps.some(w=>rectanglesOverlap(player,w)))return false;
  for(const p of placed){
   const isRoom=p.kind==="treatment"||p.kind==="reception"||p.kind==="gym";
