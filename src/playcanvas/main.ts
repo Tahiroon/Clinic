@@ -10,7 +10,7 @@ const stage=el<HTMLElement>(".stage"), moveBtn=el<HTMLButtonElement>("#move-mode
 const buildPanel=el<HTMLElement>("#build-panel"), saveState=el<HTMLElement>("#save-state"), coinsLabel=el<HTMLElement>("#coins"), sessionDialog=el<HTMLDialogElement>("#session-dialog");
 const managementPanel=el<HTMLElement>("#management-panel"),managementToggle=el<HTMLButtonElement>("#management-toggle");
 let management:ManagementState=createInitialManagementState();
-const deviceMemory=Number((navigator as any).deviceMemory??4),cpuCores=navigator.hardwareConcurrency||4;
+const deviceMemory=Number((navigator as any).deviceMemory??2),cpuCores=navigator.hardwareConcurrency||4;
 const highDetailDevice=deviceMemory>=4&&cpuCores>=6;
 const app=new pc.Application(canvas,{graphicsDeviceOptions:{antialias:highDetailDevice,alpha:false,powerPreference:"low-power"}});
 app.setCanvasFillMode(pc.FILLMODE_NONE);
@@ -51,7 +51,7 @@ window.addEventListener("resize",queueResize,{passive:true});
 window.addEventListener("orientationchange",()=>window.setTimeout(queueResize,150),{passive:true});
 window.visualViewport?.addEventListener("resize",queueResize,{passive:true});
 window.visualViewport?.addEventListener("scroll",queueResize,{passive:true});
-app.scene.ambientLight=new pc.Color(.76,.78,.80);
+app.scene.ambientLight=new pc.Color(.72,.75,.78);
 function material(c:pc.Color){const m=new pc.StandardMaterial();m.diffuse=c;m.update();return m;}
 const M={ground:material(new pc.Color(.24,.52,.39)),tile:material(new pc.Color(.34,.66,.48)),grid:material(new pc.Color(.12,.62,.72)),room:material(new pc.Color(.86,.91,.88)),wall:material(new pc.Color(.96,.97,.93)),wallSide:material(new pc.Color(.40,.68,.72)),wood:material(new pc.Color(.54,.34,.23)),wood2:material(new pc.Color(.78,.55,.31)),teal:material(new pc.Color(.02,.64,.70)),blue:material(new pc.Color(.10,.34,.66)),pale:material(new pc.Color(.82,.95,.94)),green:material(new pc.Color(.20,.65,.39)),skin:material(new pc.Color(.72,.49,.36)),dark:material(new pc.Color(.08,.15,.23)),white:material(new pc.Color(.98,.98,.92)),yellow:material(new pc.Color(.98,.73,.23))};
 type PrimitiveModelType="box"|"capsule"|"cone"|"cylinder"|"plane"|"sphere"|"torus";
@@ -69,7 +69,8 @@ const cameraTarget=new pc.Vec3(0,0,0),cameraGoal=new pc.Vec3(0,0,0);
 camera.setPosition(3.5,21.5,-15);camera.lookAt(cameraTarget);app.root.addChild(camera);
 let desiredOrthoHeight=15.5;
 const light=new pc.Entity("Soft daylight");
-light.addComponent("light",{type:"directional",intensity:1.15,castShadows:false});
+light.addComponent("light",{type:"directional",intensity:1.22,castShadows:highDetailDevice});
+if(highDetailDevice){light.light!.shadowResolution=768;light.light!.shadowDistance=36;light.light!.normalOffsetBias=.035;app.scene.shadowType=pc.SHADOW_PCF3;}
 light.setEulerAngles(48,25,0);app.root.addChild(light);
 const world=new pc.Entity("Clinic property · portrait 3/4 world");
 world.setEulerAngles(0,10,0);app.root.addChild(world);world.syncHierarchy();
@@ -418,7 +419,7 @@ const containerCache=new Map<string,Promise<any>>();
 function loadRoomModule(parent:pc.Entity,file:string,x:number,y:number,z:number,rotation:number,scaleX=1,scaleZ=1,fallback:"floor"|"wall"="wall",scaleY=1){
  const url=clinicAssetUrls[file];if(!url)return;
  getClinicContainer(url).then(asset=>{
-  const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:true});
+  const model=asset.resource.instantiateRenderEntity({castShadows:highDetailDevice,receiveShadows:highDetailDevice});
   parent.addChild(model);model.setLocalPosition(x,y,z);model.setLocalEulerAngles(0,rotation,0);model.setLocalScale(scaleX,scaleY,scaleZ);model.syncHierarchy();
  }).catch(error=>{
   console.warn("Room module fallback:",file,error);
@@ -531,7 +532,7 @@ function loadWaitingSeats(parent:pc.Entity){
  const url=clinicAssetUrls["waiting-bench-two-seat.glb"];
  getClinicContainer(url).then(asset=>{
   for(let i=0;i<2;i++){
-   const seat=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
+   const seat=asset.resource.instantiateRenderEntity({castShadows:highDetailDevice,receiveShadows:highDetailDevice});
    parent.addChild(seat);seat.setLocalScale(.94,.94,.94);seat.setLocalEulerAngles(0,90,0);
    seat.setLocalPosition(1.35,0,-.35+i*1.22);seat.syncHierarchy();
   }
@@ -567,7 +568,7 @@ function loadReceptionDesk(parent:pc.Entity){
 function loadTreatmentRoomDecor(parent:pc.Entity){
  const url=clinicAssetUrls["hospital-patient-room.glb"];
  getClinicContainer(url).then(asset=>{
-  const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
+  const model=asset.resource.instantiateRenderEntity({castShadows:highDetailDevice,receiveShadows:highDetailDevice});
   const removePrefixes=["Bed_","BedRemote","IV_"];
   const removeExact=new Set(["Walls","Floor","BathroomDoor","Sign_Bathroom"]);
   for(const node of collectDescendants(model)){
