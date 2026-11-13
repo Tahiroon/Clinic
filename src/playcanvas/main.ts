@@ -5,7 +5,7 @@ type BuildKind = "treatment" | "reception" | "gym" | "chair" | "plant" | "cabine
 type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90; assetKey?:string };
 const el=<T extends HTMLElement>(s:string)=>document.querySelector<T>(s)!;
 const canvas=el<HTMLCanvasElement>("#scene"), status=el<HTMLElement>("#status"), fpsLabel=el<HTMLElement>("#fps"), loading=el<HTMLElement>("#loading");
-const stage=el<HTMLElement>(".stage"), moveBtn=el<HTMLButtonElement>("#move-mode"), buildBtn=el<HTMLButtonElement>("#build-mode"), sessionBtn=el<HTMLButtonElement>("#session-mode"), viewBtn=el<HTMLButtonElement>("#view-mode");
+const stage=el<HTMLElement>(".stage"), moveBtn=el<HTMLButtonElement>("#move-mode"), buildBtn=el<HTMLButtonElement>("#build-mode"), storeBtn=el<HTMLButtonElement>("#store-mode"), sessionBtn=el<HTMLButtonElement>("#session-mode"), viewBtn=el<HTMLButtonElement>("#view-mode");
 const buildPanel=el<HTMLElement>("#build-panel"), saveState=el<HTMLElement>("#save-state"), coinsLabel=el<HTMLElement>("#coins"), sessionDialog=el<HTMLDialogElement>("#session-dialog");
 const app=new pc.Application(canvas,{graphicsDeviceOptions:{antialias:false,alpha:false,powerPreference:"low-power"}});
 app.setCanvasFillMode(pc.FILLMODE_NONE);
@@ -316,7 +316,8 @@ const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>patientFallback.destroy());
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=5, focus=false, wallRotation:0|90=0;
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v7"; 
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v8";
+const TRIAL_ACCOUNT_COINS=1000000; 
 const starterLayout:Placed[]=[
  {id:1,kind:"reception",gx:-2,gz:-4},
  {id:2,kind:"treatment",gx:-2,gz:0},
@@ -502,7 +503,7 @@ function loadClinicAsset(p:Placed){
  }).catch(error=>{console.error("Clinic store asset failed",spec.label,error);drawAssetFallback(p,spec);status.textContent="تم استخدام نموذج احتياطي لـ "+spec.label+" بسبب تعذر تحميل الأصل.";});
 }
 
-function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:3,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
+function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:4,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function validSavedItem(value:any):value is Placed{
  if(!value||typeof value!=="object")return false;
  const kinds:BuildKind[]=["treatment","reception","gym","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
@@ -514,11 +515,11 @@ function validSavedItem(value:any):value is Placed{
  return bounds.x>=-HALF_X&&bounds.z>=-HALF_Z&&bounds.x+bounds.w<=HALF_X&&bounds.z+bounds.d<=HALF_Z;
 }
 function load(){
- const useStarter=()=>{coins=350;xp=0;placed=starterLayout.map(p=>({...p}));nextId=5;for(const p of placed)drawPlaced(p);};
+ const useStarter=()=>{coins=TRIAL_ACCOUNT_COINS;xp=0;placed=starterLayout.map(p=>({...p}));nextId=5;for(const p of placed)drawPlaced(p);};
  try{
   const raw=localStorage.getItem(saveKey);if(!raw){useStarter();return;}
-  const v=JSON.parse(raw);if(v.v!==3||!Array.isArray(v.placed)){useStarter();return;}
-  coins=Number.isFinite(v.coins)?Math.max(0,Math.min(10000000,v.coins)):350;
+  const v=JSON.parse(raw);if((v.v!==3&&v.v!==4)||!Array.isArray(v.placed)){useStarter();return;}
+  coins=Math.max(TRIAL_ACCOUNT_COINS,Number.isFinite(v.coins)?Math.max(0,Math.min(10000000,v.coins)):0);
   xp=Number.isFinite(v.xp)?Math.max(0,Math.min(1000000000,v.xp)):0;
   placed=[];const ids=new Set<number>();
   for(const candidate of v.placed.slice(0,60)){
@@ -768,7 +769,19 @@ canvas.addEventListener("pointerup",e=>{
 canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;});
 function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}
 function selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));el("#build-hint").textContent="تم اختيار "+spec.label+" من الأصول ثلاثية الأبعاد. يحتاج مساحة "+spec.footprint+"×"+spec.footprint+" خلايا.";}
-moveBtn.addEventListener("click",()=>updateMode("move"));buildBtn.addEventListener("click",()=>updateMode(mode==="build"?"move":"build"));el("#cancel-build").addEventListener("click",()=>updateMode("move"));
+moveBtn.addEventListener("click",()=>{updateMode("move");storeBtn.classList.remove("active");});
+buildBtn.addEventListener("click",()=>{updateMode(mode==="build"?"move":"build");storeBtn.classList.remove("active");});
+el("#cancel-build").addEventListener("click",()=>{updateMode("move");storeBtn.classList.remove("active");});
+storeBtn.addEventListener("click",()=>{
+ updateMode("build");
+ document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.classList.toggle("active",b.dataset.category==="furniture"));
+ el("#catalog-structure").hidden=true;
+ el("#catalog-rooms").hidden=true;
+ el("#catalog-furniture").hidden=false;
+ selectAsset("pt-treatment-table");
+ storeBtn.classList.add("active");
+ status.textContent="المتجر مفتوح: اختر أصلاً طبياً ثم المس مكاناً فارغاً لوضعه.";
+});
 document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEventListener("click",()=>selectBuild(b.dataset.build as BuildKind)));
 document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEventListener("click",()=>selectAsset(b.dataset.asset??"")));
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";el("#catalog-furniture").hidden=cat!=="furniture";if(cat==="structure")selectBuild("wall");else if(cat==="rooms")selectBuild("reception");else selectAsset("pt-treatment-table");}));
