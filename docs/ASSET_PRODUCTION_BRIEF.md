@@ -8,7 +8,7 @@
 - Inspired by the readable rooms, staff scale and management camera of Two Point Hospital, without copying its characters, architecture, UI, branding or layouts.
 - Premium stylized realism: believable human proportions, recognizable physiotherapy equipment, readable room partitions, doors and furniture.
 - Calm modern rehabilitation-clinic identity: deep navy, teal/cyan accents, warm off-white walls, muted green landscaping and natural daylight.
-- Avoid toy-like miniature people, excessive gloss, clutter, oversized empty hospital halls and oversized yard areas.
+- Avoid toy-like miniature people, excessive gloss, clutter and oversized empty hospital halls. The starter property intentionally has generous buildable lawn; landscape it with grass, a clear path and edge planting rather than filling it with a prebuilt clinic.
 - Roofless/cutaway rooms should be readable from the camera: consistent wall height, visible door clearance, distinct floor materials and believable furniture scale.
 
 ## Starter-world dimensions
