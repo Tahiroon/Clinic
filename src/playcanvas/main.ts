@@ -263,9 +263,11 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"):Fallb
  }};
 }
 
+ const humanoidAssetCache=new Map<string,Promise<any>>();
  function loadHumanoid(url:string,parent:pc.Entity,height:number,castShadow:boolean,onReady?:(rig:HumanoidRig)=>void){
- app.assets.loadFromUrl(url,"container",(err,asset)=>{
-  if(err||!asset?.resource){console.error("Character asset failed",url,err);status.textContent="تم تشغيل شخصية بديلة خفيفة؛ تعذر تحميل النموذج الخارجي.";return;}
+  let pending=humanoidAssetCache.get(url);
+  if(!pending){pending=new Promise((resolve,reject)=>app.assets.loadFromUrl(url,"container",(err,asset)=>err||!asset?.resource?reject(err??new Error("Character asset unavailable")):resolve(asset)));humanoidAssetCache.set(url,pending);}
+  pending.then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:castShadow,receiveShadows:false});
   model.name="Animated humanoid";parent.addChild(model);model.syncHierarchy();
   const meshes=collectRenderMeshes(model);
@@ -319,7 +321,7 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"):Fallb
   const rig:HumanoidRig={entity:model,anim,clips:names,idle,walk};
   if(onReady)onReady(rig);
   console.info("Clinic character ready",url,{height,clips:names,idle,walk});
- });
+  }).catch(error=>{console.error("Character asset failed",url,error);status.textContent="تم تشغيل شخصية بديلة خفيفة؛ تعذر تحميل النموذج الخارجي.";});
 }
 function transitionHumanoid(rig:HumanoidRig|null,moving:boolean){
  if(!rig?.anim?.baseLayer)return;
