@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "build": "npm run validate:assets && tsc --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "validate:assets": "node scripts/validate-assets.mjs"
   },
   "dependencies": {
     "playcanvas": "2.23.3"
