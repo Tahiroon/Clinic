@@ -208,7 +208,7 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
   box(kind==="assessment"?"Assessment wall chart":"Treatment wall chart",halfW-.55,1.55,halfD-.18,.68,.82,.045,M.pale,root);
   box("Chart teal stripe",halfW-.55,1.55,halfD-.21,.10,.58,.025,trimMat,root);
  }else if(kind==="reception"){
-  loadReceptionDesk(root);loadWaitingSeats(root);
+  // Reception rooms are intentionally empty; the player buys and places the desk and seats.
  }else{
   box("Exercise wall display",0,1.28,halfD-.18,Math.min(1.7,width*.5),.78,.05,M.pale,root);
   box("Exercise wall display accent",0,1.28,halfD-.22,.12,.62,.025,M.teal,root);
@@ -379,6 +379,8 @@ const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:n
  "pt-hand-weights":{file:"physical-therapy-room-set.glb",node:"HandWeights",label:"أوزان علاجية",cost:30,footprint:2,targetSize:1.2},
  "pt-privacy-curtain":{file:"physical-therapy-room-set.glb",node:"PrivacyCurtain",label:"ستارة خصوصية",cost:45,footprint:3,targetSize:2.8},
  "pt-storage-cabinet":{file:"bedside-cabinet.glb",node:"*",label:"خزانة أدوات",cost:40,footprint:1,targetSize:.85},
+ "pt-reception-desk":{file:"reception-desk.glb",node:"*",label:"مكتب استقبال",cost:160,footprint:3,targetSize:2.2},
+ "pt-waiting-bench":{file:"waiting-bench-two-seat.glb",node:"*",label:"مقعد انتظار مزدوج",cost:65,footprint:2,targetSize:1.5},
  "pt-wheelchair":{file:"wheelchair.glb",node:"*",label:"كرسي متحرك",cost:75,footprint:2,targetSize:1.1},
  "hospital-crutches":{file:"hospital-equipment-set.glb",node:"Crutches",label:"عكازات طبية",cost:18,footprint:1,targetSize:1.35},
  "hospital-first-aid":{file:"hospital-equipment-set.glb",node:"FirstAidBag",label:"حقيبة إسعافات",cost:15,footprint:1,targetSize:.65},
@@ -470,6 +472,10 @@ function drawAssetFallback(p:Placed,spec:{label:string}){
  }else if(key==="pt-patient-chair"||key==="hospital-transport-chair"||key==="pt-wheelchair")chair("Fallback "+spec.label);
  else if(key==="pt-doctor-desk"){
   box("Fallback desk top",0,.88,0,1.55,.12,.82,M.wood2,root);for(const x of [-.65,.65])box("Fallback desk leg",x,.43,0,.09,.82,.72,M.dark,root);box("Fallback monitor",0,1.18,-.2,.48,.38,.06,M.dark,root);
+ }else if(key==="pt-reception-desk"){
+  box("Fallback reception counter",0,.55,0,2.05,1.05,.72,M.wood2,root);box("Fallback reception top",0,1.1,0,2.12,.12,.78,M.wood,root);box("Fallback reception screen",.45,1.35,-.18,.46,.34,.05,M.dark,root);
+ }else if(key==="pt-waiting-bench"){
+  box("Fallback waiting bench seat",0,.42,0,1.55,.18,.55,M.teal,root);box("Fallback waiting bench back",0,.78,-.2,1.55,.58,.12,M.blue,root);for(const x of [-.65,.65])box("Fallback bench leg",x,.2,0,.08,.4,.42,M.dark,root);
  }else if(key==="pt-privacy-screen"||key==="pt-privacy-curtain"){
   for(const x of [-.72,.72])cylinder("Fallback screen post",x,1.05,0,.045,2.1,.045,M.dark,root);
   box("Fallback privacy curtain",0,1.25,0,1.42,1.55,.055,M.pale,root);box("Fallback curtain rail",0,2.2,0,1.58,.06,.08,M.dark,root);
