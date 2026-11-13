@@ -275,3 +275,6 @@ button{font:inherit;touch-action:manipulation}
 .management-event{font-size:10px;line-height:1.5;color:#b9cce0;padding:6px 8px;border-right:2px solid #2994a8;background:#ffffff08;border-radius:5px}
 .empty-management{font-size:11px;color:#a9bfd3;margin:0;padding:10px;background:#ffffff08;border-radius:10px;line-height:1.6}
 @media(max-width:380px){.management-panel{left:5px;right:5px;padding:10px}.management-stats{gap:4px}.management-stats>div{padding:7px 5px}.management-stats b{font-size:14px}.time-controls{align-items:flex-start;flex-direction:column}}
+
+.clinic-open-button{width:100%;min-height:42px;border:1px solid #2a8f91;border-radius:11px;background:linear-gradient(110deg,#126b75,#168d83);color:#fff;font-weight:850;font-size:13px;margin:0 0 10px}
+.clinic-open-button.closed{background:#263b4e;border-color:#51677b;color:#d9e6f1}
