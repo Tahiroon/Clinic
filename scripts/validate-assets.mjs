@@ -201,10 +201,20 @@ try {
   }
   console.log("✓ Outdoor benches, flower beds and garden lamps are initialized safely");
   if (!/highDetailDevice=deviceMemory>=4&&cpuCores>=6/.test(source) ||
-      !/maxPixelRatio=highDetailDevice\?Math\.min\(window\.devicePixelRatio\|\|1,1\.25\):1\.0/.test(source)) {
+      !/maxPixelRatio=highDetailDevice\\?Math\\.min\\(window\\.devicePixelRatio\\|\\|1,1\\.25\\):Math\\.min\\(window\\.devicePixelRatio\\|\\|1,\\.9\\)/.test(source)) {
     throw new Error("Adaptive rendering quality is missing for high-end and low-end devices");
   }
   console.log("✓ Adaptive rendering preserves low-end performance and sharpens capable devices");
+  if (!/id="camera-zoom-in"/.test(html) || !/id="camera-zoom-out"/.test(html) || !/id="camera-reset"/.test(html) ||
+      !/zoomCamera\(\.82\)/.test(source) || !/zoomCamera\(1\.22\)/.test(source) ||
+      !/addEventListener\("wheel"/.test(source)) {
+    throw new Error("Accessible one-handed zoom, recenter and desktop wheel controls are required");
+  }
+  if (!/const gaitLaneX=3\.25,gaitLaneZ=-16\.05/.test(source) ||
+      !/Outdoor gait training lane/.test(source) || !/nearGaitLane/.test(source)) {
+    throw new Error("The outdoor gait-training lane must stay outside the buildable plot and clear its grass mesh");
+  }
+  console.log("✓ One-handed camera controls and outdoor gait-training lane are present");
   for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.physiotherapist,avatar", "loadHumanoid(characterAssets.patient,root", "loadHumanoid(characterAssets.receptionist,receptionistNpc", "receptionistNpc.enabled=management.receptionistOwned", "registerPatient(management,Number(button.dataset.registerPatient))", "recoverInterruptedSessions(management)", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
   }
