@@ -3,7 +3,7 @@ import "../style.css";
 import { createInitialManagementState, advanceSimulation, hireStaff, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, getRoleLabel, type ManagementState, type StaffRole, type ClinicRoomType } from "../game/management";
 
 type BuildKind = "treatment" | "reception" | "assessment" | "gym" | "staff" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door" | "asset";
-type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90; assetKey?:string };
+type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90; assetKey?:string; width?:number; depth?:number };
 const el=<T extends HTMLElement>(s:string)=>document.querySelector<T>(s)!;
 const canvas=el<HTMLCanvasElement>("#scene"), status=el<HTMLElement>("#status"), fpsLabel=el<HTMLElement>("#fps"), loading=el<HTMLElement>("#loading");
 const stage=el<HTMLElement>(".stage"), moveBtn=el<HTMLButtonElement>("#move-mode"), buildBtn=el<HTMLButtonElement>("#build-mode"), storeBtn=el<HTMLButtonElement>("#store-mode"), sessionBtn=el<HTMLButtonElement>("#session-mode"), viewBtn=el<HTMLButtonElement>("#view-mode");
@@ -169,79 +169,56 @@ for(let i=0;i<=D;i++){
  box("Property grid horizontal",0,.035,z,W,.012,.012,gridMaterial,buildGrid);
 }
 buildGrid.enabled=false;
-function makeRoom(kind:"treatment"|"reception"|"assessment"|"gym"|"staff",gx:number,gz:number,id:number){
- const root=new pc.Entity("Room "+id);
- world.addChild(root);root.setLocalPosition(gx+1,0,gz+1);
- const floor=material(new pc.Color(.69,.72,.68));
- box("Seamless room floor",1,.035,1,3.95,.07,3.95,floor,root);
- // Architectural finish: layered skirting, wall reveals and a restrained medical-grade palette.
- const skirting=material(new pc.Color(.34,.43,.46)), wallPanel=material(new pc.Color(.91,.92,.88)), doorFinish=material(new pc.Color(.72,.77,.75)),metal=material(new pc.Color(.43,.51,.54));
- box("Floor perimeter inlay",1,.078,1,3.78,.018,3.78,skirting,root);
- for(const x of [-.91,2.91])box("Wall skirting",x,.16,1,.045,.20,3.82,skirting,root);
- box("Rear wall skirting",1,.16,2.91,3.82,.20,.045,skirting,root);
- // Subtle wall panels and a continuous upper reveal make the room read as built architecture.
- for(const x of [-.55,.35,1.25,2.15])box("Interior wall panel",x,1.12,2.905,.72,1.62,.025,wallPanel,root);
- box("Rear wall upper reveal",1,2.31,2.89,3.9,.055,.055,metal,root);
- // Recessed ceiling light housings sit just above the open cutaway wall line.
- for(const x of [.25,1.75])box("Ceiling light housing",x,2.34,.15,.72,.055,.22,M.white,root);
- for(const x of [.25,1.75])box("Ceiling light diffuser",x,2.305,.15,.58,.018,.14,M.pale,root);
- // Modular 4×4 m room shell. Every wall segment has a matching navigation rectangle.
- box("Left exterior wall",-1,1.12,1,.16,2.24,4,M.wallSide,root);
- box("Right exterior wall",3,1.12,1,.16,2.24,4,M.wallSide,root);
- box("Rear exterior wall",1,1.12,3,4,2.24,.16,M.wall,root);
- // Both reception and treatment have a clear 1.2 m front doorway.
- box("Front wall left",-.3,1.12,-1,1.4,2.24,.16,M.wall,root);
- box("Front wall right",2.3,1.12,-1,1.4,2.24,.16,M.wall,root);
- box("Front doorway lintel",1,2.18,-1,1.2,.16,.18,M.white,root);
- // Real door leaf, recessed frame and hardware; the leaf is left ajar so the passage stays usable.
- box("Door frame left",.34,1.10,-1.06,.075,2.20,.12,M.white,root);
- box("Door frame right",1.66,1.10,-1.06,.075,2.20,.12,M.white,root);
- box("Door leaf ajar",.48,1.04,-.88,.075,2.02,.92,doorFinish,root);
- cylinder("Door handle",.48,1.05,-.39,.035,.035,.035,metal,root);
- // Coloured plinths emphasize room edges without cluttering the walking space.
- for(const x of [-1,3]){
-  box("Side wall teal plinth",x,.18,1,.18,.24,4,trim,root);
+function makeRoom(kind:"treatment"|"reception"|"assessment"|"gym"|"staff",gx:number,gz:number,id:number,width=4,depth=4){
+ const root=new pc.Entity("Room "+id+" · "+kind);
+ world.addChild(root);root.setLocalPosition(gx+width/2,0,gz+depth/2);
+ const floor=material(new pc.Color(.72,.75,.71));
+ box("Room floor",0,.035,0,width-.06,.07,depth-.06,floor,root);
+ const wallThickness=.16,wallHeight=2.25,halfW=width/2,halfD=depth/2;
+ const wallMat=material(new pc.Color(.88,.91,.87)),sideMat=material(new pc.Color(.58,.70,.70));
+ const trimMat=material(new pc.Color(.12,.42,.48)),frameMat=material(new pc.Color(.94,.95,.91));
+ // Continuous cutaway shell with a centered entrance opening; the floor is only inside this room.
+ box("Left wall",-halfW,wallHeight/2,0,wallThickness,wallHeight,depth,sideMat,root);
+ box("Right wall",halfW,wallHeight/2,0,wallThickness,wallHeight,depth,sideMat,root);
+ box("Rear wall",0,wallHeight/2,halfD,width,wallHeight,wallThickness,wallMat,root);
+ const doorWidth=Math.min(1.2,width*.42),sideSegment=(width-doorWidth)/2;
+ box("Front wall left",-(doorWidth/2+sideSegment/2),wallHeight/2,-halfD,sideSegment,wallHeight,wallThickness,wallMat,root);
+ box("Front wall right",doorWidth/2+sideSegment/2,wallHeight/2,-halfD,sideSegment,wallHeight,wallThickness,wallMat,root);
+ box("Door lintel",0,wallHeight-.08,-halfD,doorWidth,.16,wallThickness,frameMat,root);
+ box("Door frame left",-doorWidth/2,1.08,-halfD-.035,.07,2.16,.12,frameMat,root);
+ box("Door frame right",doorWidth/2,1.08,-halfD-.035,.07,2.16,.12,frameMat,root);
+ box("Door leaf ajar",-doorWidth*.32,1.02,-halfD+.13,.07,2.02,Math.min(.82,depth*.22),material(new pc.Color(.68,.73,.71)),root);
+ cylinder("Door handle",-doorWidth*.32,1.03,-halfD+.48,.035,.035,.035,M.yellow,root);
+ // Low plinth and top cap give every room a consistent management-game silhouette.
+ for(const x of [-halfW,halfW])box("Wall teal plinth",x,.17,0,wallThickness,.22,depth,trimMat,root);
+ box("Rear wall cap",0,wallHeight+.04,halfD,width,.1,.22,frameMat,root);
+ box("Room name panel",0,1.85,halfD-wallThickness-.02,Math.min(1.8,width*.55),.42,.04,trimMat,root);
+ // Rear glazing gives the room a readable architectural edge without a roof blocking the isometric view.
+ const windowWidth=Math.min(1.05,(width-.5)/2);
+ for(const x of [-width*.25,width*.25]){
+  box("Rear window glass",x,1.35,halfD-wallThickness-.025,windowWidth,.82,.035,glass,root);
+  box("Rear window frame top",x,1.79,halfD-wallThickness-.055,windowWidth+.08,.06,.07,frameMat,root);
+  box("Rear window frame bottom",x,.91,halfD-wallThickness-.055,windowWidth+.08,.06,.07,frameMat,root);
  }
- box("Front plinth left",-.3,.18,-1,1.4,.24,.2,trim,root);
- box("Front plinth right",2.3,.18,-1,1.4,.24,.2,trim,root);
- // A layered entrance portal gives the open-cutaway room a readable, built doorway.
- box("Entrance portal left pier",.20,1.10,-1.105,.12,2.20,.14,trim,root);
- box("Entrance portal right pier",1.80,1.10,-1.105,.12,2.20,.14,trim,root);
- box("Entrance portal header",1,2.22,-1.105,1.72,.12,.14,M.white,root);
- box("Door threshold",1,.075,-1.105,1.24,.07,.22,metal,root);
- if(id===1){
-  box("Shared plinth left",-.3,.18,3,1.4,.24,.2,trim,root);
-  box("Shared plinth right",2.3,.18,3,1.4,.24,.2,trim,root);
- }else{
-  box("Rear wall teal plinth",1,.18,3,4,.24,.2,trim,root);
-  box("Rear wall cap",1,2.25,3,4,.12,.22,M.white,root);
-  // Daylight windows belong to the treatment room's external rear wall.
-  for(const x of [.55,2.45]){
-   box("Rear window glass",x,1.42,2.91,1.15,.86,.035,glass,root);
-   box("Window top frame",x,1.89,2.88,1.24,.07,.09,M.white,root);
-   box("Window bottom frame",x,.95,2.88,1.24,.07,.09,M.white,root);
-   box("Window mullion",x,1.42,2.87,.055,.86,.09,M.white,root);
-   box("Window left jamb",x-.61,1.42,2.87,.065,1.02,.10,metal,root);
-   box("Window right jamb",x+.61,1.42,2.87,.065,1.02,.10,metal,root);
-   box("Window centre rail",x,1.42,2.86,1.16,.045,.10,metal,root);
-  }
+ for(const x of [-width*.22,width*.22]){
+  box("Ceiling light housing",x,2.30,0,.68,.055,.20,M.white,root);
+  box("Ceiling light diffuser",x,2.265,0,.54,.018,.13,M.pale,root);
  }
  if(kind==="treatment"||kind==="assessment"){
-  box(kind==="assessment"?"Assessment anatomy chart":"Treatment anatomy chart",2.45,1.6,2.91,.72,.62,.04,M.pale,root);
-  box("Anatomy chart accent",2.45,1.6,2.875,.12,.42,.035,trim,root);
+  box(kind==="assessment"?"Assessment wall chart":"Treatment wall chart",halfW-.55,1.55,halfD-wallThickness-.08,.68,.82,.045,M.pale,root);
+  box("Chart teal stripe",halfW-.55,1.55,halfD-wallThickness-.11,.10,.58,.025,trimMat,root);
  }else if(kind==="reception"){
-  loadReceptionDesk(root);
-  loadWaitingSeats(root);
+  loadReceptionDesk(root);loadWaitingSeats(root);
  }else if(kind==="staff"){
-  box("Staff rest sofa seat",1,.38,1.6,2.1,.34,.82,M.teal,root);
-  box("Staff rest sofa back",1,.82,1.95,2.1,.62,.18,M.blue,root);
-  box("Staff table",1,.38,.65,.95,.12,.65,M.wood2,root);
-  box("Staff notice board",2.45,1.55,2.91,.72,.62,.05,M.pale,root);
+  box("Staff rest sofa seat",0,.38,depth*.18,Math.min(2.1,width*.62),.34,.82,M.teal,root);
+  box("Staff rest sofa back",0,.82,depth*.18+.34,Math.min(2.1,width*.62),.62,.18,M.blue,root);
+  box("Staff table",0,.38,-depth*.20,.95,.12,.65,M.wood2,root);
  }else{
-  box("Exercise mat",1.1,.07,1.1,2.7,.08,1.25,M.blue,root);
-  box("Parallel bar left",.2,.6,2.45,.1,1.1,.1,M.wood2,root);
-  box("Parallel bar right",2,.6,2.45,.1,1.1,.1,M.wood2,root);
-  box("Parallel bar rail",1.1,1.08,2.45,1.9,.08,.08,M.yellow,root);
+  box("Exercise mat",0,.07,0,Math.min(width*.68,2.7),.08,Math.min(depth*.42,1.25),M.blue,root);
+  for(const x of [-Math.min(width*.25,.9),Math.min(width*.25,.9)]){
+   box("Parallel bar support",x,.6,depth*.24,.1,1.1,.1,M.wood2,root);
+   box("Parallel bar rail",x,1.08,depth*.24,.08,.08,Math.min(2.2,depth*.5),M.yellow,root);
+  }
  }
  return root;
 }
