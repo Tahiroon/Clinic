@@ -64,7 +64,14 @@ try {
     throw new Error("The open green property, entrance path and outdoor landscaping must exist");
   }
   console.log("✓ PlayCanvas model graph has no owner self-reference");
-  console.log("✓ Starter world is a 14×28 m green property with one treatment room"); 
+  if (!/insideAnyRoom=placed\.some/.test(source) || !/if\(isRoomKind\(item\.kind\)\)createLawnGrass\(\)/.test(source)) {
+    throw new Error("Outdoor grass must be masked and regenerated when new rooms are built");
+  }
+  if (!/Math\.min\(34,pinchHeight/.test(source)) {
+    throw new Error("Portrait camera zoom must allow the larger property to be explored");
+  }
+  console.log("✓ Starter world is a 14×28 m green property with one treatment room");
+  console.log("✓ Grass stays outside every player-built room"); 
 } catch (error) {
   failed = true;
   console.error("✗ PlayCanvas scene graph regression: " + (error instanceof Error ? error.message : String(error)));
