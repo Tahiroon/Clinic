@@ -54,6 +54,13 @@ const camera=new pc.Entity("Portrait isometric camera");camera.addComponent("cam
 let desiredOrthoHeight=camera.camera!.orthoHeight;
 const light=new pc.Entity("Soft daylight");light.addComponent("light",{type:"directional",intensity:1.65,castShadows:true,shadowResolution:1024,shadowType:pc.SHADOW_PCF3,shadowDistance:32,normalOffsetBias:.035});light.setEulerAngles(48,35,0);app.root.addChild(light);
 const world=new pc.Entity("Clinic plot");app.root.addChild(world);
+const tapMarker=new pc.Entity("Tap destination marker");
+tapMarker.addComponent("model",{type:"cylinder"});
+tapMarker.model!.material=M.yellow;
+tapMarker.setLocalScale(.34,.035,.34);
+tapMarker.enabled=false;
+world.addChild(tapMarker);
+
 const GRID=1, W=12, D=10, HALF_X=W/2, HALF_Z=D/2;
 const floorBase=material(new pc.Color(.34,.52,.37));
 const pathMat=material(new pc.Color(.72,.68,.57));
@@ -220,7 +227,7 @@ const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>patientFallback.destroy());
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=3, focus=false, wallRotation:0|90=0;
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v4"; 
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v4"; 
 const starterLayout:Placed[]=[
  {id:1,kind:"reception",gx:-4,gz:0},
  {id:2,kind:"treatment",gx:0,gz:0},
@@ -512,27 +519,78 @@ function findWalkPath(sx:number,sz:number,tx:number,tz:number){
  if(best.x===start.x&&best.z===start.z)return [];
  return reconstruct(best);
 }
+function canWalkSegment(sx:number,sz:number,tx:number,tz:number){
+ const distance=Math.hypot(tx-sx,tz-sz),samples=Math.max(1,Math.ceil(distance/.12));
+ for(let i=1;i<=samples;i++){const t=i/samples;if(!canAvatarStand(sx+(tx-sx)*t,sz+(tz-sz)*t))return false;}
+ return true;
+}
+function simplifyWalkRoute(route:{x:number;z:number}[],sx:number,sz:number){
+ if(route.length<2)return route;
+ const result:{x:number;z:number}[]=[];let fromX=sx,fromZ=sz,index=0;
+ while(index<route.length){
+  let farthest=index;
+  for(let j=route.length-1;j>index;j--)if(canWalkSegment(fromX,fromZ,route[j].x,route[j].z)){farthest=j;break;}
+  const point=route[farthest];result.push(point);fromX=point.x;fromZ=point.z;index=farthest+1;
+ }
+ return result;
+}
 function moveAvatarSafely(dx:number,dz:number){
- const p=avatar.getPosition(),distance=Math.hypot(dx,dz),steps=Math.max(1,Math.ceil(distance/.06));
+ const p=avatar.getPosition(),distance=Math.hypot(dx,dz),steps=Math.max(1,Math.ceil(distance/.055));
  let x=p.x,z=p.z;
  for(let i=1;i<=steps;i++){
   const nx=p.x+dx*i/steps,nz=p.z+dz*i/steps;
   if(canAvatarStand(nx,nz)){x=nx;z=nz;continue;}
-  // Wall sliding: if a diagonal sample is blocked, try each axis independently.
   const canX=canAvatarStand(nx,z),canZ=canAvatarStand(x,nz);
-  if(canX)x=nx;
-  if(canZ)z=nz;
-  if(!canX&&!canZ)break;
+  if(canX)x=nx;if(canZ)z=nz;if(!canX&&!canZ)break;
  }
  avatar.setPosition(x,0,z);
  return Math.hypot(x-p.x,z-p.z)>.001;
 }
-function updateMode(next:"move"|"build"){mode=next;moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"اختر غرفة أو قطعة ثم المس خلية فارغة في الشبكة.";}
+function updateMode(next:"move"|"build"){mode=next;if(next==="build"){destination=null;target=null;walkPath=[];setLocomotion(false);tapMarker.enabled=false;}moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"اختر غرفة أو قطعة ثم المس خلية فارغة في الشبكة.";}
 function screenToGround(clientX:number,clientY:number){const r=canvas.getBoundingClientRect(),x=(clientX-r.left)*(canvas.width/r.width),y=(clientY-r.top)*(canvas.height/r.height);const a=camera.camera!.screenToWorld(x,y,.1),b=camera.camera!.screenToWorld(x,y,100),d=b.sub(a);if(Math.abs(d.y)<.0001)return null;const t=-a.y/d.y;if(t<0)return null;const p=a.add(d.mulScalar(t));if(Math.abs(p.x)>HALF_X||Math.abs(p.z)>HALF_Z)return null;return p;}
 let pointerStart:{x:number;y:number;cx:number;cz:number;tx:number;tz:number}|null=null,dragged=false;const activePointers=new Map<number,{x:number;y:number}>();let pinchDistance=0,pinchHeight=0;
 canvas.addEventListener("pointerdown",e=>{activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size===2){const pts=[...activePointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);pinchHeight=desiredOrthoHeight;pointerStart=null;dragged=true;}else{pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraGoal.x,tz:cameraGoal.z};dragged=false;}canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(9.5,Math.min(18,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraGoal.set(Math.max(-4.5,Math.min(4.5,pointerStart.tx+shiftX)),0,Math.max(-4,Math.min(4,pointerStart.tz+shiftZ)));}});
-canvas.addEventListener("pointerup",e=>{activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;if(!pointerStart){if(activePointers.size===1){const p=[...activePointers.values()][0];pointerStart={x:p.x,y:p.y,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};}else dragged=false;return;}const wasDrag=dragged;pointerStart=null;if(wasDrag)return;const p=screenToGround(e.clientX,e.clientY);if(!p)return;if(mode==="build"){const gx=Math.floor(p.x),gz=Math.floor(p.z);if(selected==="asset"&&!selectedAssetKey){status.textContent="اختر أصلاً من المتجر أولاً.";return;}if(occupied(gx,gz,selected,wallRotation,selectedAssetKey??undefined)){status.textContent="هذه الخلايا مشغولة. اختر مساحة فارغة بجوارها.";return;}const cost=selected==="asset"&&selectedAssetKey?storeAssetSpecs[selectedAssetKey].cost:costs[selected];if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}coins-=cost;coinsLabel.textContent=String(coins);const item:Placed={id:nextId++,kind:selected,gx,gz,rot:(selected==="wall"||selected==="door")?wallRotation:0,assetKey:selected==="asset"?selectedAssetKey??undefined:undefined};placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;}const tx=Math.round(p.x*2)/2,tz=Math.round(p.z*2)/2;const route=findWalkPath(avatar.getPosition().x,avatar.getPosition().z,tx,tz);if(!route){status.textContent="لم أجد ممراً آمناً إلى هذه المنطقة.";return;}if(!route.length){status.textContent="الأخصائي قريب بالفعل من هذه النقطة.";return;}walkPath=route;const first=walkPath.shift()!;target=new pc.Vec3(first.x,0,first.z);status.textContent="الأخصائي يسلك أقرب ممر متاح.";});
+canvas.addEventListener("pointerup",e=>{
+ activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;
+ if(!pointerStart){
+  if(activePointers.size===1){const point=[...activePointers.values()][0];pointerStart={x:point.x,y:point.y,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};}
+  else dragged=false;
+  return;
+ }
+ const wasDrag=dragged;pointerStart=null;if(wasDrag)return;
+ const ground=screenToGround(e.clientX,e.clientY);if(!ground)return;
+ if(mode==="build"){
+  const gx=Math.floor(ground.x),gz=Math.floor(ground.z);
+  if(selected==="asset"&&!selectedAssetKey){status.textContent="اختر أصلاً من المتجر أولاً.";return;}
+  if(occupied(gx,gz,selected,wallRotation,selectedAssetKey??undefined)){status.textContent="هذه الخلايا مشغولة. اختر مساحة فارغة بجوارها.";return;}
+  const cost=selected==="asset"&&selectedAssetKey?storeAssetSpecs[selectedAssetKey].cost:costs[selected];
+  if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}
+  coins-=cost;coinsLabel.textContent=String(coins);
+  const item:Placed={id:nextId++,kind:selected,gx,gz,rot:(selected==="wall"||selected==="door")?wallRotation:0,assetKey:selected==="asset"?selectedAssetKey??undefined:undefined};
+  placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;
+ }
+ const start=avatar.getPosition(),tx=ground.x,tz=ground.z;
+ destination=new pc.Vec3(tx,0,tz);
+ tapMarker.setPosition(tx,.035,tz);tapMarker.enabled=true;
+ // Open-floor taps move to the exact point; the grid pathfinder is reserved for blocked lines of sight.
+ if(canWalkSegment(start.x,start.z,tx,tz)){
+  walkPath=[];target=destination.clone();setLocomotion(true);
+  status.textContent="الأخصائي يتحرك مباشرة إلى النقطة المحددة.";
+  return;
+ }
+ const rawRoute=findWalkPath(start.x,start.z,tx,tz);
+ if(rawRoute===null){destination=null;target=null;walkPath=[];setLocomotion(false);status.textContent="لا يوجد مسار متصل إلى هذه النقطة. اختر نقطة داخل ممر متاح.";return;}
+ const route=simplifyWalkRoute(rawRoute,start.x,start.z);
+ if(!route.length){destination=null;target=null;setLocomotion(false);status.textContent="أنت قريب من النقطة المحددة، لكن لا يوجد ممر إضافي.";return;}
+ walkPath=route;
+ const last=walkPath[walkPath.length-1];
+ if(canWalkSegment(last.x,last.z,tx,tz))walkPath.push({x:tx,z:tz});
+ const first=walkPath.shift()!;
+ target=new pc.Vec3(first.x,0,first.z);
+ setLocomotion(true);
+ status.textContent="الأخصائي يلتف حول العائق ويتجه إلى النقطة المحددة.";
+});
 canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;});
 function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}
 function selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));el("#build-hint").textContent="تم اختيار "+spec.label+" من الأصول ثلاثية الأبعاد. يحتاج مساحة "+spec.footprint+"×"+spec.footprint+" خلايا.";}
@@ -576,9 +634,9 @@ app.on("update",(dt:number)=>{
  camera.lookAt(cameraTarget);
  if(!target)return;
  const p=avatar.getPosition(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
- if(d<.07){
+ if(d<.10){
   if(walkPath.length){const next=walkPath.shift()!;target=new pc.Vec3(next.x,0,next.z);}
-  else{target=null;setLocomotion(false);}
+  else{target=null;destination=null;setLocomotion(false);}
  }else{
   setLocomotion(true);
   const desiredYaw=Math.atan2(dx,dz)*180/Math.PI;
@@ -588,7 +646,17 @@ app.on("update",(dt:number)=>{
   avatar.setEulerAngles(0,currentYaw+Math.max(-maxTurn,Math.min(maxTurn,yawDelta)),0);
   const walkSpeed=1.55;
   const step=Math.min(d,frameDt*walkSpeed),moved=moveAvatarSafely(dx/d*step,dz/d*step);
-  if(!moved){target=null;walkPath=[];setLocomotion(false);status.textContent="تعذر إكمال المسار؛ اختر ممراً أوسع.";}
+  if(!moved){
+   const goal=destination;
+   const retry=goal?findWalkPath(p.x,p.z,goal.x,goal.z):null;
+   if(retry&&retry.length){
+    walkPath=simplifyWalkRoute(retry,p.x,p.z);
+    const next=walkPath.shift()!;target=new pc.Vec3(next.x,0,next.z);
+   }else{
+    target=null;destination=null;walkPath=[];setLocomotion(false);
+    status.textContent="الممر مغلق حالياً. اختر نقطة أخرى داخل المساحة المتاحة.";
+   }
+  }
  }
 });
 let frames=0,elapsed=0;app.on("postupdate",(dt:number)=>{frames++;elapsed+=dt;if(elapsed>=1){fpsLabel.textContent=Math.round(frames/elapsed)+" FPS";frames=0;elapsed=0;}});
