@@ -238,13 +238,13 @@ let walkVelocity=0;
 let avatarAnim:any=null;let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
  student:new URL("../assets/characters/Student.glb",import.meta.url).href,
- patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,
+ patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,\n receptionist:new URL("../assets/characters/Receptionist.glb",import.meta.url).href,
 };
 type HumanoidRig={entity:pc.Entity;anim:any;clips:string[];idle:string;walk:string};
 type FallbackRig={entity:pc.Entity;update:(dt:number,moving:boolean)=>void};
-function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"):FallbackRig{
+function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"|"receptionist"):FallbackRig{
  const root=new pc.Entity("Fallback character rig · "+kind);parent.addChild(root);
- const shirt=kind==="student"?M.white:M.pale,trousers=kind==="student"?M.blue:M.teal;
+ const shirt=kind==="student"?M.white:kind==="receptionist"?M.teal:M.pale,trousers=kind==="student"?M.blue:kind==="receptionist"?M.dark:M.teal;
  box("Humanoid torso",0,1.02,0,.42,.62,.27,shirt,root);
  box("Humanoid neck",0,1.38,0,.11,.14,.12,M.skin,root);
  sphere("Humanoid head",0,1.57,0,.155,M.skin,root);
@@ -263,7 +263,7 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"):Fallb
   sphere("Humanoid hand",0,-.61,.015,.085,M.skin,pivot);
   armPivots.push(pivot);
  }
- if(kind==="student")box("Physiotherapist ID badge",.12,1.18,-.15,.1,.13,.025,trim,root);
+ if(kind==="student")box("Physiotherapist ID badge",.12,1.18,-.15,.1,.13,.025,trim,root);\n if(kind==="receptionist")box("Receptionist name badge",.12,1.18,-.15,.1,.13,.025,M.yellow,root);
  let phase=0;
  return {entity:root,update:(dt,moving)=>{
   if(moving)phase+=dt*7.2;
@@ -349,6 +349,10 @@ loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
 });
 const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.0,0,-4.55);patientNpc.enabled=false;
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
+const receptionistNpc=new pc.Entity("Optional receptionist");world.addChild(receptionistNpc);receptionistNpc.enabled=false;
+const receptionistFallback=createFallbackHumanoid(receptionistNpc,"receptionist");
+let receptionistFallbackRig:FallbackRig|null=receptionistFallback,receptionistRig:HumanoidRig|null=null;
+loadHumanoid(characterAssets.receptionist,receptionistNpc,1.62,false,rig=>{receptionistFallback.entity.destroy();receptionistFallbackRig=null;receptionistRig=rig;});
 let patientFallbackRig:FallbackRig|null=patientFallback,patientRig:HumanoidRig|null=null;
 let patientVisualId=0,patientVisualStage="",patientTarget:pc.Vec3|null=null,patientWalkPath:{x:number;z:number}[]=[];
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,rig=>{patientFallback.entity.destroy();patientFallbackRig=null;patientRig=rig;});
@@ -883,6 +887,12 @@ function renderManagement(){
  receptionistButton.hidden=management.receptionistOwned||management.treated<3;
  receptionistButton.disabled=management.receptionistOwned||management.balance<280;
  receptionistDescription.textContent=management.receptionistOwned?"موظف الاستقبال يعمل الآن على تنظيم وصول المرضى.":management.treated<3?"عالج "+(3-management.treated)+" حالات إضافية لفتح شراء موظف الاستقبال.":"متاح الآن: اشترِ موظف استقبال مقابل 280 عملة لتسريع التسجيل وتقليل الانتظار.";
+ const receptionistRoom=management.rooms.find(r=>r.type==="reception");
+ receptionistNpc.enabled=management.receptionistOwned&&!!receptionistRoom;
+ if(receptionistNpc.enabled&&receptionistRoom){
+  receptionistNpc.setLocalPosition(receptionistRoom.x+receptionistRoom.width/2-.12,0,receptionistRoom.z+receptionistRoom.depth/2+1.62);
+  receptionistNpc.setLocalEulerAngles(0,180,0);transitionHumanoid(receptionistRig,false);
+ }
  const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"التسجيل",waiting:"ينتظر الأخصائي",assessment:"جلسة التقييم",treatment:"جلسة العلاج"};
  const queue=getPatientQueue(management),visiblePatient=queue[0],receptionRoom=management.rooms.find(r=>r.type==="reception");
  for(let i=0;i<waitingPatientVisuals.length;i++){
@@ -1120,7 +1130,7 @@ app.on("update",(dt:number)=>{
  if(managementUiTimer>=.45){managementUiTimer=0;renderManagement();}
  if(managementSaveTimer>=8){managementSaveTimer=0;save();}
  playerFallbackRig?.update(frameDt,!!target);
- patientFallbackRig?.update(frameDt,!!patientTarget||patientWalkPath.length>0);
+ patientFallbackRig?.update(frameDt,!!patientTarget||patientWalkPath.length>0);\n receptionistFallbackRig?.update(frameDt,false);
  // Smooth camera follow/pan/zoom instead of snapping the camera on every touch event.
  const cameraAlpha=1-Math.exp(-frameDt*11);
  cameraTarget.x+=(cameraGoal.x-cameraTarget.x)*cameraAlpha;
