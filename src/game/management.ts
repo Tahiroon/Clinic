@@ -46,7 +46,7 @@ export function createInitialManagementState():ManagementState {
   return {version:1,day:1,minuteOfDay:8*60,speed:1,clinicOpen:false,balance:3200,reputation:50,experience:0,treated:0,arrivals:0,
     staff:[{id:1,name:"أنت",role:"physiotherapist",skill:70,energy:100,morale:85,wagePerHour:0,assignedRoomId:null,status:"idle"}],
     patients:[],rooms:[],events:[{id:1,minute:480,kind:"staff",message:"بدأ يومك الأول. جهّز الاستقبال وغرف العلاج قبل استقبال المرضى."}],
-    nextStaffId:2,nextPatientId:1,nextRoomId:2,nextEventId:2,arrivalAccumulator:0,payrollAccumulator:0};
+    nextStaffId:2,nextPatientId:1,nextRoomId:1,nextEventId:2,arrivalAccumulator:0,payrollAccumulator:0};
 }
 function event(s:ManagementState,kind:ClinicEvent["kind"],message:string){
   s.events.unshift({id:s.nextEventId++,minute:(s.day-1)*1440+s.minuteOfDay,kind,message});s.events=s.events.slice(0,12);
