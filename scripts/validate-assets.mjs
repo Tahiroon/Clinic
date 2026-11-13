@@ -6,6 +6,7 @@ const required = [
   ["src/assets/characters/Student.glb", ["Student"], ["Idle", "Walk"]],
   ["src/assets/characters/WardPatient.glb", ["WardPatient"], ["Idle", "Walk"]],
   ["src/assets/characters/Receptionist.glb", [], ["Idle", "Walk"]],
+  ["src/assets/characters/Physiotherapist.glb", [], ["Idle", "Walk"]],
   ["src/assets/clinic-kit/hospital/physical-therapy-room-set.glb", ["TreatmentTable", "StorageCabinet", "ParallelBars", "BandRack", "ExerciseBall", "ExerciseMat", "HandWeights", "PrivacyCurtain"], []],
   ["src/assets/clinic-kit/hospital/doctors-office-set.glb", ["ExamTable", "Chair_Patient", "Desk_Doctor", "PrivacyCurtain", "Sink_Cabinet", "Wall_Chart"], []],
   ["src/assets/clinic-kit/hospital/hospital-equipment-set.glb", ["Crutches", "FirstAidBag", "OxygenTrolley", "Stretcher", "TransportChair", "WalkingFrame"], []],
@@ -132,7 +133,7 @@ try {
   }
   console.log("✓ Player physiotherapist, patient flow, optional receptionist upgrade, economy and simulation controls are wired");
   console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
-  for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.student,avatar", "loadHumanoid(characterAssets.patient,root", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
+  for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.physiotherapist,avatar", "loadHumanoid(characterAssets.patient,root", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
   }
   console.log("✓ Player physiotherapist and waiting patients have visible character instances");
