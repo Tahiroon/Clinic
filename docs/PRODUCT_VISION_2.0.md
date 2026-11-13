@@ -196,8 +196,5 @@ Do not scale content until the vertical slice passes:
 
 ## 16. Explicit non-goals for initial release
 
-No recruitable staff roster, nurses, employed doctors, assistants, cleaners, payroll, staff morale/energy/break systems, staff rooms, complex workforce simulation, multiplayer editing, chat, trading, real patient records, real clinical decision support, photorealistic graphics or monetization that compromises learning.
+No recruitable staff roster, nurses, employed doctors, rehabilitation assistants, cleaners, payroll, staff morale/energy/break systems, staff rooms, complex workforce simulation, multiplayer editing, chat, trading, real patient records, real clinical decision support, photorealistic graphics or monetization that compromises learning.
 
-
-
-No multiplayer editing, chat, trading, nurse/doctor staff, large staff roster, complex crowd simulation, photorealistic graphics, massive open world, real patient records, real clinical decision support, or monetization mechanics that compromise learning or fairness.
