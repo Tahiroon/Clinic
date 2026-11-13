@@ -13,40 +13,27 @@ It is inspired by the broad management-game language of Two Point Hospital (read
 
 ## 2. Product pillars
 
-1. **Build:** design, furnish, decorate and expand a clinic and its surrounding property.
-2. **Manage:** appointments, patient flow, finances, reputation, equipment upkeep and optional reception support.
-3. **Treat:** the player avatar is the physiotherapist and personally performs the clinical journey.
-4. **Learn:** evidence-informed cases, assessment choices, reasoning, intervention, response and reassessment.
-5. **Progress:** unlock new spaces, equipment, specialisms, case packs, visual themes and challenges.
-6. **Belong:** later, allow safe read-only visits to other players' clinics and fair design/management challenges.
+1. **Build:** draw and shape rooms, furnish them, plan corridors and expand the property.
+2. **Manage:** recruit, assign, train and care for staff; organize patient flow, queues, schedules, finances and reputation.
+3. **Treat:** patients move through reception, waiting, assessment, intervention and discharge; the player may personally take over a case.
+4. **Learn:** evidence-informed physiotherapy cases, clinical reasoning, safety decisions, outcomes and reassessment.
+5. **Progress:** unlock specialist services, equipment, larger plots, staff skills and campaign challenges.
+6. **Observe:** readable live simulation with visible characters, needs, thoughts, tasks and bottlenecks.
 
-## 3. Character scope — strict first-release rule
+## 3. Character and workforce — management is core gameplay
 
-The first release has only:
-- **Player avatar:** the physiotherapist. The player personally welcomes, assesses and treats patients.
-- **Optional receptionist:** one purchasable/hireable receptionist character. Reception support improves appointment organization and reduces administrative load; it is not required to start or operate the starter clinic.
+The player is the clinic owner-manager and can also personally take clinical sessions. Hiring and managing a small team is a first-release gameplay pillar, not a later optional extra. Initial roles:
+- **Physiotherapists:** assess and treat patients according to their skills and assigned rooms.
+- **Rehabilitation assistants:** support exercise sessions and patient mobility under the physiotherapist's plan; never independently diagnose.
+- **Receptionists:** register arrivals, manage appointments and direct patients to waiting areas.
+- **Cleaners:** maintain room cleanliness and clinic hygiene.
+Each employee has a visible character, skill level, energy, morale, wage, current task and work assignment. Players recruit, assign, train and manage breaks. The player avatar remains available for direct clinical encounters, while hired physiotherapists keep the clinic operating when the player is building or managing. Patients are visible visitors with a readable journey through the clinic.
 
-Explicitly out of scope for the initial release:
-- Nurses, nursing staff, doctors as clinic employees, cleaners, assistants, and other staff roles.
-- Staff-management simulation beyond the optional receptionist.
-- Large crowds or complex multi-agent staffing.
-
-Patients are visitors/clinical case characters, not employees. They may appear in the clinic and clinical encounter. The clinical content must not imply that a receptionist provides clinical care.
-
-## 4. Starter property — open land, not a prebuilt clinic
+## 4. Starter property — build the clinic as a management game
 
 Every learner starts on the same generous, portrait-composed property: approximately **14 m × 28 m**. The land is primarily open green lawn, with a clear entrance path, a small outdoor landscape and substantial usable space around the first room.
 
-The first playable state contains:
-- One compact 4 m × 4 m treatment room only.
-- One treatment table and one storage unit as essential starter equipment.
-- A visible patient approach and a clear entrance route.
-- Continuous outdoor grass around the building; grass, trees and shrubs never appear inside constructed rooms.
-- Large, visibly empty buildable land where the learner can add rooms and facilities.
-
-Do not prebuild a complete clinic, reception wing, waiting hall or a tiled floor covering the whole property. The learner creates the clinic over time. Room floors exist only inside rooms the player has built; the surrounding property remains outdoor ground.
-
-The initial property is a generous development site, not an empty warehouse: landscaping and paths give it identity while preserving most of the land for meaningful expansion.
+The player starts with a generous empty, landscaped property, starter capital and a guided management objective—not a prebuilt miniature clinic. The player must plan and construct the first reception, assessment room and treatment room, furnish each room with required equipment, and hire the first staff before opening the clinic. A small starter treatment room may be provided only in a tutorial scenario; the main campaign begins with buildable land. Room floors and walls appear only where rooms are constructed; the unbuilt property remains outdoor ground.
 
 ## 5. Land, property and expansion
 
