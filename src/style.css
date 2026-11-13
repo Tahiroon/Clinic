@@ -503,3 +503,29 @@ button{font:inherit;touch-action:manipulation}
 .art-oxygen:after{left:13px;top:36px;width:28px;height:4px;background:#536e7c;box-shadow:5px 5px 0 -1px #d1c39b,18px 5px 0 -1px #d1c39b}
 .art-stretcher:before{left:8px;top:17px;width:36px;height:10px;border-radius:3px;background:#d9e5e2;border:2px solid #91aeb5}
 .art-stretcher:after{left:13px;top:28px;width:4px;height:13px;background:#c4d0cc;box-shadow:22px 0 #c4d0cc,0 12px 0 -1px #d5bd8c,22px 12px 0 -1px #d5bd8c}
+
+
+/* Real product inspection: selected items are rendered from their actual bundled GLB. */
+.store-item-art{display:grid;place-items:center;background:linear-gradient(145deg,#214e67,#102b43);border:1px solid #5ac8d0;border-radius:10px}
+.store-item-art:before,.store-item-art:after{display:none!important;content:none!important}
+.store-item-type{font-size:12px;font-weight:950;letter-spacing:.08em;color:#8cf4ec;text-shadow:0 0 10px #38c9d477}
+.store-preview{display:flex;align-items:center;gap:9px;margin:8px 0;padding:9px 10px;border:1px solid #58d6d4;border-radius:12px;background:linear-gradient(110deg,#124765,#0c304c);box-shadow:inset 0 1px #ffffff16}
+.store-preview-copy{display:grid;gap:3px;min-width:0;flex:1}
+.store-preview-kicker{font-size:9px;font-weight:900;color:#83eee4;letter-spacing:.04em}
+.store-preview-copy strong{font-size:12px;color:#fff}
+.store-preview-copy small{font-size:9px;line-height:1.45;color:#c0dce7}
+#store-place-selected{flex:none;max-width:118px;min-height:39px;padding:7px 9px;border:1px solid #72e8d7;border-radius:9px;background:linear-gradient(145deg,#0ba99e,#08718e);color:#fff;font-size:10px;font-weight:900}
+#store-place-selected:disabled{opacity:.45;filter:grayscale(.45)}
+.store-item{min-height:76px}
+.store-item-copy b{font-size:12px}
+.store-item-copy small{font-size:10px;line-height:1.45}
+.store-item-copy strong{font-size:12px}
+.store-panel{max-height:min(64dvh,590px)}
+.store-grid{padding-bottom:5px}
+body.store-previewing .mission-card,body.store-previewing .scene-top{opacity:0;pointer-events:none}
+@media(max-width:380px){
+ .store-preview{gap:6px;padding:8px}
+ .store-preview-copy strong{font-size:11px}
+ .store-preview-copy small{font-size:8px}
+ #store-place-selected{max-width:102px;font-size:9px;padding:6px}
+}
