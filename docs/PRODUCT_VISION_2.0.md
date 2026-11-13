@@ -37,9 +37,9 @@ The player starts with a generous empty, landscaped property, starter capital an
 
 ## 5. Land, property and expansion
 
-The clinic sits on a generous 14 m × 28 m starter property with open lawn around its first treatment room. Expansion is a progression system:
-- Start with one owned green property and one treatment room.
-- Use the open property to construct additional rooms and facilities as coins and learning progress allow.
+The clinic sits on a generous 14 m × 28 m starter property with open lawn and room for player-designed facilities. Expansion is a progression system:
+- Start with one owned green property and starter capital.
+- Build initial functional rooms, then add specialist facilities as finances and campaign progress allow.
 - Later unlock or purchase adjacent land parcels with in-game currency and progression requirements.
 - Add new rooms, wings or separate buildings as later milestones.
 - Outdoor development can include paths, trees, benches, signs, parking and a rehabilitation garden.
@@ -85,14 +85,14 @@ Internal dashboard metrics can include care quality, patient satisfaction, staff
 
 No energy timers, pay-to-win clinical advantages, loot boxes, or punishment for taking breaks. Rewards must not incentivize rushing, overtreatment, unsafe decisions or patient volume over care quality.
 
-Optional receptionist is a meaningful investment: helps organize arrivals/appointments and reduces administrative friction. It is not required for the player to treat patients.
+Recruitment is a core management system. Receptionists manage registration and appointments; physiotherapists deliver assessment and treatment; rehabilitation assistants support exercise sessions; cleaners maintain hygiene. The clinic can open only when its essential rooms and minimum staffing are ready.
 
 ## 9. Patient and character simulation
 
-- The player physiotherapist is the only active clinical staff character in the initial release.
-- The optional receptionist is a simple non-clinical support character.
+- The player is the owner-manager and may personally take clinical sessions.
+- Hired physiotherapists, rehabilitation assistants, receptionists and cleaners are active staff with skills, needs, tasks and schedules.
 - Patients are individual visitors with distinct presentation, goals, needs and case data.
-- Begin with a small visible population and limited simultaneous activity.
+- Begin with a small visible population and limited simultaneous activity, then increase the cap as performance allows.
 - Use authored animation states and lightweight navigation; do not simulate a large crowd.
 - Nearby visible characters use full animation and path navigation. Distant/off-screen activity is simplified or paused.
 - Movement must respect walls, furniture, doors and walkable areas. Avoid jitter and frame-by-frame object allocation.
@@ -173,10 +173,11 @@ The game must remain independently deployable and must not touch THERASON produc
 ## 14. First playable vertical slice
 
 The first proof must demonstrate quality, not feature count:
-- Standardized starter property with small clinic, green outdoor area and visible expansion boundary.
-- One player physiotherapist avatar; no nurse/doctor/cleaner/assistant staff.
-- Optional receptionist purchase can be implemented after core scene stability.
-- Reception/waiting zone and one treatment room.
+- Generous landscaped property with buildable land and a guided campaign objective.
+- Room construction and furnishing for reception, assessment and treatment.
+- Hire at least one receptionist and one physiotherapist before opening the clinic.
+- Live patient arrival, queue, assessment, treatment and discharge flow.
+- Visible staff tasks, energy/morale and operating expenses.
 - One patient encounter with a short, reviewed clinical flow (can be stubbed until content review).
 - Camera overview, build camera and close clinical camera transition.
 - Small validated object catalog, grid placement, rotation and collision/path checks.
