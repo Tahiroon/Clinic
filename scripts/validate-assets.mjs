@@ -162,6 +162,12 @@ try {
   for (const required of ["roomDrawing=true", "updateRoomDrawPreview()", "buildRoom(management,roomType,b.x,b.z,b.w,b.d)", "managementSaveKey", "advanceSimulation(management,frameDt)"]) {
     if (!source.includes(required)) throw new Error("Playable management/build loop is missing " + required);
   }
+  if (/starterFurniture|const furniture:\\{x:number;z:number;w:number;d:number\\}\[\]/.test(source)) {
+    throw new Error("Empty rooms must not retain invisible legacy furniture collision blockers");
+  }
+  if (!/return placed\\.some\\(p=>!isRoomKind\\(p\\.kind\\)&&rectanglesOverlap\\(a,footprintAt/.test(source)) {
+    throw new Error("Placement collision must use actual placed-object footprints, not assumed starter furniture");
+  }
   if (/drawAssetFallback|Fallback prop ·/.test(source)) {
     throw new Error("Store equipment must never silently substitute procedural fake models for the real GLB");
   }
