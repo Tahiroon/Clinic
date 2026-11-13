@@ -54,7 +54,7 @@ window.visualViewport?.addEventListener("resize",queueResize,{passive:true});
 window.visualViewport?.addEventListener("scroll",queueResize,{passive:true});
 // A restrained ambient fill preserves form and lets the soft directional shadows read clearly.
 app.scene.ambientLight=new Color(.62,.66,.69);
-function material(c:Color){const m=new StandardMaterial();m.diffuse=c;m.update();return m;}
+function material(c:Color){const m=new StandardMaterial();m.diffuse=c;m.roughness=.94;m.metalness=0;m.update();return m;}
 const M={ground:material(new Color(.24,.52,.39)),tile:material(new Color(.34,.66,.48)),grid:material(new Color(.12,.62,.72)),room:material(new Color(.86,.91,.88)),wall:material(new Color(.92,.93,.89)),wallBase:material(new Color(.77,.82,.78)),wallGlass:material(new Color(.64,.83,.84)),wallBlue:material(new Color(.66,.80,.85)),wallFrame:material(new Color(.16,.25,.29)),wallCap:material(new Color(.72,.78,.74)),wallAccent:material(new Color(.10,.55,.60)),wallRecess:material(new Color(.53,.61,.58)),wood:material(new Color(.54,.34,.23)),wood2:material(new Color(.78,.55,.31)),teal:material(new Color(.02,.64,.70)),blue:material(new Color(.10,.34,.66)),pale:material(new Color(.82,.95,.94)),green:material(new Color(.20,.65,.39)),skin:material(new Color(.72,.49,.36)),dark:material(new Color(.08,.15,.23)),white:material(new Color(.98,.98,.92)),yellow:material(new Color(.98,.73,.23))};
 type PrimitiveModelType="box"|"capsule"|"cone"|"cylinder"|"plane"|"sphere"|"torus";
 function primitive(name:string,type:PrimitiveModelType,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){
@@ -131,28 +131,28 @@ const worldTreeA=material(new Color(.23,.43,.29));
 const worldTreeB=material(new Color(.31,.50,.32));
 const worldTreeC=material(new Color(.40,.54,.34));
 const worldWarmGlass=material(new Color(.96,.76,.40));
-// The district is much larger than the separately enclosed clinic property.
-box("District terrain · continuous landscape",0,-.34,0,58,.48,76,lawnBase,world);
+// A compact handcrafted neighbourhood surrounds the clinic; it is a backdrop, not an empty explorable district.
+const district=new Entity("Compact clay neighbourhood");world.addChild(district);district.setLocalScale(.58,1,.58);district.setLocalPosition(0,0,-5);
+box("District terrain · compact landscape",0,-.34,0,58,.48,76,lawnBase,district);
 box("Clinic buildable foundation",0,.005,0,W,.08,D,material(new Color(.66,.68,.65)),world);
 const terrainIslands:[number,number,number,number,StandardMaterial][]=[
- [-21,-24,7,5,lawnPatchMaterial],[-10,-28,5,3,grassAlt],[12,-25,8,4,lawnPatchMaterial],[23,-13,6,8,grassAlt],
- [-23,2,7,9,grassAlt],[22,12,8,7,lawnPatchMaterial],[-12,27,9,5,lawnPatchMaterial],[9,30,8,5,grassAlt],[0,-8,18,8,lawnPatchMaterial]
+ [-19,-22,7,5,lawnPatchMaterial],[-8,-27,5,3,grassAlt],[15,-20,7,4,lawnPatchMaterial],[-22,4,7,8,grassAlt],[22,10,7,7,lawnPatchMaterial],[-8,27,8,5,grassAlt],[0,-7,15,7,lawnPatchMaterial]
 ];
-for(const [x,z,rx,rz,mat] of terrainIslands){const patch=sphere("Soft terrain colour variation",x,-.085,z,1,mat,world);patch.setLocalScale(rx,.018,rz);}
-box("District access road",0,-.025,-21.0,58,.10,5.8,worldRoad,world);
-box("Road north verge",0,.025,-17.85,58,.12,.34,worldStone,world);
-box("Road south verge",0,.025,-24.15,58,.12,.34,worldStone,world);
-box("District side road",17,-.02,4.0,5.0,.10,48,worldRoad,world);
-box("Side road west curb",14.35,.035,4.0,.30,.14,48,worldStone,world);
-box("Side road east curb",19.65,.035,4.0,.30,.14,48,worldStone,world);
-for(let x=-27;x<=27;x+=5.5)box("Road centre dash",x,.034,-21,2.4,.018,.10,worldRoadLine,world);
-box("Clinic approach promenade",0,.025,-17.55,4.2,.10,6.7,pathMat,world);
-box("Approach promenade left curb",-2.18,.10,-17.55,.16,.20,6.7,pathEdge,world);
-box("Approach promenade right curb",2.18,.10,-17.55,.16,.20,6.7,pathEdge,world);
-box("Clinic arrival path",0,.04,-10.8,2.5,.08,6.6,pathMat,world);
-box("Arrival court stone border",0,.07,-4.25,5.2,.14,3.2,pathEdge,world);
-box("Arrival court paving",0,.15,-4.25,4.95,.06,2.95,pathMat,world);
-for(const x of [-1.6,0,1.6])box("Arrival court paving joint",x,.185,-4.25,.025,.015,2.7,pathEdge,world);
+for(const [x,z,rx,rz,mat] of terrainIslands){const patch=sphere("Soft terrain colour variation",x,-.085,z,1,mat,district);patch.setLocalScale(rx,.018,rz);}
+box("District access road",0,-.025,-21.0,42,.10,5.8,worldRoad,district);
+box("Road north verge",0,.025,-17.85,42,.12,.34,worldStone,district);
+box("Road south verge",0,.025,-24.15,58,.12,.34,worldStone,district);
+box("District side road",17,-.02,4.0,5.0,.10,34,worldRoad,district);
+box("Side road west curb",14.35,.035,4.0,.30,.14,34,worldStone,district);
+box("Side road east curb",19.65,.035,4.0,.30,.14,48,worldStone,district);
+for(let x=-19;x<=19;x+=5.5)box("Road centre dash",x,.034,-21,2.4,.018,.10,worldRoadLine,district);
+box("Clinic approach promenade",0,.025,-17.55,4.2,.10,6.7,pathMat,district);
+box("Approach promenade left curb",-2.18,.10,-17.55,.16,.20,6.7,pathEdge,district);
+box("Approach promenade right curb",2.18,.10,-17.55,.16,.20,6.7,pathEdge,district);
+box("Clinic arrival path",0,.04,-10.8,2.5,.08,6.6,pathMat,district);
+box("Arrival court stone border",0,.07,-4.25,5.2,.14,3.2,pathEdge,district);
+box("Arrival court paving",0,.15,-4.25,4.95,.06,2.95,pathMat,district);
+for(const x of [-1.6,0,1.6])box("Arrival court paving joint",x,.185,-4.25,.025,.015,2.7,pathEdge,district);
 const wallBaseMat=material(new Color(.47,.43,.36));
 const wallBodyMat=material(new Color(.72,.66,.55));
 const wallCapMat=material(new Color(.84,.78,.66));
@@ -227,16 +227,16 @@ for(const [x,z] of [[-4.5,-18.0],[4.5,-18.0],[-20,-3],[20,-5]] as [number,number
  sphere("District lamp diffuser",x,2.48,z,.20,worldWarmGlass,world);
 }
 const gaitLaneX=4.2,gaitLaneZ=-17.8;
-box("Outdoor physiotherapy gait lane",gaitLaneX,.055,gaitLaneZ,1.55,.08,4.5,pathEdge,world);
-box("Gait lane walking surface",gaitLaneX,.105,gaitLaneZ,1.28,.025,4.25,pathMat,world);
-for(let i=0;i<5;i++)box("Gait lane distance marker",gaitLaneX,.13,gaitLaneZ-1.65+i*.82,.98,.018,.035,M.white,world);
+box("Outdoor physiotherapy gait lane",gaitLaneX,.055,gaitLaneZ,1.55,.08,4.5,pathEdge,district);
+box("Gait lane walking surface",gaitLaneX,.105,gaitLaneZ,1.28,.025,4.25,pathMat,district);
+for(let i=0;i<5;i++)box("Gait lane distance marker",gaitLaneX,.13,gaitLaneZ-1.65+i*.82,.98,.018,.035,M.white,district);
 const arrivalMetal=material(new Color(.20,.31,.38));
 const warmGlass=material(new Color(.96,.76,.40));
 for(const x of [-1.12,1.12]){
- addContactShadow(world,"Entrance light shadow",x,-3.75,.28,.26);
- cylinder("Entrance path light base",x,.12,-3.75,.18,.22,.18,arrivalMetal,world);
- cylinder("Entrance path light stem",x,.52,-3.75,.065,.78,.065,arrivalMetal,world);
- sphere("Entrance path light diffuser",x,.98,-3.75,.14,warmGlass,world);
+ addContactShadow(district,"Entrance light shadow",x,-3.75,.28,.26);
+ cylinder("Entrance path light base",x,.12,-3.75,.18,.22,.18,arrivalMetal,district);
+ cylinder("Entrance path light stem",x,.52,-3.75,.065,.78,.065,arrivalMetal,district);
+ sphere("Entrance path light diffuser",x,.98,-3.75,.14,warmGlass,district);
 }
 // A warm, low-rise neighbourhood clinic: plaster, stone, timber and a modest terracotta roof.
 const clinicPlaster=material(new Color(.79,.73,.63));
