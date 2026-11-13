@@ -979,8 +979,10 @@ let roomDrawing=false,roomDrawStart:{x:number;z:number}|null=null,roomDrawEnd:{x
 function roomDrawBounds(){
  if(!roomDrawStart||!roomDrawEnd)return null;
  const x=Math.min(roomDrawStart.x,roomDrawEnd.x),z=Math.min(roomDrawStart.z,roomDrawEnd.z);
- const w=Math.max(4,Math.min(12,Math.abs(roomDrawEnd.x-roomDrawStart.x)+1));
- const d=Math.max(4,Math.min(12,Math.abs(roomDrawEnd.z-roomDrawStart.z)+1));
+ const roomType=selected==="gym"?"exercise":selected as ClinicRoomType;
+ const blueprint=ROOM_BLUEPRINTS[roomType],minWidth=blueprint?.width??4,minDepth=blueprint?.depth??4;
+ const w=Math.max(minWidth,Math.min(12,Math.abs(roomDrawEnd.x-roomDrawStart.x)+1));
+ const d=Math.max(minDepth,Math.min(12,Math.abs(roomDrawEnd.z-roomDrawStart.z)+1));
  return {x,z,w,d};
 }
 function updateRoomDrawPreview(){
