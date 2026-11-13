@@ -47,7 +47,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p src/assets/clinic-kit/management-sim
+          mkdir -p src/assets/clinic-kit/management-sim src/assets/characters
           base="https://cdn.3dassets.dev/assets"
           curl --fail --location --retry 3 "$base/23608/v1/model.glb" --output src/assets/clinic-kit/management-sim/examination-couch.glb
           curl --fail --location --retry 3 "$base/23627/v1/model.glb" --output src/assets/clinic-kit/management-sim/reception-desk.glb
@@ -55,6 +55,9 @@ jobs:
           curl --fail --location --retry 3 "$base/23599/v1/model.glb" --output src/assets/clinic-kit/management-sim/privacy-screen.glb
           curl --fail --location --retry 3 "$base/23600/v1/model.glb" --output src/assets/clinic-kit/management-sim/wheelchair.glb
           curl --fail --location --retry 3 "$base/23593/v1/model.glb" --output src/assets/clinic-kit/management-sim/bedside-cabinet.glb
+          curl --fail --location --retry 3 "https://gobkit.com/freebies/human002/Receptionist.glb" --output src/assets/characters/Receptionist.glb
+          test "$(head -c 4 src/assets/characters/Receptionist.glb)" = "glTF"
+          test "$(stat -c%s src/assets/characters/Receptionist.glb)" -gt 1000
           for asset in src/assets/clinic-kit/management-sim/*.glb; do
             test "$(head -c 4 "$asset")" = "glTF"
             test "$(stat -c%s "$asset")" -gt 1000
@@ -76,6 +79,10 @@ jobs:
           - Wheelchair — https://cdn.3dassets.dev/assets/23600/v1/model.glb
           - Bedside Cabinet — https://cdn.3dassets.dev/assets/23593/v1/model.glb
 
+          Optional receptionist character:
+          - Gobkit Receptionist — https://gobkit.com/freebies/human002/Receptionist.glb
+          - License: CC0 1.0 Universal; rigged and animated with Idle/Walk clips.
+
           Only the individual GLB props needed by this physiotherapy clinic are included; the unrelated full-hospital starter scene is not used.
           EOF
       - name: Commit imported assets to clinic-dev
@@ -85,7 +92,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           rm -rf public/assets/clinic-kit/hospital
-          git add src/assets/clinic-kit/hospital src/assets/clinic-kit/management-sim
+          git add src/assets/clinic-kit/hospital src/assets/clinic-kit/management-sim src/assets/characters/Receptionist.glb
           if git diff --cached --quiet; then
             echo "No new asset changes."
             exit 0
