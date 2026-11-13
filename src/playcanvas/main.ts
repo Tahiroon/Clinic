@@ -1,6 +1,6 @@
 import * as pc from "playcanvas";
 import "../style.css";
-import { createInitialManagementState, advanceSimulation, hireStaff, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, getRoleLabel, type ManagementState, type StaffRole, type ClinicRoomType } from "../game/management";
+import { createInitialManagementState, advanceSimulation, hireStaff, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, getRoleLabel, ROOM_BLUEPRINTS, type ManagementState, type StaffRole, type ClinicRoomType } from "../game/management";
 
 type BuildKind = "treatment" | "reception" | "assessment" | "gym" | "staff" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door" | "asset";
 type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90; assetKey?:string; width?:number; depth?:number };
@@ -884,10 +884,47 @@ function screenToGround(clientX:number,clientY:number){
  return localPoint;
 }
 let pointerStart:{x:number;y:number;cx:number;cz:number;tx:number;tz:number}|null=null,dragged=false;const activePointers=new Map<number,{x:number;y:number}>();let pinchDistance=0,pinchHeight=0;
-canvas.addEventListener("pointerdown",e=>{activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(mode==="build"&&activePointers.size===1)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.size===2){const pts=[...activePointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);pinchHeight=desiredOrthoHeight;pointerStart=null;dragged=true;}else{pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraGoal.x,tz:cameraGoal.z};dragged=false;}canvas.setPointerCapture(e.pointerId);});
-canvas.addEventListener("pointermove",e=>{if(mode==="build"&&activePointers.size<2)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(8,Math.min(34,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;const halfHeight=desiredOrthoHeight*.5,halfWidth=halfHeight*(canvas.clientWidth/Math.max(1,canvas.clientHeight));const maxPanX=Math.max(0,HALF_X-halfWidth*.7),maxPanZ=Math.max(0,HALF_Z-halfHeight*.7);cameraGoal.set(Math.max(-maxPanX,Math.min(maxPanX,pointerStart.tx+shiftX)),0,Math.max(-maxPanZ,Math.min(maxPanZ,pointerStart.tz+shiftZ)));}});
+let roomDrawing=false,roomDrawStart:{x:number;z:number}|null=null,roomDrawEnd:{x:number;z:number}|null=null;
+function roomDrawBounds(){
+ if(!roomDrawStart||!roomDrawEnd)return null;
+ const x=Math.min(roomDrawStart.x,roomDrawEnd.x),z=Math.min(roomDrawStart.z,roomDrawEnd.z);
+ const w=Math.max(4,Math.min(12,Math.abs(roomDrawEnd.x-roomDrawStart.x)+1));
+ const d=Math.max(4,Math.min(12,Math.abs(roomDrawEnd.z-roomDrawStart.z)+1));
+ return {x,z,w,d};
+}
+function updateRoomDrawPreview(){
+ const b=roomDrawBounds();if(!b)return;
+ const roomType=selected==="gym"?"exercise":selected as ClinicRoomType,base=ROOM_BLUEPRINTS[roomType];
+ const cost=base.cost+Math.max(0,b.w*b.d-base.width*base.depth)*35;
+ const valid=!occupied(b.x,b.z,selected,wallRotation,undefined,true,b.w,b.d)&&coins>=cost;
+ placementPreview.setLocalPosition(b.x+b.w/2,.12,b.z+b.d/2);placementPreview.setLocalScale(b.w,.035,b.d);
+ if(previewValidity!==valid){placementPreviewMaterial.diffuse=valid?new pc.Color(.12,.88,.48):new pc.Color(.96,.22,.20);placementPreviewMaterial.emissive=valid?new pc.Color(.025,.16,.07):new pc.Color(.16,.018,.015);placementPreviewMaterial.update();previewValidity=valid;}
+ placementPreview.enabled=true;
+}
+canvas.addEventListener("pointerdown",e=>{
+ activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(mode==="build"&&isRoomKind(selected)&&activePointers.size===1){
+  const point=screenToGround(e.clientX,e.clientY);
+  if(point){roomDrawing=true;roomDrawStart={x:Math.floor(point.x),z:Math.floor(point.z)};roomDrawEnd={...roomDrawStart};pointerStart=null;dragged=true;updateRoomDrawPreview();}
+ }else if(mode==="build"&&activePointers.size===1)updatePlacementPreview(e.clientX,e.clientY);
+ if(activePointers.size===2){roomDrawing=false;roomDrawStart=null;roomDrawEnd=null;placementPreview.enabled=false;const pts=[...activePointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);pinchHeight=desiredOrthoHeight;pointerStart=null;dragged=true;}
+ else if(!roomDrawing){pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraGoal.x,tz:cameraGoal.z};dragged=false;}
+ canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(roomDrawing&&activePointers.size===1){const point=screenToGround(e.clientX,e.clientY);if(point){roomDrawEnd={x:Math.floor(point.x),z:Math.floor(point.z)};updateRoomDrawPreview();}return;}if(mode==="build"&&activePointers.size<2)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(8,Math.min(34,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;const halfHeight=desiredOrthoHeight*.5,halfWidth=halfHeight*(canvas.clientWidth/Math.max(1,canvas.clientHeight));const maxPanX=Math.max(0,HALF_X-halfWidth*.7),maxPanZ=Math.max(0,HALF_Z-halfHeight*.7);cameraGoal.set(Math.max(-maxPanX,Math.min(maxPanX,pointerStart.tx+shiftX)),0,Math.max(-maxPanZ,Math.min(maxPanZ,pointerStart.tz+shiftZ)));}});
 canvas.addEventListener("pointerup",e=>{
  activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;
+ if(roomDrawing){
+  roomDrawing=false;pointerStart=null;const b=roomDrawBounds();roomDrawStart=null;roomDrawEnd=null;placementPreview.enabled=false;
+  if(b){
+   const roomType=selected==="gym"?"exercise":selected as ClinicRoomType;
+   const result=buildRoom(management,roomType,b.x,b.z,b.w,b.d);
+   if(!result.ok){status.textContent=result.message;return;}
+   coins=management.balance;coinsLabel.textContent=String(coins);
+   const item:Placed={id:nextId++,kind:selected,gx:b.x,gz:b.z,width:b.w,depth:b.d,rot:wallRotation};
+   placed.push(item);drawPlaced(item);createLawnGrass();save();status.textContent=result.message+" يمكنك إضافة الأجهزة والأثاث من المتجر.";return;
+  }
+ }
  if(!pointerStart){
   if(activePointers.size===1){const point=[...activePointers.values()][0];pointerStart={x:point.x,y:point.y,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};}
   else dragged=false;
@@ -934,7 +971,7 @@ canvas.addEventListener("pointerup",e=>{
  setLocomotion(true);
  status.textContent="الأخصائي يلتف حول العائق ويتجه إلى النقطة المحددة.";
 });
-canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;});
+canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;roomDrawing=false;roomDrawStart=null;roomDrawEnd=null;placementPreview.enabled=false;});
 
 managementToggle.addEventListener("click",()=>{
  managementPanel.hidden=!managementPanel.hidden;
