@@ -925,6 +925,12 @@ function moveAvatarTo(tx:number,tz:number){
  if(!first)return false;
  target=new pc.Vec3(first.x,0,first.z);setLocomotion(true);return true;
 }
+el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
+ el("#mission-card").classList.add("mission-done");
+ updateMode("move");
+ status.textContent="جولتك بدأت: استكشف غرفة العلاج، ثم جرّب وضع البناء من الشريط السفلي.";
+ moveAvatarTo(.35,1.05);
+});
 app.on("update",(dt:number)=>{
  if(document.hidden)return;
  // Clamp long frames after tab switches or weak-device stalls to prevent sudden character jumps.
