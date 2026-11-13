@@ -536,10 +536,10 @@ function loadReceptionDesk(parent:pc.Entity){
   parent.addChild(model);model.syncHierarchy();
   let bounds=renderBounds(model);
   if(!bounds||bounds.width<.05||bounds.depth<.05||bounds.height<.05){model.destroy();throw new Error("Reception counter asset has invalid bounds");}
-  const scale=Math.min(2.25/bounds.width,.92/bounds.depth,1.08/bounds.height);
+  const scale=Math.min(2.1/bounds.width,.88/bounds.depth,1.08/bounds.height);
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();
   bounds=renderBounds(model);if(!bounds)throw new Error("Reception counter has no render meshes");
-  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(-.12,0,1.0),new pc.Vec3());
+  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(-.35,0,1.0),new pc.Vec3());
   const current=model.getPosition();
   model.setPosition(current.x+target.x-(bounds.minX+bounds.maxX)/2,current.y-bounds.minY,current.z+target.z-(bounds.minZ+bounds.maxZ)/2);
   model.syncHierarchy();
@@ -902,8 +902,8 @@ function setMissionPhase(next:number){
 function patientGoalFor(room:{x:number;z:number;width:number;depth:number},stage:string){
  const centerX=room.x+room.width/2,centerZ=room.z+room.depth/2;
  if(stage==="departing")return new pc.Vec3(0,0,-4.55);
- if(stage==="reception")return new pc.Vec3(centerX-.12,0,centerZ+.22);
- if(stage==="waiting")return new pc.Vec3(centerX+1.0,0,centerZ-.35);
+ if(stage==="reception")return new pc.Vec3(centerX-.35,0,centerZ+.22);
+ if(stage==="waiting")return new pc.Vec3(centerX+.75,0,centerZ+.4);
  return new pc.Vec3(centerX+Math.min(.95,room.width*.24),0,centerZ+.2);
 }
 function renderManagement(){
@@ -929,7 +929,7 @@ function renderManagement(){
  if(management.receptionistOwned&&receptionistRoom)ensureReceptionistModel();
  receptionistNpc.enabled=management.receptionistOwned&&!!receptionistRoom;
  if(receptionistNpc.enabled&&receptionistRoom){
-  receptionistNpc.setLocalPosition(receptionistRoom.x+receptionistRoom.width/2-.12,0,receptionistRoom.z+receptionistRoom.depth/2+1.62);
+  receptionistNpc.setLocalPosition(receptionistRoom.x+receptionistRoom.width/2-.35,0,receptionistRoom.z+receptionistRoom.depth/2+1.62);
   receptionistNpc.setLocalEulerAngles(0,180,0);transitionHumanoid(receptionistRig,false);
  }
  const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"بانتظار التسجيل",waiting:"ينتظر الأخصائي",assessment:"جلسة التقييم",treatment:"جلسة العلاج",departing:"يغادر العيادة"};
@@ -937,7 +937,7 @@ function renderManagement(){
  for(let i=0;i<waitingPatientVisuals.length;i++){
   const visual=waitingPatientVisuals[i],queued=queue[i+1],show=!!queued&&!!receptionRoom&&(queued.stage==="reception"||queued.stage==="waiting");
   visual.root.enabled=show;
-  if(show&&receptionRoom){const centerX=receptionRoom.x+receptionRoom.width/2,centerZ=receptionRoom.z+receptionRoom.depth/2;visual.root.setLocalPosition(centerX+1.0,0,centerZ-.35+i*1.22);visual.root.setLocalEulerAngles(0,180,0);visual.fallback?.update(0,false);transitionHumanoid(visual.rig,false);}
+  if(show&&receptionRoom){const centerX=receptionRoom.x+receptionRoom.width/2,centerZ=receptionRoom.z+receptionRoom.depth/2;visual.root.setLocalPosition(centerX+1.35,0,centerZ-.35+i*1.22);visual.root.setLocalEulerAngles(0,180,0);visual.fallback?.update(0,false);transitionHumanoid(visual.rig,false);}
  }
  if(!visiblePatient){patientNpc.enabled=false;patientVisualId=0;patientVisualStage="";patientTarget=null;patientWalkPath=[];}
  else{
