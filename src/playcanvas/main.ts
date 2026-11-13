@@ -127,7 +127,7 @@ function createLawnGrass(){
  };
  for(let i=0;i<1900;i++){
   const x=-HALF_X+.28+rand()*(W-.56),z=-HALF_Z+.28+rand()*(D-.56);
-  const insideAnyRoom=placed.some(p=>(p.kind==="treatment"||p.kind==="reception"||p.kind==="gym")&&x>p.gx-.14&&x<p.gx+4.14&&z>p.gz-.14&&z<p.gz+4.14);
+  const insideAnyRoom=placed.some(p=>isRoomKind(p.kind)&&x>p.gx-.14&&x<p.gx+(p.width??4)+.14&&z>p.gz-.14&&z<p.gz+(p.depth??4)+.14);
   const onEntrancePath=Math.abs(x)<1.12&&z< -2.1;
   const nearTree=outdoorTreePositions.some(([tx,tz])=>Math.hypot(x-tx,z-tz)<1.05);
   const nearShrub=outdoorShrubPositions.some(([sx,sz])=>Math.abs(x-sx)<.52&&Math.abs(z-sz)<.72);
@@ -718,21 +718,22 @@ function canAvatarStand(x:number,z:number){
  for(const p of placed){
   const isRoom=isRoomKind(p.kind);
   if(isRoom){
-   const gx=p.gx,gz=p.gz;
-   // Exact wall footprints match makeRoom(): two side walls, an entrance, and one shared rear doorway.
+   const gx=p.gx,gz=p.gz,rw=p.width??4,rd=p.depth??4,doorW=Math.min(1.2,rw*.42),segment=(rw-doorW)/2;
+   // Navigation rectangles mirror the variable-size room shell and its centered doorway.
    const walls=[
-    {x:gx-.08,z:gz,w:.16,d:4},
-    {x:gx+3.92,z:gz,w:.16,d:4},
-    {x:gx,z:gz-.08,w:1.4,d:.16},
-    {x:gx+2.6,z:gz-.08,w:1.4,d:.16},
-    {x:gx,z:gz+3.92,w:4,d:.16}
+    {x:gx-.08,z:gz,w:.16,d:rd},
+    {x:gx+rw-.08,z:gz,w:.16,d:rd},
+    {x:gx,z:gz-.08,w:segment,d:.16},
+    {x:gx+(rw+doorW)/2,z:gz-.08,w:segment,d:.16},
+    {x:gx,z:gz+rd-.08,w:rw,d:.16}
    ];
    if(walls.some(w=>rectanglesOverlap(player,w)))return false;
    const furniture:{x:number;z:number;w:number;d:number}[]=p.kind==="reception"?[
-    {x:gx,z:gz+2.55,w:1.7,d:.9},
-    // Seats are rotated along the right wall; keep their collision box in sync with the visible 0.95×2.2 m row.
-    {x:gx+2.95,z:gz+.35,w:.95,d:2.2}
-   ]:p.kind==="treatment"?[]:[
+    {x:gx+rw*.12,z:gz+rd*.60,w:Math.min(1.7,rw*.45),d:.9},
+    {x:gx+rw-.95,z:gz+rd*.12,w:.95,d:Math.min(2.2,rd*.55)}
+   ]:p.kind==="treatment"||p.kind==="assessment"?[]:p.kind==="staff"?[
+    {x:gx+rw*.25,z:gz+rd*.55,w:Math.min(2.1,rw*.55),d:.82}
+   ]:[
     {x:gx+.15,z:gz+2.05,w:.2,d:1.1},
     {x:gx+1.95,z:gz+2.05,w:.2,d:1.1},
     {x:gx+.65,z:gz+2.4,w:1,d:.16}
@@ -740,7 +741,7 @@ function canAvatarStand(x:number,z:number){
    if(furniture.some(w=>rectanglesOverlap(player,w)))return false;
    continue;
   }
-  if(rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey)))return false;
+  if(rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey,p.width,p.depth)))return false;
  }
  return true;
 }
