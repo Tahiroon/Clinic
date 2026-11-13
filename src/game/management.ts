@@ -23,11 +23,11 @@ export interface ManagementState {
   arrivalAccumulator: number; payrollAccumulator: number;
 }
 export const ROOM_BLUEPRINTS: Record<ClinicRoomType,{label:string;cost:number;width:number;depth:number;capacity:number;description:string}> = {
-  reception:{label:"الاستقبال",cost:420,width:3,depth:3,capacity:3,description:"تسجيل المرضى وتنظيم المواعيد"},
+  reception:{label:"الاستقبال",cost:420,width:4,depth:4,capacity:3,description:"تسجيل المرضى وتنظيم المواعيد"},
   assessment:{label:"غرفة التقييم",cost:620,width:4,depth:4,capacity:1,description:"التاريخ المرضي والفحص الوظيفي"},
   treatment:{label:"غرفة العلاج",cost:720,width:4,depth:4,capacity:1,description:"جلسات العلاج الطبيعي الفردية"},
-  exercise:{label:"صالة التأهيل الحركي",cost:980,width:5,depth:5,capacity:3,description:"التدريب الوظيفي والتمارين"},
-  staff:{label:"استراحة الفريق",cost:360,width:3,depth:3,capacity:4,description:"استعادة طاقة الفريق ورفع المعنويات"}
+  exercise:{label:"صالة التأهيل الحركي",cost:980,width:4,depth:4,capacity:3,description:"التدريب الوظيفي والتمارين"},
+  staff:{label:"استراحة الفريق",cost:360,width:4,depth:4,capacity:4,description:"استعادة طاقة الفريق ورفع المعنويات"}
 };
 const STAFF_BLUEPRINTS: Record<StaffRole,{label:string;hireCost:number;wage:number;skill:number}> = {
   physiotherapist:{label:"أخصائي علاج طبيعي",hireCost:520,wage:42,skill:65},
@@ -45,8 +45,8 @@ const NAMES=["مريم","أحمد","سارة","محمد","آمنة","يوسف","
 export function createInitialManagementState():ManagementState {
   return {version:1,day:1,minuteOfDay:8*60,speed:1,balance:3200,reputation:50,experience:0,treated:0,arrivals:0,
     staff:[{id:1,name:"أنت",role:"physiotherapist",skill:70,energy:100,morale:85,wagePerHour:0,assignedRoomId:null,status:"idle"}],
-    patients:[],rooms:[],events:[{id:1,minute:480,kind:"staff",message:"بدأ يومك الأول. جهّز الاستقبال وغرف العلاج قبل استقبال المرضى."}],
-    nextStaffId:2,nextPatientId:1,nextRoomId:1,nextEventId:2,arrivalAccumulator:0,payrollAccumulator:0};
+    patients:[],rooms:[{id:1,type:"treatment",x:-2,z:-2,width:4,depth:4,prestige:1,open:true,capacity:1}],events:[{id:1,minute:480,kind:"staff",message:"بدأ يومك الأول. جهّز الاستقبال وغرف العلاج قبل استقبال المرضى."}],
+    nextStaffId:2,nextPatientId:1,nextRoomId:2,nextEventId:2,arrivalAccumulator:0,payrollAccumulator:0};
 }
 function event(s:ManagementState,kind:ClinicEvent["kind"],message:string){
   s.events.unshift({id:s.nextEventId++,minute:(s.day-1)*1440+s.minuteOfDay,kind,message});s.events=s.events.slice(0,12);
@@ -84,7 +84,7 @@ function addPatient(s:ManagementState){
   s.patients.push(p);s.arrivals++;event(s,"arrival","وصل "+name+" إلى العيادة: "+c.label+".");
 }
 function availableRoom(s:ManagementState,type:ClinicRoomType){return s.rooms.find(r=>r.open&&r.type===type);}
-function availablePhysio(s:ManagementState){return s.staff.find(m=>m.role==="physiotherapist"&&m.energy>18&&m.status!=="break");}
+function availablePhysio(s:ManagementState){return s.staff.find(m=>m.role==="physiotherapist"&&m.energy>18&&m.status!=="break"&&!s.patients.some(p=>p.assignedStaffId===m.id&&["assessment","treatment"].includes(p.stage)));}
 export function advanceSimulation(s:ManagementState,realSeconds:number){
   if(s.speed===0||realSeconds<=0)return;
   const gameMinutes=realSeconds*s.speed*2;
@@ -104,7 +104,7 @@ export function advanceSimulation(s:ManagementState,realSeconds:number){
       if(p.stage==="discharged"||p.stage==="left")continue;
       p.waitMinutes+=step;
       if(p.stage==="arriving"){p.stage=reception?"reception":"waiting";}
-      if(p.stage==="reception"&&s.staff.some(m=>m.role==="receptionist"&&m.energy>5)){p.stage="waiting";}
+      if(p.stage==="reception"&&s.staff.some(m=>m.role==="receptionist"&&m.energy>5)){p.stage="waiting";p.waitMinutes=0;}
       if(p.stage==="waiting"){
         p.patience=Math.max(0,p.patience-step*.32);p.mood=Math.max(0,p.mood-step*.18);
         if(assessment&&availablePhysio(s)&&p.waitMinutes>=3){p.stage="assessment";p.assignedStaffId=availablePhysio(s)!.id;event(s,"treatment",p.name+" دخل غرفة التقييم.");}
