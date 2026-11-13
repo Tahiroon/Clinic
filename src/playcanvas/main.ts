@@ -16,7 +16,7 @@ const app=new Application(canvas,{graphicsDeviceOptions:{antialias:highDetailDev
 app.setCanvasFillMode(FILLMODE_NONE);
 app.setCanvasResolution(RESOLUTION_AUTO);
 // A 1× render scale reduces GPU fill cost and memory bandwidth on low-end phones.
-app.graphicsDevice.maxPixelRatio=highDetailDevice?Math.min(window.devicePixelRatio||1,1.25):1.0;
+app.graphicsDevice.maxPixelRatio=highDetailDevice?Math.min(window.devicePixelRatio||1,1.25):Math.min(window.devicePixelRatio||1,.9);
 canvas.style.width="100%";canvas.style.height="100%";canvas.style.display="block";
 let lastViewportWidth=0,lastViewportHeight=0,resizeQueued=false;
 const syncViewportHeight=()=>{
@@ -113,6 +113,16 @@ for(const [x,z] of outdoorShrubPositions){
 const outdoorBenchPositions:[number,number][]=[[-8.15,0],[8.15,0]];
 const outdoorFlowerPositions:[number,number][]=[[-8.25,-9.5],[8.25,-9.5],[-8.25,9.5],[8.25,9.5]];
 const outdoorLampPositions:[number,number][]=[[-8.25,-13.5],[8.25,-13.5],[-8.25,13.5],[8.25,13.5]];
+// A compact outdoor gait-training lane sits beyond the property edge, never inside the buildable plot.
+const gaitLaneX=3.25,gaitLaneZ=-16.05;
+box("Outdoor gait training lane",gaitLaneX,.035,gaitLaneZ,1.35,.055,4.2,pathEdge,world);
+box("Outdoor gait lane walking surface",gaitLaneX,.068,gaitLaneZ,1.12,.025,4.0,pathMat,world);
+for(let i=0;i<5;i++){const z=gaitLaneZ-1.55+i*.78;box("Gait lane distance marker",gaitLaneX,.09,z,1.0,.018,.035,M.white,world);}
+for(const x of [gaitLaneX-.72,gaitLaneX+.72]){
+ cylinder("Gait lane marker post",x,.48,gaitLaneZ-1.95,.045,.85,.045,M.dark,world);
+ sphere("Gait lane marker cap",x,.93,gaitLaneZ-1.95,.11,M.yellow,world);
+}
+
 for(const [x,z] of outdoorBenchPositions){
  box("Garden bench seat",x,.38,z,1.55,.16,.52,M.wood2,world);
  box("Garden bench back",x,.78,z+.2,1.55,.62,.12,M.wood,world);
@@ -160,7 +170,8 @@ function createLawnGrass(){
   const nearBench=outdoorBenchPositions.some(([bx,bz])=>Math.abs(x-bx)<1.0&&Math.abs(z-bz)<.55);
   const nearFlower=outdoorFlowerPositions.some(([fx,fz])=>Math.abs(x-fx)<.72&&Math.abs(z-fz)<.5);
   const nearLamp=outdoorLampPositions.some(([lx,lz])=>Math.hypot(x-lx,z-lz)<.32);
-  if(insideAnyRoom||onEntrancePath||nearTree||nearShrub||nearBench||nearFlower||nearLamp)continue;
+  const nearGaitLane=Math.abs(x-gaitLaneX)<.82&&Math.abs(z-gaitLaneZ)<2.2;
+  if(insideAnyRoom||onEntrancePath||nearTree||nearShrub||nearBench||nearFlower||nearLamp||nearGaitLane)continue;
   addTuft(x,z);
  }
  const mesh=new Mesh(app.graphicsDevice);
@@ -1073,7 +1084,7 @@ canvas.addEventListener("pointerdown",e=>{
  else if(!roomDrawing){pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraGoal.x,tz:cameraGoal.z};dragged=false;}
  canvas.setPointerCapture(e.pointerId);
 });
-canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(roomDrawing&&activePointers.size===1){const point=screenToGround(e.clientX,e.clientY);if(point){roomDrawEnd={x:Math.floor(point.x),z:Math.floor(point.z)};updateRoomDrawPreview();}return;}if(mode==="build"&&activePointers.size<2)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(8,Math.min(34,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;const halfHeight=desiredOrthoHeight*.5,halfWidth=halfHeight*(canvas.clientWidth/Math.max(1,canvas.clientHeight));const maxPanX=Math.max(0,HALF_X-halfWidth*.7),maxPanZ=Math.max(0,HALF_Z-halfHeight*.7);cameraGoal.set(Math.max(-maxPanX,Math.min(maxPanX,pointerStart.tx+shiftX)),0,Math.max(-maxPanZ,Math.min(maxPanZ,pointerStart.tz+shiftZ)));}});
+canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(roomDrawing&&activePointers.size===1){const point=screenToGround(e.clientX,e.clientY);if(point){roomDrawEnd={x:Math.floor(point.x),z:Math.floor(point.z)};updateRoomDrawPreview();}return;}if(mode==="build"&&activePointers.size<2)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(8,Math.min(34,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;const halfHeight=desiredOrthoHeight*.5,halfWidth=halfHeight*(canvas.clientWidth/Math.max(1,canvas.clientHeight));const maxPanX=Math.max(0,HALF_X+4-halfWidth*.62),maxPanZ=Math.max(0,HALF_Z+4-halfHeight*.62);cameraGoal.set(Math.max(-maxPanX,Math.min(maxPanX,pointerStart.tx+shiftX)),0,Math.max(-maxPanZ,Math.min(maxPanZ,pointerStart.tz+shiftZ)));}});
 canvas.addEventListener("pointerup",e=>{
  activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;
  if(roomDrawing){
@@ -1209,7 +1220,18 @@ document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEve
 document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEventListener("click",()=>selectAsset(b.dataset.asset??"")));
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";if(cat==="structure")selectBuild("wall");else selectBuild("treatment");}));
 el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;previewValidity=null;status.textContent="اتجاه العنصر الآن "+(wallRotation===0?"0°":"90°")+". سيتم تطبيقه على القطعة التالية.";});
-viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:15.5;viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
+viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:(canvas.clientWidth/Math.max(1,canvas.clientHeight)<.48?15.5:14.8);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
+const zoomCamera=(factor:number)=>{desiredOrthoHeight=Math.max(8,Math.min(34,desiredOrthoHeight*factor));focus=false;viewBtn.classList.remove("active");};
+el<HTMLButtonElement>("#camera-zoom-in").addEventListener("click",()=>zoomCamera(.82));
+el<HTMLButtonElement>("#camera-zoom-out").addEventListener("click",()=>zoomCamera(1.22));
+el<HTMLButtonElement>("#camera-reset").addEventListener("click",()=>{
+ focus=false;cameraGoal.set(0,0,0);
+ const aspect=canvas.clientWidth/Math.max(1,canvas.clientHeight);
+ desiredOrthoHeight=aspect<.48?15.5:aspect<.62?14.8:aspect<.82?14.2:13.8;
+ viewBtn.classList.remove("active");el("#camera-hint").classList.remove("hide");
+});
+canvas.addEventListener("wheel",event=>{event.preventDefault();zoomCamera(event.deltaY<0?.9:1.11);},{passive:false});
+
 let sessionStep=0,sessionScore=0,activeSessionPatientId=0,sessionCompleted=false;
 let sessionPending=false;
 const patientBriefs:Record<"pain"|"mobility"|"post_op"|"sports",string>={
