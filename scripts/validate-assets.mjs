@@ -93,11 +93,11 @@ try {
   if (!/const GRID=1, W=14, D=28, HALF_X=W\/2, HALF_Z=D\/2/.test(source)) {
     throw new Error("Starter property must remain 14 m × 28 m");
   }
-  if (!/const starterLayout:Placed\[\]=\[\]/.test(source)) {
+  if (!/const starterLayout:Placed\[\]=\[\]/.test(source) || !/missionPhase===1&&hasAssetInRoom\("pt-treatment-table","treatment"\)/.test(source) || !/missionPhase===3&&hasAssetInRoom\("pt-reception-desk","reception"\)/.test(source) || !/missionPhase===5&&hasAssetInRoom\("pt-exam-table","assessment"\)/.test(source)) {
     throw new Error("The new clinic campaign must start on an empty buildable plot");
   }
   const managementSource = await readFile(resolve(root, "src/game/management.ts"), "utf8");
-  if (!/patients:\[\],rooms:\[\]/.test(managementSource)) {
+  if (!/reception:\{label:"الاستقبال",cost:420,width:5,depth:5/.test(managementSource) || !/const blueprint=ROOM_BLUEPRINTS\[roomType\],minWidth=blueprint\?\.width\?\?4,minDepth=blueprint\?\.depth\?\?4/.test(source)) {\n    throw new Error("Touch room drawing must respect each room type minimum size");\n  }\n  if (!/patients:\[\],rooms:\[\]/.test(managementSource)) {
     throw new Error("Management state must not create prebuilt rooms on a new account");
   }
   if (!/Surrounding green landscape/.test(source) || !/Clinic buildable foundation/.test(source) || !/Main entrance garden path/.test(source) || !/outdoorTreePositions/.test(source) || !/setClinicOpen\(management/.test(source)) {
