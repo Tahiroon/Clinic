@@ -243,25 +243,36 @@ const characterAssets:Record<string,string>={
  patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,
 };
 type HumanoidRig={entity:pc.Entity;anim:any;clips:string[];idle:string;walk:string};
-function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
- const root=new pc.Entity("Visible fallback "+kind);parent.addChild(root);
+type FallbackRig={entity:pc.Entity;update:(dt:number,moving:boolean)=>void};
+function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"):FallbackRig{
+ const root=new pc.Entity("Fallback character rig · "+kind);parent.addChild(root);
  const shirt=kind==="student"?M.white:M.pale,trousers=kind==="student"?M.blue:M.teal;
- box("Humanoid torso",0,1.02,0,.38,.62,.23,shirt,root);
- box("Humanoid neck",0,1.39,0,.105,.13,.11,M.skin,root);
- sphere("Humanoid head",0,1.56,0,.145,M.skin,root);
- sphere("Humanoid hair",0,1.675,-.025,.145,M.dark,root);
- for(const x of [-.13,.13]){
-  box("Humanoid leg",x,.43,0,.145,.72,.16,trousers,root);
-  box("Humanoid shoe",x,.075,.07,.18,.13,.28,M.dark,root);
+ box("Humanoid torso",0,1.02,0,.42,.62,.27,shirt,root);
+ box("Humanoid neck",0,1.38,0,.11,.14,.12,M.skin,root);
+ sphere("Humanoid head",0,1.57,0,.155,M.skin,root);
+ sphere("Humanoid hair",0,1.69,-.025,.15,M.dark,root);
+ const legPivots:pc.Entity[]=[];
+ for(const x of [-.14,.14]){
+  const pivot=new pc.Entity("Leg swing pivot");root.addChild(pivot);pivot.setLocalPosition(x,.78,0);
+  box("Humanoid thigh and lower leg",0,-.34,0,.15,.68,.17,trousers,pivot);
+  box("Humanoid shoe",0,-.69,.075,.19,.13,.29,M.dark,pivot);
+  legPivots.push(pivot);
  }
- for(const x of [-.29,.29]){
-  box("Humanoid arm",x,1.02,0,.12,.58,.14,shirt,root);
-  sphere("Humanoid hand",x,.70,.015,.085,M.skin,root);
+ const armPivots:pc.Entity[]=[];
+ for(const x of [-.27,.27]){
+  const pivot=new pc.Entity("Arm swing pivot");root.addChild(pivot);pivot.setLocalPosition(x,1.27,0);
+  box("Humanoid arm",0,-.29,0,.13,.58,.15,shirt,pivot);
+  sphere("Humanoid hand",0,-.61,.015,.085,M.skin,pivot);
+  armPivots.push(pivot);
  }
- if(kind==="student"){
-  box("Physiotherapist ID badge",.12,1.18,-.132,.1,.13,.025,trim,root);
- }
- return root;
+ if(kind==="student")box("Physiotherapist ID badge",.12,1.18,-.15,.1,.13,.025,trim,root);
+ let phase=0;
+ return {entity:root,update:(dt,moving)=>{
+  if(moving)phase+=dt*7.2;
+  const swing=moving?Math.sin(phase)*27:0;
+  legPivots[0].setLocalEulerAngles(swing,0,0);legPivots[1].setLocalEulerAngles(-swing,0,0);
+  armPivots[0].setLocalEulerAngles(-swing*.72,0,0);armPivots[1].setLocalEulerAngles(swing*.72,0,0);
+ }};
 }
 
  function loadHumanoid(url:string,parent:pc.Entity,height:number,castShadow:boolean,onReady?:(rig:HumanoidRig)=>void){
@@ -291,7 +302,7 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
   const worldCenter=new pc.Vec3((scaledMinX+scaledMaxX)/2,parent.getPosition().y,(scaledMinZ+scaledMaxZ)/2);
   const localCenter=parentInverse.transformPoint(worldCenter,new pc.Vec3());
   model.setLocalPosition(-localCenter.x,-scaledMinY,-localCenter.z);
-  model.addComponent("anim",{activate:true,speed:1});
+  model.addComponent("anim",{activate:false,speed:1});
   const anim:any=(model as any).anim;
   const clips:any[]=asset.resource.animations??[];
   const names:string[]=[];
@@ -299,8 +310,12 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
    for(const clip of clips){
     const track:any=clip.resource;
     const clipName=String(track?.name||clip.name||"");
-    if(track&&clipName){try{anim.assignAnimation(clipName,track);names.push(clipName);}catch(error){console.warn("Animation clip binding skipped",clipName,error);}}
+    if(track&&clipName&&/^(idle|walk|walking|run|jog)$/i.test(clipName)){
+     try{anim.assignAnimation(clipName,track,undefined,1,true);names.push(clipName);}
+     catch(error){console.warn("Character locomotion clip binding failed",clipName,error);}
+    }
    }
+   anim.activate=true;
   }
   const idle=names.find(n=>/idle|stand|rest/i.test(n))??names[0]??"";
   const walk=names.find(n=>/walk|walking/i.test(n))??names.find(n=>/run|jog/i.test(n))??idle;
@@ -318,14 +333,16 @@ function transitionHumanoid(rig:HumanoidRig|null,moving:boolean){
  catch{try{rig.anim.baseLayer.play(desired);}catch{}}
 }
 const studentFallback=createFallbackHumanoid(avatar,"student");
+let playerFallbackRig:FallbackRig|null=studentFallback;
 loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
- studentFallback.destroy();
+ studentFallback.entity.destroy();playerFallbackRig=null;
  avatarAnim=rig.anim;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
 const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.25,0,1.35);
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
-loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>patientFallback.destroy());
+let patientFallbackRig:FallbackRig|null=patientFallback;
+loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>{patientFallback.entity.destroy();patientFallbackRig=null;});
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=5, focus=false, wallRotation:0|90=0;
 let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v1")||0);return saved===1?0:Math.max(0,Math.min(4,saved));}catch{return 0;}})();
@@ -967,6 +984,8 @@ app.on("update",(dt:number)=>{
  if(document.hidden)return;
  // Clamp long frames after tab switches or weak-device stalls to prevent sudden character jumps.
  const frameDt=Math.min(Math.max(dt,0),.05);
+ playerFallbackRig?.update(frameDt,!!target);
+ patientFallbackRig?.update(frameDt,false);
  // Smooth camera follow/pan/zoom instead of snapping the camera on every touch event.
  const cameraAlpha=1-Math.exp(-frameDt*11);
  cameraTarget.x+=(cameraGoal.x-cameraTarget.x)*cameraAlpha;
