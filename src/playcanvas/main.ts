@@ -628,10 +628,12 @@ function getClinicContainer(url:string):Promise<any>{
  return pending;
 }
 let storePreviewRoot:Entity|null=null;
+let storePreviewModel:Entity|null=null;
 let storePreviewGeneration=0;
+const storeThumbnailCache=new Map<string,string>();
 function clearStorePreview(){
  storePreviewGeneration++;
- if(storePreviewRoot){storePreviewRoot.destroy();storePreviewRoot=null;}
+ if(storePreviewRoot){storePreviewRoot.destroy();storePreviewRoot=null;}storePreviewModel=null;
 }
 function showStorePreview(key:string){
  const spec=storeAssetSpecs[key];if(!spec)return;
@@ -653,7 +655,7 @@ function showStorePreview(key:string){
    const parent=chosen.parent as Entity|null;if(parent)parent.removeChild(chosen);
    instance.destroy();model=chosen;
   }
-  root.addChild(model);model.setLocalEulerAngles(0,32,0);root.syncHierarchy();
+  root.addChild(model);model.setLocalEulerAngles(0,32+wallRotation,0);storePreviewModel=model;root.syncHierarchy();
   let bounds=renderBounds(model);
   if(!bounds||bounds.width<.01||bounds.depth<.01||bounds.height<.01){model.destroy();throw new Error("Invalid 3D preview bounds");}
   const scale=spec.targetSize/Math.max(bounds.width,bounds.depth,.05);
@@ -662,8 +664,21 @@ function showStorePreview(key:string){
   const current=model.getPosition(),origin=root.getPosition();
   model.setPosition(current.x+origin.x-(bounds.minX+bounds.maxX)/2,current.y-bounds.minY+.245,current.z+origin.z-(bounds.minZ+bounds.maxZ)/2);
   root.syncHierarchy();
-  el("#store-preview-detail").textContent="النموذج ثلاثي الأبعاد الحقيقي نفسه الذي سيظهر داخل عيادتك بعد وضعه.";
+  el("#store-preview-detail").textContent=spec.description+" المكان المقترح: "+spec.room+". مساحة الحجز: "+spec.footprint+" م² تقريباً. السعر: "+spec.cost+" عملة.";
   el<HTMLButtonElement>("#store-place-selected").disabled=false;
+  // Capture a real in-engine render only after the player inspects this model.
+  window.setTimeout(()=>{
+   if(generation!==storePreviewGeneration||storePreviewRoot!==root)return;
+   try{
+    const image=canvas.toDataURL("image/webp",.68);
+    if(image.length<1800)return;
+    storeThumbnailCache.set(key,image);
+    const card=document.querySelector<HTMLButtonElement>('[data-asset="'+key+'"]');
+    const thumb=card?.querySelector<HTMLImageElement>(".store-item-thumb");
+    const hint=card?.querySelector<HTMLElement>(".store-item-type");
+    if(thumb){thumb.src=image;thumb.hidden=false;}if(hint)hint.hidden=true;
+   }catch(error){console.warn("Store thumbnail capture unavailable",key,error);}
+  },1050);
  }).catch(error=>{
   if(generation!==storePreviewGeneration)return;
   console.error("Real store preview failed",key,error);
@@ -1284,6 +1299,30 @@ function selectAsset(key:string){
  showStorePreview(key);
  status.textContent="معاينة "+spec.label+" من النموذج ثلاثي الأبعاد الأصلي قبل الشراء.";
 }
+let activeStoreCategory:StoreCategory="therapy",storeSearchQuery="";
+function renderStoreCatalog(){
+ const grid=el<HTMLDivElement>("#store-grid");grid.replaceChildren();
+ const query=storeSearchQuery.trim().toLocaleLowerCase();
+ const products=Object.entries(storeAssetSpecs).filter(([,spec])=>spec.category===activeStoreCategory&&(!query||[spec.label,spec.description,spec.room,spec.file].join(" ").toLocaleLowerCase().includes(query)));
+ for(const [key,spec] of products){
+  const card=document.createElement("button");card.type="button";card.className="store-item";card.dataset.asset=key;card.dataset.storeCat=spec.category;
+  const art=document.createElement("span");art.className="store-item-art";
+  const thumb=document.createElement("img");thumb.className="store-item-thumb";thumb.alt="";thumb.hidden=true;
+  const hint=document.createElement("span");hint.className="store-item-type";hint.textContent="عاين 3D";
+  art.append(thumb,hint);
+  const copy=document.createElement("span");copy.className="store-item-copy";
+  const title=document.createElement("b");title.textContent=spec.label;
+  const desc=document.createElement("small");desc.textContent=spec.description;
+  const meta=document.createElement("span");meta.className="store-item-meta";meta.textContent=spec.room+" · "+spec.footprint+" م²";
+  const price=document.createElement("strong");price.textContent="◈ "+spec.cost+" عملة";
+  copy.append(title,desc,meta,price);card.append(art,copy);
+  if(key===selectedAssetKey)card.classList.add("selected");
+  const cached=storeThumbnailCache.get(key);if(cached){thumb.src=cached;thumb.hidden=false;hint.hidden=true;}
+  card.addEventListener("click",()=>selectAsset(key));grid.append(card);
+ }
+ el("#store-count").textContent=products.length+" منتج";
+ if(!products.length){const empty=document.createElement("div");empty.className="store-empty";empty.textContent=query?"لا توجد نتائج مطابقة في هذا القسم.":"لا توجد منتجات في هذا القسم حالياً.";grid.append(empty);}
+}
 function beginPlacingSelectedAsset(){
  if(!selectedAssetKey)return;
  const spec=storeAssetSpecs[selectedAssetKey];
@@ -1301,16 +1340,28 @@ storeBtn.addEventListener("click",()=>{
  focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=15.5;viewBtn.classList.remove("active");
  updateMode("build");buildPanel.hidden=true;storePanel.hidden=false;
  el("#store-coins").textContent=String(coins);
+ activeStoreCategory="therapy";storeSearchQuery="";wallRotation=0;
+ el<HTMLInputElement>("#store-search").value="";
  document.querySelectorAll<HTMLButtonElement>("[data-store-category]").forEach(b=>b.classList.toggle("active",b.dataset.storeCategory==="therapy"));
- document.querySelectorAll<HTMLButtonElement>("[data-store-cat]").forEach(b=>(b as HTMLButtonElement).hidden=b.dataset.storeCat!=="therapy");
+ renderStoreCatalog();
  storeBtn.classList.add("active");
  status.textContent="متجر العيادة: اختر الجهاز المناسب، ثم ضعه داخل غرفة مبنية.";
 });
 el<HTMLButtonElement>("#store-close").addEventListener("click",()=>{storePanel.hidden=true;clearStorePreview();document.body.classList.remove("store-previewing");focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=15.5;viewBtn.classList.remove("active");updateMode("move");storeBtn.classList.remove("active");});
 el<HTMLButtonElement>("#store-place-selected").addEventListener("click",beginPlacingSelectedAsset);
+el<HTMLButtonElement>("#store-rotate-selected").addEventListener("click",()=>{
+ wallRotation=wallRotation===0?90:0;
+ if(storePreviewModel)storePreviewModel.setLocalEulerAngles(0,32+wallRotation,0);
+ status.textContent="اتجاه وضع الجهاز: "+wallRotation+" درجة.";
+});
+el<HTMLInputElement>("#store-search").addEventListener("input",event=>{
+ storeSearchQuery=(event.currentTarget as HTMLInputElement).value;
+ renderStoreCatalog();
+});
 document.querySelectorAll<HTMLButtonElement>("[data-store-category]").forEach(b=>b.addEventListener("click",()=>{
+ activeStoreCategory=b.dataset.storeCategory as StoreCategory;
  document.querySelectorAll<HTMLButtonElement>("[data-store-category]").forEach(x=>x.classList.toggle("active",x===b));
- document.querySelectorAll<HTMLButtonElement>("[data-store-cat]").forEach(x=>x.hidden=x.dataset.storeCat!==b.dataset.storeCategory);
+ renderStoreCatalog();
 }));
 document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEventListener("click",()=>selectBuild(b.dataset.build as BuildKind)));
 document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEventListener("click",()=>selectAsset(b.dataset.asset??"")));
