@@ -95,6 +95,7 @@ const outdoorShrubPositions:[number,number][]=[[-8.8,-7.5],[8.8,-4.5],[-8.8,5.2]
 box("Surrounding green landscape",0,-.24,0,W+10,.42,D+10,lawnBase,world);
 box("Clinic buildable foundation",0,.005,0,W,.08,D,material(new Color(.66,.68,.65)),world);
 box("Main entrance garden path",0,.018,-8.45,1.75,.045,11.0,pathMat,world);
+box("Outdoor approach path",0,.018,-16.2,2.4,.045,4.5,pathMat,world);
 box("Path west edging",-.91,.045,-8.45,.055,.06,11.0,pathEdge,world);
 box("Path east edging",.91,.045,-8.45,.055,.06,11.0,pathEdge,world);
 for(const [x,z,sx,sz] of [[0,-13.92,W,.16],[0,13.92,W,.16],[-6.92,0,.16,D],[6.92,0,.16,D]] as [number,number,number,number][]){
