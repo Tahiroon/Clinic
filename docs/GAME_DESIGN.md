@@ -29,7 +29,7 @@ Do not spawn a finished reception/waiting wing or pave the whole property with c
 The starter state should look like the beginning of a clinic-development game, not a completed miniature hospital.
 
 ## World and expansion
-The clinic is situated on a larger property. Players may unlock or purchase adjacent land parcels using in-game progression and currency. Expansion can add rooms, wings or separate buildings, plus outdoor paths, trees, benches, signs, parking and a rehabilitation garden. Later specialist spaces may include a larger exercise gym, sports rehabilitation, balance/mobility facilities, and other justified facilities.
+The clinic begins on an open 14 m × 28 m property with substantial lawn around the first treatment room. Players first construct rooms and facilities within this property, then may unlock or purchase adjacent land parcels using in-game progression and currency. Expansion can add rooms, wings or separate buildings, plus outdoor paths, trees, benches, signs, parking and a rehabilitation garden. Later specialist spaces may include a larger exercise gym, sports rehabilitation, balance/mobility facilities, and other justified facilities.
 
 Expansion is optional and meaningful; it must not block the core clinical loop.
 
