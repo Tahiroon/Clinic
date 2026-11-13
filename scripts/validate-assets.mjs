@@ -10,7 +10,13 @@ const required = [
   ["src/assets/clinic-kit/hospital/hospital-equipment-set.glb", ["Crutches", "FirstAidBag", "OxygenTrolley", "Stretcher", "TransportChair", "WalkingFrame"], []],
   ["src/assets/clinic-kit/hospital/hospital-reception-desk.glb", ["HospitalReception"], []],
   ["src/assets/clinic-kit/hospital/hospital-waiting-room.glb", ["ChairRow_4"], []],
-  ["src/assets/clinic-kit/hospital/hospital-patient-room.glb", ["HospitalRoom"], []]
+  ["src/assets/clinic-kit/hospital/hospital-patient-room.glb", ["HospitalRoom"], []],
+  ["src/assets/clinic-kit/management-sim/examination-couch.glb", [], []],
+  ["src/assets/clinic-kit/management-sim/reception-desk.glb", [], []],
+  ["src/assets/clinic-kit/management-sim/waiting-bench-two-seat.glb", [], []],
+  ["src/assets/clinic-kit/management-sim/privacy-screen.glb", [], []],
+  ["src/assets/clinic-kit/management-sim/wheelchair.glb", [], []],
+  ["src/assets/clinic-kit/management-sim/bedside-cabinet.glb", [], []]
 ];
 
 let failed = false;
@@ -56,8 +62,8 @@ try {
   }
   const starter = source.match(/const starterLayout:Placed\[\]=\[([\s\S]*?)\];/);
   if (!starter) throw new Error("Starter layout definition is missing");
-  if (starter[1].trim() !== "") {
-    throw new Error("The main campaign must start on empty buildable land, not a prebuilt clinic");
+  if (!/id:1,kind:"treatment",gx:-2,gz:-2,width:4,depth:4/.test(starter[1])) {
+    throw new Error("The starter clinic must contain exactly one 4×4 treatment room");
   }
   if (!/Owned green property/.test(source) || !/Main entrance garden path/.test(source) || !/outdoorTreePositions/.test(source) || !/setClinicOpen\(management/.test(source)) {
     throw new Error("The open green property, entrance path and outdoor landscaping must exist");
@@ -69,7 +75,7 @@ try {
   if (!/Math\.min\(34,pinchHeight/.test(source)) {
     throw new Error("Portrait camera zoom must allow the larger property to be explored");
   }
-  console.log("✓ Main campaign starts on an empty 14×28 m buildable green property");
+  console.log("✓ Main campaign starts with one 4×4 m treatment room on a 14×28 m green property");
   console.log("✓ Grass stays outside every player-built room"); 
   const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.z < b.z + b.d && a.z + a.d > b.z;
   const treePositions = [[-5.65,-11.4],[5.65,-11.4],[-5.65,11.4],[5.65,11.4]];
@@ -79,8 +85,8 @@ try {
     {x:-2.08,z:-2,w:.16,d:4},{x:1.92,z:-2,w:.16,d:4},
     {x:-2,z:-2.08,w:1.4,d:.16},{x:.6,z:-2.08,w:1.4,d:.16},
     {x:-2,z:1.92,w:4,d:.16},
-    {x:-.94,z:-.94,w:1.88,d:1.88},
-    {x:-1.92,z:1.08,w:.84,d:.84},
+    {x:-.55,z:-1.15,w:1.1,d:2.3},
+    {x:1.07,z:1.07,w:.86,d:.86},
     {x:-7,z:-14,w:.18,d:28},{x:6.82,z:-14,w:.18,d:28},
     {x:-7,z:-14,w:14,d:.18},{x:-7,z:13.82,w:14,d:.18},
     ...treePositions.map(([x,z])=>({x:x-.42,z:z-.42,w:.84,d:.84})),
@@ -117,18 +123,18 @@ try {
   }
   console.log("✓ Starter entrance-to-patient navigation is connected");
   const management = await readFile(resolve(root, "src/game/management.ts"), "utf8");
-  for (const required of ["export function advanceSimulation", "export function hireStaff", "export function buildRoom", "export function setSimulationSpeed", "export const ROOM_BLUEPRINTS"]) {
+  for (const required of ["export function advanceSimulation", "export function hireReceptionist", "export function beginPatientSession", "export function completePatientSession", "export function buildRoom", "export function setSimulationSpeed", "export const ROOM_BLUEPRINTS"]) {
     if (!management.includes(required)) throw new Error("Management simulation is missing " + required);
   }
   for (const required of ["roomDrawing=true", "updateRoomDrawPreview()", "buildRoom(management,roomType,b.x,b.z,b.w,b.d)", "managementSaveKey", "advanceSimulation(management,frameDt)"]) {
     if (!source.includes(required)) throw new Error("Playable management/build loop is missing " + required);
   }
-  console.log("✓ Staff, patient flow, economy and simulation controls are wired");
+  console.log("✓ Player physiotherapist, patient flow, optional receptionist upgrade, economy and simulation controls are wired");
   console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
-  for (const required of ["syncStaffVisuals()", "waitingPatientVisuals", "loadHumanoid(characterAssets.student,root", "loadHumanoid(characterAssets.patient,root"]) {
+  for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.student,root", "loadHumanoid(characterAssets.patient,root", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
   }
-  console.log("✓ Hired staff and waiting patients have visible character instances");
+  console.log("✓ Player physiotherapist and waiting patients have visible character instances");
 
 } catch (error) {
   failed = true;
