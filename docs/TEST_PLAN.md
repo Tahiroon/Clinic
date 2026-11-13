@@ -90,3 +90,16 @@ Changes to camera, assets, movement, building, save schema or room geometry reru
 
 ## Clinical safety (later)
 Before release, each case must have reputable references, qualified physiotherapy educator review, specialist review where warranted, verified red-flag/referral logic, plausible alternative reasoning paths, versioned rubrics and an explicit review date.
+
+
+## Real marketplace acceptance checks
+
+1. Open the shop on a narrow phone viewport. Confirm eight horizontal categories, a search field, product count and a scrollable two-column product list.
+2. Search by Arabic product name and description. Confirm results are limited to the active category and an empty search result has a readable empty state.
+3. Inspect a product from each category. Confirm the preview uses the exact GLB file/node in its catalog record, and the placement button remains disabled until a valid model has loaded.
+4. Rotate a selected model by 90 degrees. Confirm the preview orientation changes and the placed model uses the same orientation.
+5. Confirm a product thumbnail appears only after inspecting that product and is captured from the actual rendered 3D stage; uninspected cards must not show fabricated product artwork.
+6. Place a model in a compatible room. Confirm the placed object matches the inspected model, uses its intended scale and occupies the reserved footprint without overlapping other props.
+7. Confirm the price is displayed consistently and coins are deducted only after a valid placement action. Insufficient funds and invalid positions must not create a placed item.
+8. Test the new signage, amenities, therapy, waiting, reception, patient-room, bed-bay, laboratory and imaging kits. Confirm their GLBs load, remain within the room and do not replace or cover the outdoor garden.
+9. On a low-memory phone, open the shop and scroll categories without selecting products. Confirm unselected GLBs are not loaded and only one inspected model preview is active at a time.
