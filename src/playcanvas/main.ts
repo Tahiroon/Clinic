@@ -10,7 +10,8 @@ const buildPanel=el<HTMLElement>("#build-panel"), saveState=el<HTMLElement>("#sa
 const app=new pc.Application(canvas,{graphicsDeviceOptions:{antialias:false,alpha:false,powerPreference:"low-power"}});
 app.setCanvasFillMode(pc.FILLMODE_NONE);
 app.setCanvasResolution(pc.RESOLUTION_AUTO);
-app.graphicsDevice.maxPixelRatio=Math.min(window.devicePixelRatio||1,1.25);
+// A 1× render scale reduces GPU fill cost and memory bandwidth on low-end phones.
+app.graphicsDevice.maxPixelRatio=Math.min(window.devicePixelRatio||1,1.0);
 canvas.style.width="100%";canvas.style.height="100%";canvas.style.display="block";
 let lastViewportWidth=0,lastViewportHeight=0,resizeQueued=false;
 const syncViewportHeight=()=>{
@@ -491,7 +492,7 @@ function loadReceptionDesk(parent:pc.Entity){
  const url=clinicAssetUrls["hospital-reception-desk.glb"];
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
-  const keep=/^(Desk_|Drawer_|Keyboard_|Monitor_|Pedestal_|Screen_)/;
+  const keep=/^(HospitalReception|Desk_|Drawer_|Keyboard_|Monitor_|Pedestal_|Screen_)/;
   // The source GLB is a complete reception scene (desk + chairs + curtains + plant + sanitizer).
   // Keep only the desk assembly; scaling the entire scene to desk size made the actual counter microscopic.
   // Avoid recursive descent: some downloaded GLB scene graphs contain
