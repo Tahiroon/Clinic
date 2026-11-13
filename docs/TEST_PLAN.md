@@ -50,6 +50,15 @@
 20. Repeated scene entry/exit does not cause unbounded memory growth.
 21. No secrets or real student/patient data exist in repository.
 
+## Store and outdoor presentation checks
+
+1. Selecting a store item loads its exact registered GLB model into the 3D preview stand; no CSS illustration is presented as the real product.
+2. The placement action stays disabled until the GLB preview has loaded successfully.
+3. Switching products cancels stale preview results; closing the store destroys the preview entity and restores the management camera.
+4. The selected preview model is the same GLB/node specification used when the item is placed in the clinic.
+5. The store remains usable in portrait mode while the real model is visible in the upper scene area.
+6. Trees and planting remain outside the buildable plot and are included in navigation/placement obstacle checks.
+
 ## Performance conditions
 Test at least one real entry-level Android phone and one stronger device. Record exact models and browser versions. Test cold and warm cache, constrained network where possible, and a sustained three-minute interaction loop.
 
