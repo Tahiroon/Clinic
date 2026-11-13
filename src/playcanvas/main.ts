@@ -640,8 +640,8 @@ function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:str
  return {x:gx+(size-actual)/2,z:gz+(size-actual)/2,w:actual,d:actual};
 }
 function rectanglesOverlap(a:{x:number;z:number;w:number;d:number},b:{x:number;z:number;w:number;d:number}){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.z<b.z+b.d&&a.z+a.d>b.z;}
-function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string,requireRoom=true){
- const a=footprintAt(gx,gz,kind,rot,assetKey);
+function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string,requireRoom=true,width?:number,depth?:number){
+ const a=footprintAt(gx,gz,kind,rot,assetKey,width,depth);
  if(a.x< -HALF_X+.24||a.z< -HALF_Z+.24||a.x+a.w>HALF_X-.24||a.z+a.d>HALF_Z-.24)return true;
  const candidateRoom=isRoomKind(kind);
  if(candidateRoom){
