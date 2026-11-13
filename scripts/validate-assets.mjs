@@ -20,7 +20,6 @@ const required = [
   ["src/assets/clinic-kit/management-sim/bedside-cabinet.glb", [], []],
   ["src/assets/clinic-kit/management-sim/partition-wall.glb", [], []],
   ["src/assets/clinic-kit/management-sim/partition-wall-1m.glb", [], []],
-  ["src/assets/clinic-kit/management-sim/glazed-partition.glb", [], []],
   ["src/assets/clinic-kit/management-sim/door-leaf.glb", [], []],
   ["src/assets/clinic-kit/management-sim/corridor-floor-tile.glb", [], []]
 ];
