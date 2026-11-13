@@ -174,10 +174,14 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
   const scale=height/measuredHeight;
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
   const scaled=model.findComponents("render").flatMap((r:any)=>r.meshInstances);
-  let scaledMinY=Infinity,scaledCenterX=0,scaledCenterZ=0;
-  for(const mesh of scaled){const b=mesh.aabb;scaledMinY=Math.min(scaledMinY,b.center.y-b.halfExtents.y);scaledCenterX+=b.center.x;scaledCenterZ+=b.center.z;}
-  const meshCount=Math.max(1,scaled.length);
-  model.setLocalPosition(-scaledCenterX/meshCount,-scaledMinY,-scaledCenterZ/meshCount);
+  let scaledMinX=Infinity,scaledMaxX=-Infinity,scaledMinY=Infinity,scaledMinZ=Infinity,scaledMaxZ=-Infinity;
+  for(const mesh of scaled){
+   const b=mesh.aabb,c=b.center,h=b.halfExtents;
+   scaledMinX=Math.min(scaledMinX,c.x-h.x);scaledMaxX=Math.max(scaledMaxX,c.x+h.x);
+   scaledMinY=Math.min(scaledMinY,c.y-h.y);
+   scaledMinZ=Math.min(scaledMinZ,c.z-h.z);scaledMaxZ=Math.max(scaledMaxZ,c.z+h.z);
+  }
+  model.setLocalPosition(-(scaledMinX+scaledMaxX)/2,-scaledMinY,-(scaledMinZ+scaledMaxZ)/2);
   model.addComponent("anim",{activate:true,speed:1});
   const anim:any=(model as any).anim;
   const clips:any[]=asset.resource.animations??[];
