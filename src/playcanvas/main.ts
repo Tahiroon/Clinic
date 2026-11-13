@@ -916,7 +916,12 @@ const steps=[
  {title:"إعادة التقييم",intro:"انتهت الجلسة الأولى. كيف تعرف إن كانت خطتك مفيدة؟",question:"ما الخطوة الأخيرة؟",options:[["retest","إعادة قياس المؤشرات ومراجعة الأهداف وتعديل الخطة",true,"رائع. إعادة التقييم تربط التدخل بالنتيجة وتوجه الخطوة التالية."],["finish","إنهاء الجلسة دون قياس",false,"لا يمكن معرفة الاستجابة دون إعادة تقييم."],["repeat","تكرار التدخل نفسه مهما كانت الاستجابة",false,"القرار السريري يتغير وفق استجابة المريض."]]}
 ];
 function renderStep(){const s=steps[sessionStep];el("#session-step").textContent="الجلسة التعليمية · "+(sessionStep+1)+" من 5";el("#session-title").textContent=s.title;el("#session-intro").textContent=s.intro;el("#session-question").textContent=s.question;el("#session-feedback").textContent="اختر إجابتك لتحصل على تغذية راجعة.";el<HTMLButtonElement>("#session-next").disabled=true;el("#session-next").textContent=sessionStep===4?"إنهاء الجلسة":"التالي";el("#session-options").innerHTML=s.options.map(o=>'<button type="button" data-session-choice="'+o[0]+'">'+o[1]+"</button>").join("");document.querySelectorAll<HTMLButtonElement>("[data-session-choice]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-session-choice]").forEach(x=>{(x as HTMLButtonElement).disabled=true;});b.classList.add("chosen");const option=s.options.find(o=>o[0]===b.dataset.sessionChoice)!;if(option[2])sessionScore++;el("#session-feedback").textContent=option[3] as string;el<HTMLButtonElement>("#session-next").disabled=false;}));}
-sessionBtn.addEventListener("click",()=>{sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();sessionPending=moveAvatarTo(1.35,1.7);if(!sessionPending)sessionDialog.showModal();});
+sessionBtn.addEventListener("click",()=>{
+ sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();
+ sessionPending=moveAvatarTo(1.35,1.7);
+ if(sessionPending){status.textContent="الأخصائي يتجه إلى المريض. ستبدأ الجلسة بعد الوصول إلى موضع آمن بجانبه.";}
+ else{focus=false;cameraGoal.set(0,0,0);viewBtn.classList.remove("active");status.textContent="لا يوجد مسار آمن إلى المريض. افتح الممر أو أعد ترتيب الأثاث قبل بدء الجلسة.";}
+});
 sessionDialog.addEventListener("close",()=>{focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=window.innerWidth/window.innerHeight<.48?8.7:9.2;viewBtn.classList.remove("active");});
 el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{if(missionPhase===2)setMissionPhase(3);const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
 load();coinsLabel.textContent=String(coins);
@@ -936,12 +941,12 @@ function moveAvatarTo(tx:number,tz:number){
   walkPath=[];target=destination.clone();setLocomotion(true);return true;
  }
  const raw=findWalkPath(start.x,start.z,tx,tz);
- if(raw===null)return false;
+ if(raw===null){destination=null;tapMarker.enabled=false;walkPath=[];setLocomotion(false);return false;}
  walkPath=simplifyWalkRoute(raw,start.x,start.z);
  const last=walkPath[walkPath.length-1];
  if(last&&canWalkSegment(last.x,last.z,tx,tz))walkPath.push({x:tx,z:tz});
  const first=walkPath.shift();
- if(!first)return false;
+ if(!first){destination=null;tapMarker.enabled=false;walkPath=[];setLocomotion(false);return false;}
  target=new pc.Vec3(first.x,0,first.z);setLocomotion(true);return true;
 }
 el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
