@@ -56,11 +56,10 @@ try {
   }
   const starter = source.match(/const starterLayout:Placed\[\]=\[([\s\S]*?)\];/);
   if (!starter) throw new Error("Starter layout definition is missing");
-  const starterRooms = starter[1].match(/kind:"(?:treatment|reception|gym)"/g) ?? [];
-  if (starterRooms.length !== 1 || !/kind:"treatment"/.test(starter[1]) || /kind:"reception"/.test(starter[1])) {
-    throw new Error("A new player must start with one treatment room, not a prebuilt reception clinic");
+  if (starter[1].trim() !== "") {
+    throw new Error("The main campaign must start on empty buildable land, not a prebuilt clinic");
   }
-  if (!/Owned green property/.test(source) || !/Main entrance garden path/.test(source) || !/outdoorTreePositions/.test(source)) {
+  if (!/Owned green property/.test(source) || !/Main entrance garden path/.test(source) || !/outdoorTreePositions/.test(source) || !/setClinicOpen\(management/.test(source)) {
     throw new Error("The open green property, entrance path and outdoor landscaping must exist");
   }
   console.log("✓ PlayCanvas model graph has no owner self-reference");
@@ -70,7 +69,7 @@ try {
   if (!/Math\.min\(34,pinchHeight/.test(source)) {
     throw new Error("Portrait camera zoom must allow the larger property to be explored");
   }
-  console.log("✓ Starter world is a 14×28 m green property with one treatment room");
+  console.log("✓ Main campaign starts on an empty 14×28 m buildable green property");
   console.log("✓ Grass stays outside every player-built room"); 
   const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.z < b.z + b.d && a.z + a.d > b.z;
   const treePositions = [[-5.65,-11.4],[5.65,-11.4],[-5.65,11.4],[5.65,11.4]];
