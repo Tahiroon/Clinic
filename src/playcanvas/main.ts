@@ -29,7 +29,7 @@ const resize=()=>{
  app.resizeCanvas(w,h);
  // Keep the same vertical world scale on phones; only the horizontal visible span adapts.
  const aspect=w/h;
- desiredOrthoHeight=aspect<.48?8.7:aspect<.62?9.2:aspect<.82?9.7:10.2;
+ desiredOrthoHeight=aspect<.48?30.5:aspect<.62?29.5:aspect<.82?28.5:27.5;
  camera.camera!.orthoHeight=desiredOrthoHeight;
 };
 const queueResize=()=>{
@@ -59,10 +59,10 @@ function sphere(name:string,x:number,y:number,z:number,s:number,m:pc.StandardMat
 function cylinder(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){return primitive(name,"cylinder",x,y,z,sx,sy,sz,m,parent);}
 function cone(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){return primitive(name,"cone",x,y,z,sx,sy,sz,m,parent);}
 const camera=new pc.Entity("Portrait isometric camera");
-camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:12.9,clearColor:new pc.Color(.69,.79,.80),nearClip:.1,farClip:150});
+camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:30.5,clearColor:new pc.Color(.69,.79,.80),nearClip:.1,farClip:200});
 const cameraTarget=new pc.Vec3(0,0,0),cameraGoal=new pc.Vec3(0,0,0);
 camera.setPosition(3.5,21.5,-15);camera.lookAt(cameraTarget);app.root.addChild(camera);
-let desiredOrthoHeight=8.7;
+let desiredOrthoHeight=30.5;
 const light=new pc.Entity("Soft daylight");
 light.addComponent("light",{type:"directional",intensity:1.15,castShadows:false});
 light.setEulerAngles(48,25,0);app.root.addChild(light);
@@ -76,133 +76,97 @@ tapMarker.setLocalScale(.34,.035,.34);
 tapMarker.enabled=false;
 world.addChild(tapMarker);
 
-const GRID=1, W=6.5, D=11.5, HALF_X=W/2, HALF_Z=D/2;
-const floorBase=material(new pc.Color(.48,.53,.55)); // neutral paving; green is reserved for outdoor landscaping
+const GRID=1, W=14, D=28, HALF_X=W/2, HALF_Z=D/2;
 const grassAlt=material(new pc.Color(.38,.53,.38));
-const pathMat=material(new pc.Color(.72,.68,.57));
-const pathEdge=material(new pc.Color(.48,.57,.47));
+const pathMat=material(new pc.Color(.67,.62,.49));
+const pathEdge=material(new pc.Color(.43,.48,.37));
 const glass=material(new pc.Color(.28,.67,.76));
 const trim=material(new pc.Color(.10,.39,.47));
 const roofAccent=material(new pc.Color(.16,.28,.38));
-// A narrow, deep property is intentionally composed for a portrait isometric camera.
-box("Owned landscaped property",0,-.22,0,W,.42,D,floorBase,world);
-// Distinct planted beds sit above the paved plot only OUTSIDE the 4×8 m clinic footprint.
-// Their continuous turf surface prevents the old "grass blades on concrete" appearance.
-const lawnBase=material(new pc.Color(.27,.39,.25));
-const lawnSoil=material(new pc.Color(.39,.29,.19));
-box("West natural lawn bed",-2.63,.008,0,1.04,.045,9.65,lawnBase,world);
-box("East natural lawn bed",2.63,.008,0,1.04,.045,9.65,lawnBase,world);
-box("North natural lawn bed",0,.008,5.12,5.35,.045,.92,lawnBase,world);
-box("South lawn bed west of entrance",-1.72,.008,-5.12,1.95,.045,.92,lawnBase,world);
-box("South lawn bed east of entrance",1.72,.008,-5.12,1.95,.045,.92,lawnBase,world);
-// Fine soil seams define planted edges without putting vegetation under the clinic walls.
-for(const x of [-2.105,2.105])box("Lawn soil seam",x,.036,0,.045,.018,9.58,lawnSoil,world);
-box("Entrance walk",0,.005,-5.12,1.65,.045,1.15,pathMat,world);
-for(let i=0;i<5;i++)box("Entrance stepping stone",0,.055,-5.48+i*.25,1.30,.035,.23,pathEdge,world);
-box("Entrance apron",0,.045,-4.12,2.8,.08,.65,pathMat,world);
-// Low perimeter edging defines this starter plot while leaving the land visibly expandable.
-for(const [x,z,sx,sz] of [[-2.05,-5.66,2.2,.18],[2.05,-5.66,2.2,.18],[0,5.66,6.3,.18],[-3.17,0,.18,11.3],[3.17,0,.18,11.3]] as [number,number,number,number][]){
- box("Property boundary edging",x,.17,z,sx,.34,sz,trim,world);
+const lawnBase=material(new pc.Color(.25,.39,.24));
+const outdoorTreePositions:[number,number][]=[[-5.65,-11.4],[5.65,-11.4],[-5.65,11.4],[5.65,11.4]];
+// The property is a continuous outdoor lawn. Only constructed rooms receive a finished interior floor.
+box("Owned green property · expandable land",0,-.22,0,W,.42,D,lawnBase,world);
+box("Main entrance garden path",0,.018,-8.45,1.75,.045,11.0,pathMat,world);
+box("Path west edging",-.91,.045,-8.45,.055,.06,11.0,pathEdge,world);
+box("Path east edging",.91,.045,-8.45,.055,.06,11.0,pathEdge,world);
+for(const [x,z,sx,sz] of [[0,-13.92,W,.16],[0,13.92,W,.16],[-6.92,0,.16,D],[6.92,0,.16,D]] as [number,number,number,number][]){
+ box("Low property boundary",x,.16,z,sx,.32,sz,trim,world);
 }
-// Outdoor trees use clustered organic crowns rather than the old repeated cone silhouettes.
-for(const [x,z] of [[-2.72,-5.02],[2.72,-5.02],[-2.72,5.02],[2.72,5.02]] as [number,number][]){
- cylinder("Garden tree trunk",x,.72,z,.16,1.44,.16,M.wood,world);
- const crown=sphere("Tree foliage core",x,1.78,z,.68,M.green,world);crown.setLocalScale(.82,1.08,.78);
- const crownTop=sphere("Tree foliage upper",x+.08,2.30,z+.03,.48,grassAlt,world);crownTop.setLocalScale(.82,1.05,.82);
- for(const [ox,oy,oz,scale] of [[-.38,1.78,.05,.42],[.38,1.72,-.08,.43],[.02,1.56,.38,.40]] as [number,number,number,number][]){
-  const leaf=sphere("Tree foliage cluster",x+ox,oy,z+oz,scale,M.green,world);leaf.setLocalScale(1.05,1.0,.95);
- }
+for(const [x,z] of outdoorTreePositions){
+ cylinder("Outdoor tree trunk",x,.78,z,.18,1.56,.18,M.wood,world);
+ const crown=sphere("Outdoor tree crown",x,1.95,z,.76,M.green,world);crown.setLocalScale(.9,1.15,.86);
+ const crownTop=sphere("Outdoor tree crown highlight",x+.08,2.48,z+.04,.52,grassAlt,world);crownTop.setLocalScale(.9,1.05,.88);
 }
-for(const [x,z] of [[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]] as [number,number][]){
- box("Outdoor planter",x,.18,z,.48,.36,.78,M.wood2,world);
- const shrub=sphere("Planter shrub",x,.63,z,.34,M.green,world);shrub.setLocalScale(1.1,.78,.9);
- const shrubTop=sphere("Planter shrub highlight",x+.08,.82,z-.04,.22,grassAlt,world);shrubTop.setLocalScale(1.2,.85,1.0);
+for(const [x,z] of [[-5.9,-5.5],[5.9,-2.5],[-5.9,4.2],[5.9,6.0]] as [number,number][]){
+ box("Outdoor planter",x,.17,z,.56,.34,.78,M.wood2,world);
+ const shrub=sphere("Outdoor shrub",x,.62,z,.37,M.green,world);shrub.setLocalScale(1.12,.8,.95);
 }
- // One merged mesh gives the exterior lawn real 3D grass blades without hundreds of draw calls.
- function createLawnGrass(){
-  const positions:number[]=[],indices:number[]=[],colors:number[]=[];
-  let seed=7319;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
-  const addTuft=(x:number,z:number)=>{
-   const count=2+Math.floor(rand()*2);
-   for(let n=0;n<count;n++){
-    const angle=rand()*Math.PI,half=.018+rand()*.018,height=.12+rand()*.16;
-    const lean=(rand()-.5)*.10,baseY=.034+rand()*.018;
-    const dx=Math.cos(angle)*half,dz=Math.sin(angle)*half;
-    const start=positions.length/3;
-    positions.push(x-dx,baseY,z-dz,x+dx,baseY,z+dz,x+lean,baseY+height,z);
-    const shade=rand();
-    const col=shade>.72?[63,119,66,255]:shade<.2?[91,139,77,255]:[74,130,69,255];
-    for(let k=0;k<3;k++)colors.push(...col);
-    indices.push(start,start+1,start+2);
-   }
-  };
-  for(let i=0;i<230;i++){
-   const z=-4.7+rand()*9.4;
-   addTuft(-2.72+rand()*.55,z);addTuft(2.17+rand()*.55,z);
+function createLawnGrass(){
+ const positions:number[]=[],indices:number[]=[],colors:number[]=[];
+ let seed=7319;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+ const addTuft=(x:number,z:number)=>{
+  const count=2+Math.floor(rand()*2);
+  for(let n=0;n<count;n++){
+   const angle=rand()*Math.PI,half=.018+rand()*.018,height=.10+rand()*.13;
+   const lean=(rand()-.5)*.08,baseY=.026+rand()*.012,dx=Math.cos(angle)*half,dz=Math.sin(angle)*half;
+   const first=positions.length/3;
+   positions.push(x-dx,baseY,z-dz,x+dx,baseY,z+dz,x+lean,baseY+height,z);
+   const shade=rand(),col=shade>.72?[63,119,66,255]:shade<.2?[91,139,77,255]:[74,130,69,255];
+   for(let k=0;k<3;k++)colors.push(...col);
+   indices.push(first,first+1,first+2);
   }
-  for(let i=0;i<150;i++){
-   const x=-2.85+rand()*5.7,z=rand()>.5?4.82+rand()*.72:-5.52+rand()*.72;
-   if(z< -4.72&&Math.abs(x)<.95)continue;
-   addTuft(x,z);
-  }
-  const mesh=new pc.Mesh(app.graphicsDevice);
-  mesh.setPositions(new Float32Array(positions));
-  mesh.setNormals(pc.calculateNormals(positions,indices));
-  mesh.setColors32(new Uint8Array(colors));
-  mesh.setIndices(indices);mesh.update();
-  const grassMat=material(new pc.Color(1,1,1));grassMat.diffuseVertexColor=true;grassMat.cull=pc.CULLFACE_NONE;grassMat.update();
-  // ModelComponent attaches model.graph as a child of its owner.
-  // A shared owner/graph node creates a self-cycle and overflows PlayCanvas.
-  const entity=new pc.Entity("Exterior lawn · merged 3D grass");
-  const grassGraph=new pc.GraphNode("Exterior lawn mesh graph");
-  const model=new pc.Model();
-  model.graph=grassGraph;
-  model.meshInstances=[new pc.MeshInstance(mesh,grassMat,grassGraph)];
-  entity.addComponent("model");
-  entity.model!.model=model;
-  world.addChild(entity);
+ };
+ for(let i=0;i<1900;i++){
+  const x=-HALF_X+.28+rand()*(W-.56),z=-HALF_Z+.28+rand()*(D-.56);
+  const insideStarterRoom=x> -2.12&&x<2.12&&z> -2.12&&z<2.12;
+  const onEntrancePath=Math.abs(x)<1.12&&z< -2.1;
+  const nearTree=outdoorTreePositions.some(([tx,tz])=>Math.hypot(x-tx,z-tz)<1.05);
+  if(insideStarterRoom||onEntrancePath||nearTree)continue;
+  addTuft(x,z);
  }
- createLawnGrass();
-// A compact arrival court gives the clinic a readable public entrance without crowding the narrow plot.
-const arrivalStone=material(new pc.Color(.66,.70,.67));
+ const mesh=new pc.Mesh(app.graphicsDevice);
+ mesh.setPositions(new Float32Array(positions));
+ mesh.setNormals(pc.calculateNormals(positions,indices));
+ mesh.setColors32(new Uint8Array(colors));
+ mesh.setIndices(indices);mesh.update();
+ const grassMat=material(new pc.Color(1,1,1));grassMat.diffuseVertexColor=true;grassMat.cull=pc.CULLFACE_NONE;grassMat.update();
+ const owner=new pc.Entity("Outdoor grass mesh owner");
+ const grassGraph=new pc.GraphNode("Outdoor grass mesh graph");
+ const model=new pc.Model();model.graph=grassGraph;
+ model.meshInstances=[new pc.MeshInstance(mesh,grassMat,grassGraph)];
+ owner.addComponent("model");owner.model!.model=model;world.addChild(owner);
+}
+createLawnGrass();
 const arrivalMetal=material(new pc.Color(.20,.31,.38));
 const warmGlass=material(new pc.Color(.96,.76,.40));
-box("Arrival court paving",0,.055,-5.30,2.05,.07,.78,arrivalStone,world);
-for(const x of [-.94,.94]){
- box("Arrival court edge",x,.105,-5.30,.055,.10,.82,trim,world);
- cylinder("Entrance bollard",x,.38,-5.20,.10,.66,.10,arrivalMetal,world);
- cylinder("Bollard warm cap",x,.73,-5.20,.105,.08,.105,warmGlass,world);
+for(const x of [-1.12,1.12]){
+ cylinder("Entrance path light base",x,.12,-3.75,.18,.22,.18,arrivalMetal,world);
+ cylinder("Entrance path light stem",x,.52,-3.75,.065,.78,.065,arrivalMetal,world);
+ sphere("Entrance path light diffuser",x,.98,-3.75,.14,warmGlass,world);
 }
-for(const x of [-2.45,2.45]){
- cylinder("Garden path light base",x,.12,-4.05,.22,.22,.22,arrivalMetal,world);
- cylinder("Garden path light stem",x,.55,-4.05,.075,.78,.075,arrivalMetal,world);
- sphere("Garden path light diffuser",x,.98,-4.05,.17,warmGlass,world);
-}
-box("Clinic facade lower accent",0,.28,-4.09,3.85,.12,.10,trim,world);
-box("Clinic facade upper accent",0,2.82,-4.08,4.15,.10,.12,arrivalMetal,world);
-
-// The clinic identity is fixed to the entrance facade, not floating in the middle of the lawn.
-box("THERASON entrance sign",0,2.55,-4.13,2.0,.46,.12,trim,world);
-box("Entrance sign inset",0,2.56,-4.205,1.7,.27,.035,M.white,world);
-box("Entrance canopy",0,2.15,-4.28,2.3,.16,.78,roofAccent,world);
-const roomRoot=new pc.Entity("Starter clinic rooms");world.addChild(roomRoot);
-// Build-mode grid: a light, temporary construction overlay like modern tycoon/building games.
-const buildGrid=new pc.Entity("Construction grid overlay");world.addChild(buildGrid);
+box("Clinic facade lower accent",0,.28,-3.08,3.85,.12,.10,trim,world);
+box("Clinic facade upper accent",0,2.82,-3.08,4.15,.10,.12,arrivalMetal,world);
+box("THERASON entrance sign",0,2.55,-3.13,2.0,.46,.12,trim,world);
+box("Entrance sign inset",0,2.56,-3.205,1.7,.27,.035,M.white,world);
+box("Entrance canopy",0,2.15,-3.28,2.3,.16,.78,roofAccent,world);
+const roomRoot=new pc.Entity("Player-built clinic rooms");world.addChild(roomRoot);
+const buildGrid=new pc.Entity("Expandable property construction grid");world.addChild(buildGrid);
 const gridMaterial=material(new pc.Color(.20,.57,.65));
-for(let i=0;i<=4;i++){
- const x=-2+i;
- box("Build grid vertical",x,.087,0,.012,.012,8,gridMaterial,buildGrid);
+for(let i=0;i<=W;i++){
+ const x=-HALF_X+i*GRID;
+ box("Property grid vertical",x,.035,0,.012,.012,D,gridMaterial,buildGrid);
 }
-for(let i=0;i<=8;i++){
- const z=-4+i;
- box("Build grid horizontal",0,.087,z,4,.012,.012,gridMaterial,buildGrid);
+for(let i=0;i<=D;i++){
+ const z=-HALF_Z+i*GRID;
+ box("Property grid horizontal",0,.035,z,W,.012,.012,gridMaterial,buildGrid);
 }
 buildGrid.enabled=false;
 function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:number){
  const root=new pc.Entity("Room "+id);
  world.addChild(root);root.setLocalPosition(gx+1,0,gz+1);
  const floor=kind==="gym"?material(new pc.Color(.40,.55,.58)):material(new pc.Color(.79,.82,.79));
- box("Room floor",1,.035,1,3.95,.07,3.95,floor,root);
+ box("Seamless room floor",1,.035,1,3.95,.07,3.95,material(new pc.Color(.69,.72,.68)),root);
  // Architectural finish: layered skirting, wall reveals and a restrained medical-grade palette.
  const skirting=material(new pc.Color(.34,.43,.46)), wallPanel=material(new pc.Color(.91,.92,.88)), doorFinish=material(new pc.Color(.72,.77,.75)),metal=material(new pc.Color(.43,.51,.54));
  box("Floor perimeter inlay",1,.078,1,3.78,.018,3.78,skirting,root);
@@ -217,14 +181,7 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
  // Modular 4×4 m room shell. Every wall segment has a matching navigation rectangle.
  box("Left exterior wall",-1,1.12,1,.16,2.24,4,M.wallSide,root);
  box("Right exterior wall",3,1.12,1,.16,2.24,4,M.wallSide,root);
- if(id===1){
-  // Reception opens into the treatment room through the rear shared wall.
-  box("Shared wall left",-.3,1.12,3,1.4,2.24,.16,M.wall,root);
-  box("Shared wall right",2.3,1.12,3,1.4,2.24,.16,M.wall,root);
-  box("Shared doorway lintel",1,2.18,3,1.2,.16,.18,M.white,root);
- }else{
-  box("Rear exterior wall",1,1.12,3,4,2.24,.16,M.wall,root);
- }
+ box("Rear exterior wall",1,1.12,3,4,2.24,.16,M.wall,root);
  // Both reception and treatment have a clear 1.2 m front doorway.
  box("Front wall left",-.3,1.12,-1,1.4,2.24,.16,M.wall,root);
  box("Front wall right",2.3,1.12,-1,1.4,2.24,.16,M.wall,root);
@@ -278,7 +235,7 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
  return root;
 }
 // The starter clinic is assembled from lightweight procedural geometry; optional GLB assets load independently.
-const avatar=new pc.Entity("Student avatar");world.addChild(avatar);avatar.setLocalPosition(0,0,-3.15);
+const avatar=new pc.Entity("Player physiotherapist");world.addChild(avatar);avatar.setLocalPosition(0,0,-4.55);
 let walkVelocity=0;
 let avatarAnim:any=null;let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
@@ -366,20 +323,19 @@ loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
  avatarAnim=rig.anim;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
-const patientNpc=new pc.Entity("Clinic patient");world.addChild(patientNpc);patientNpc.setLocalPosition(1.42,0,2.35);
+const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.22,0,.72);
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>patientFallback.destroy());
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=5, focus=false, wallRotation:0|90=0;
 let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v1")||0);return saved===1?0:Math.max(0,Math.min(4,saved));}catch{return 0;}})();
 
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v8";
-const TRIAL_ACCOUNT_COINS=1000000; 
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v9";
+const TRIAL_ACCOUNT_COINS=350; 
 const starterLayout:Placed[]=[
- {id:1,kind:"reception",gx:-2,gz:-4},
- {id:2,kind:"treatment",gx:-2,gz:0},
- {id:3,kind:"asset",gx:-1,gz:1,rot:0,assetKey:"pt-treatment-table"},
- {id:4,kind:"asset",gx:-2,gz:2,rot:0,assetKey:"pt-storage-cabinet"}
+ {id:1,kind:"treatment",gx:-2,gz:-2},
+ {id:2,kind:"asset",gx:-1,gz:-1,rot:0,assetKey:"pt-treatment-table"},
+ {id:3,kind:"asset",gx:-2,gz:1,rot:0,assetKey:"pt-storage-cabinet"}
 ];
 const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
@@ -603,7 +559,7 @@ function loadClinicAsset(p:Placed){
  });
 }
 
-function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:4,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
+function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:5,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function validSavedItem(value:any):value is Placed{
  if(!value||typeof value!=="object")return false;
  const kinds:BuildKind[]=["treatment","reception","gym","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
@@ -615,11 +571,11 @@ function validSavedItem(value:any):value is Placed{
  return bounds.x>=-HALF_X&&bounds.z>=-HALF_Z&&bounds.x+bounds.w<=HALF_X&&bounds.z+bounds.d<=HALF_Z;
 }
 function load(){
- const useStarter=()=>{coins=TRIAL_ACCOUNT_COINS;xp=0;placed=starterLayout.map(p=>({...p}));nextId=5;for(const p of placed)drawPlaced(p);};
+ const useStarter=()=>{coins=TRIAL_ACCOUNT_COINS;xp=0;placed=starterLayout.map(p=>({...p}));nextId=4;for(const p of placed)drawPlaced(p);};
  try{
   const raw=localStorage.getItem(saveKey);if(!raw){useStarter();return;}
-  const v=JSON.parse(raw);if((v.v!==3&&v.v!==4)||!Array.isArray(v.placed)){useStarter();return;}
-  coins=Math.max(TRIAL_ACCOUNT_COINS,Number.isFinite(v.coins)?Math.max(0,Math.min(10000000,v.coins)):0);
+  const v=JSON.parse(raw);if(v.v!==5||!Array.isArray(v.placed)){useStarter();return;}
+  coins=Math.max(TRIAL_ACCOUNT_COINS,Number.isFinite(v.coins)?Math.max(0,Math.min(10000000,v.coins)):TRIAL_ACCOUNT_COINS);
   xp=Number.isFinite(v.xp)?Math.max(0,Math.min(1000000000,v.xp)):0;
   placed=[];const ids=new Set<number>();
   for(const candidate of v.placed.slice(0,60)){
@@ -724,20 +680,16 @@ function canAvatarStand(x:number,z:number){
  if(x-radius< -HALF_X||x+radius>HALF_X||z-radius< -HALF_Z||z+radius>HALF_Z)return false;
  const player={x:x-radius,z:z-radius,w:radius*2,d:radius*2};
  // Patient is a real occupied spot; route to the nearest safe treatment-side approach, never through the body.
- if(rectanglesOverlap(player,{x:1.42-.28,z:2.35-.28,w:.56,d:.56}))return false;
+ if(rectanglesOverlap(player,{x:1.22-.28,z:.72-.28,w:.56,d:.56}))return false;
  // Perimeter hedge and outdoor props are solid; the lawn is not an infinite walkable plane.
  const outdoorBarriers=[
-  {x:-3.26,z:-5.65,w:.18,d:11.3},
-  {x:3.08,z:-5.65,w:.18,d:11.3},
-  {x:-3.15,z:-5.75,w:2.2,d:.18},
-  {x:.95,z:-5.75,w:2.2,d:.18},
-  {x:-3.15,z:5.57,w:6.3,d:.18}
+  {x:-HALF_X,z:-HALF_Z,w:.18,d:D},
+  {x:HALF_X-.18,z:-HALF_Z,w:.18,d:D},
+  {x:-HALF_X,z:-HALF_Z,w:W,d:.18},
+  {x:-HALF_X,z:HALF_Z-.18,w:W,d:.18}
  ];
  if(outdoorBarriers.some(w=>rectanglesOverlap(player,w)))return false;
- const gardenProps=[
-  ...[[-2.72,-5.02],[2.72,-5.02],[-2.72,5.02],[2.72,5.02]].map(([gx,gz])=>({x:gx-.26,z:gz-.26,w:.52,d:.52})),
-  ...[[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]].map(([gx,gz])=>({x:gx-.3,z:gz-.45,w:.6,d:.9}))
- ];
+ const gardenProps=outdoorTreePositions.map(([gx,gz])=>({x:gx-.38,z:gz-.38,w:.76,d:.76}));
  if(gardenProps.some(w=>rectanglesOverlap(player,w)))return false;
  for(const p of placed){
   const isRoom=p.kind==="treatment"||p.kind==="reception"||p.kind==="gym";
@@ -749,10 +701,7 @@ function canAvatarStand(x:number,z:number){
     {x:gx+3.92,z:gz,w:.16,d:4},
     {x:gx,z:gz-.08,w:1.4,d:.16},
     {x:gx+2.6,z:gz-.08,w:1.4,d:.16},
-    ...(p.id===1?[
-     {x:gx,z:gz+3.92,w:1.4,d:.16},
-     {x:gx+2.6,z:gz+3.92,w:1.4,d:.16}
-    ]:[{x:gx,z:gz+3.92,w:4,d:.16}])
+    {x:gx,z:gz+3.92,w:4,d:.16}
    ];
    if(walls.some(w=>rectanglesOverlap(player,w)))return false;
    const furniture:{x:number;z:number;w:number;d:number}[]=p.kind==="reception"?[
@@ -954,7 +903,7 @@ document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEve
 document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEventListener("click",()=>selectAsset(b.dataset.asset??"")));
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";el("#catalog-furniture").hidden=cat!=="furniture";if(cat==="structure")selectBuild("wall");else if(cat==="rooms")selectBuild("reception");else selectAsset("pt-treatment-table");}));
 el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;previewValidity=null;status.textContent="اتجاه العنصر الآن "+(wallRotation===0?"0°":"90°")+". سيتم تطبيقه على القطعة التالية.";});
-viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:(window.innerWidth/window.innerHeight<.48?8.7:9.2);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
+viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:30.5;viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
 let sessionStep=0,sessionScore=0;
 let sessionPending=false;
 const steps=[
@@ -967,11 +916,11 @@ const steps=[
 function renderStep(){const s=steps[sessionStep];el("#session-step").textContent="الجلسة التعليمية · "+(sessionStep+1)+" من 5";el("#session-title").textContent=s.title;el("#session-intro").textContent=s.intro;el("#session-question").textContent=s.question;el("#session-feedback").textContent="اختر إجابتك لتحصل على تغذية راجعة.";el<HTMLButtonElement>("#session-next").disabled=true;el("#session-next").textContent=sessionStep===4?"إنهاء الجلسة":"التالي";el("#session-options").innerHTML=s.options.map(o=>'<button type="button" data-session-choice="'+o[0]+'">'+o[1]+"</button>").join("");document.querySelectorAll<HTMLButtonElement>("[data-session-choice]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-session-choice]").forEach(x=>{(x as HTMLButtonElement).disabled=true;});b.classList.add("chosen");const option=s.options.find(o=>o[0]===b.dataset.sessionChoice)!;if(option[2])sessionScore++;el("#session-feedback").textContent=option[3] as string;el<HTMLButtonElement>("#session-next").disabled=false;}));}
 sessionBtn.addEventListener("click",()=>{
  sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();
- sessionPending=moveAvatarTo(1.35,1.7);
+ sessionPending=moveAvatarTo(.12,.72);
  if(sessionPending){status.textContent="الأخصائي يتجه إلى المريض. ستبدأ الجلسة بعد الوصول إلى موضع آمن بجانبه.";}
  else{focus=false;cameraGoal.set(0,0,0);viewBtn.classList.remove("active");status.textContent="لا يوجد مسار آمن إلى المريض. افتح الممر أو أعد ترتيب الأثاث قبل بدء الجلسة.";}
 });
-sessionDialog.addEventListener("close",()=>{focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=window.innerWidth/window.innerHeight<.48?8.7:9.2;viewBtn.classList.remove("active");});
+sessionDialog.addEventListener("close",()=>{focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=30.5;viewBtn.classList.remove("active");});
 el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{if(missionPhase===2)setMissionPhase(3);const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
 load();coinsLabel.textContent=String(coins);
 let locomotionState="";
