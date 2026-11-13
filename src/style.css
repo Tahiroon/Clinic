@@ -332,3 +332,7 @@ button{font:inherit;touch-action:manipulation}
 .room-summary-item{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;padding:8px 9px;border:1px solid #ffffff18;border-radius:9px;background:linear-gradient(130deg,#123e5b,#0d304d)}
 .room-summary-item strong{font-size:11px;color:#e9fbff;font-weight:800}
 .room-summary-item small{font-size:10px;color:#a7d8df;white-space:nowrap}
+
+
+.register-patient-button{display:block;margin-top:7px;min-height:30px;padding:5px 9px;border:1px solid #4bd7d2;border-radius:8px;background:linear-gradient(100deg,#087e98,#0e9b9a);color:#fff;font-size:10px;font-weight:850;white-space:nowrap}
+.register-patient-button:active{transform:scale(.98)}
