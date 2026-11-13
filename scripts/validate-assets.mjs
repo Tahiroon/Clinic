@@ -173,11 +173,12 @@ try {
       !/Starter clinic roof fascia/.test(source) || !/THERASON sign shadow backing/.test(source)) {
     throw new Error("Starter clinic pavilion facade must include its layered entrance and roof identity");
   }
-  if (!/SHADOW_PCSS_32F/.test(source) || !/shadowSamples=8/.test(source) ||
+  if (!/SHADOW_PCSS_32F/.test(source) || !/shadowResolution=2048/.test(source) ||
+      !/shadowSamples=12/.test(source) || !/shadowBlockerSamples=6/.test(source) ||
       !/addContactShadow/.test(source) || !/avatarContactShadow/.test(source) ||
       !/Clinical equipment contact shadow/.test(source) || !/Placed furnishing contact shadow/.test(source) ||
       !/castShadows=highDetailDevice/.test(source) || !/receiveShadows=highDetailDevice/.test(source) ||
-      !/groundY=\.052/.test(source)) {
+      !/groundY=\.052/.test(source) || !/\.25,\.006\)/.test(source)) {
     throw new Error("Adaptive real and contact shadow systems must remain enabled");
   }
   const drawPlacedSource=source.slice(source.indexOf("function drawPlaced(p:Placed)"),source.indexOf("\nfunction footprint("));
