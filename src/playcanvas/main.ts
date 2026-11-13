@@ -90,10 +90,19 @@ const pathEdge=material(new Color(.43,.48,.37));
 const trim=material(new Color(.10,.39,.47));
 const roofAccent=material(new Color(.16,.28,.38));
 const lawnBase=material(new Color(.25,.39,.24));
+const lawnPatchMaterial=material(new Color(.31,.47,.29));
 const outdoorTreePositions:[number,number][]=[[-9.1,-16.1],[9.1,-16.1],[-9.1,16.1],[9.1,16.1],[-9.1,-7.2],[9.1,-7.2],[-9.1,7.2],[9.1,7.2]];
 const outdoorShrubPositions:[number,number][]=[[-8.8,-12.0],[8.8,-12.0],[-8.8,-7.5],[8.8,-4.5],[-8.8,5.2],[8.8,8.0],[-8.8,12.0],[8.8,12.0]];
 // The property is a continuous outdoor lawn. Only constructed rooms receive a finished interior floor.
 box("Surrounding green landscape",0,-.24,0,W+10,.42,D+10,lawnBase,world);
+const landscapeTurfPatches:[number,number,number,number][]=[
+ [-9.6,-11.5,1.7,1.05],[9.6,-11.5,1.7,1.05],[-9.5,-3.2,1.5,.95],[9.5,-3.2,1.5,.95],
+ [-9.6,5.0,1.7,1.0],[9.6,5.0,1.7,1.0],[-9.5,12.0,1.55,.95],[9.5,12.0,1.55,.95]
+];
+for(const [x,z,rx,rz] of landscapeTurfPatches){
+ const patch=sphere("Layered landscape turf island",x,-.012,z,1,lawnPatchMaterial,world);
+ patch.setLocalScale(rx,.012,rz);
+}
 box("Clinic buildable foundation",0,.005,0,W,.08,D,material(new Color(.66,.68,.65)),world);
 box("Main entrance garden path",0,.018,-8.45,1.75,.045,11.0,pathMat,world);
 box("Outdoor approach path",0,.018,-16.2,2.4,.045,4.5,pathMat,world);
@@ -178,7 +187,7 @@ function createLawnGrass(){
    indices.push(first,first+1,first+2);
   }
  };
- const tuftBudget=highDetailDevice?2600:1400;
+ const tuftBudget=highDetailDevice?4200:2400;
  for(let i=0;i<tuftBudget;i++){
   const x=-HALF_X-4.7+rand()*(W+9.4),z=-HALF_Z-4.7+rand()*(D+9.4);
   const insideBuildablePlot=x>-HALF_X-.08&&x<HALF_X+.08&&z>-HALF_Z-.08&&z<HALF_Z+.08;
@@ -245,7 +254,7 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
   loadRoomModule(root,"corridor-floor-tile.glb",-halfW+x+tileWidth/2,.05,-halfD+z+tileDepth/2,0,tileWidth/2,tileDepth/2,"floor");
  }
  // Modular two-metre partitions, glazed rear wall and a real hinged door reproduce the readable cutaway-room language of a management sim.
- addRoomWallRun(root,"z",-halfD,depth,-halfW,"solid");
+ addRoomWallRun(root,"z",-halfD,depth,-halfW,"glazed");
  addRoomWallRun(root,"z",-halfD,depth,halfW,"solid");
  addRoomWallRun(root,"x",-halfW,width,halfD,"solid");
  const doorWidth=Math.min(1.2,width*.34),sideSegment=(width-doorWidth)/2;
