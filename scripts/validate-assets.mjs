@@ -72,6 +72,52 @@ try {
   }
   console.log("✓ Starter world is a 14×28 m green property with one treatment room");
   console.log("✓ Grass stays outside every player-built room"); 
+  const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.z < b.z + b.d && a.z + a.d > b.z;
+  const treePositions = [[-5.65,-11.4],[5.65,-11.4],[-5.65,11.4],[5.65,11.4]];
+  const shrubPositions = [[-5.9,-5.5],[5.9,-2.5],[-5.9,4.2],[5.9,6.0]];
+  const routeObstacles = [
+    {x:.97,z:1.07,w:.56,d:.56},
+    {x:-2.08,z:-2,w:.16,d:4},{x:1.92,z:-2,w:.16,d:4},
+    {x:-2,z:-2.08,w:1.4,d:.16},{x:.6,z:-2.08,w:1.4,d:.16},
+    {x:-2,z:1.92,w:4,d:.16},
+    {x:-.94,z:-.94,w:1.88,d:1.88},
+    {x:-1.92,z:1.08,w:.84,d:.84},
+    {x:-7,z:-14,w:.18,d:28},{x:6.82,z:-14,w:.18,d:28},
+    {x:-7,z:-14,w:14,d:.18},{x:-7,z:13.82,w:14,d:.18},
+    ...treePositions.map(([x,z])=>({x:x-.42,z:z-.42,w:.84,d:.84})),
+    ...shrubPositions.map(([x,z])=>({x:x-.34,z:z-.48,w:.68,d:.96}))
+  ];
+  const canStand = (x,z) => {
+    const radius=.28, player={x:x-radius,z:z-radius,w:radius*2,d:radius*2};
+    if(x-radius < -7 || x+radius > 7 || z-radius < -14 || z+radius > 14)return false;
+    return !routeObstacles.some(obstacle=>overlaps(player,obstacle));
+  };
+  const routeExists = (sx,sz,tx,tz) => {
+    const step=.25, cell=v=>Math.round(v/step), point=(x,z)=>({x:x*step,z:z*step}), key=(x,z)=>x+","+z;
+    const start={x:cell(sx),z:cell(sz)},goal={x:cell(tx),z:cell(tz)},startKey=key(start.x,start.z);
+    const goals=new Set();
+    for(let dx=-4;dx<=4;dx++)for(let dz=-4;dz<=4;dz++){
+      const x=goal.x+dx,z=goal.z+dz,p=point(x,z);
+      if(Math.hypot(p.x-tx,p.z-tz)<=1.05&&canStand(p.x,p.z))goals.add(key(x,z));
+    }
+    const queue=[start],seen=new Set([startKey]),directions=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+    for(let head=0;head<queue.length&&head<9000;head++){
+      const current=queue[head],currentKey=key(current.x,current.z);
+      if(goals.has(currentKey))return true;
+      for(const [dx,dz] of directions){
+        const x=current.x+dx,z=current.z+dz,k=key(x,z),p=point(x,z);
+        if(seen.has(k)||!canStand(p.x,p.z))continue;
+        if(dx!==0&&dz!==0&&(!canStand(point(current.x+dx,current.z).x,point(current.x+dx,current.z).z)||!canStand(point(current.x,current.z+dz).x,point(current.x,current.z+dz).z)))continue;
+        seen.add(k);queue.push({x,z});
+      }
+    }
+    return false;
+  };
+  if(!canStand(1.4,.2)||!routeExists(0,-4.55,1.4,.2)){
+    throw new Error("The starter physiotherapist cannot reach the safe patient-side approach from the property entrance");
+  }
+  console.log("✓ Starter entrance-to-patient navigation is connected");
+
 } catch (error) {
   failed = true;
   console.error("✗ PlayCanvas scene graph regression: " + (error instanceof Error ? error.message : String(error)));
