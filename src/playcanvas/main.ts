@@ -902,7 +902,9 @@ function renderManagement(){
  el("#mg-balance").textContent=String(Math.round(management.balance));
  el("#mg-treated").textContent=String(management.treated);
  el("#mg-reputation").textContent=Math.round(management.reputation)+"%";
- el("#mg-completed").textContent=String(management.treated);
+ el("#mg-room-count").textContent=String(management.rooms.length);
+ const roomNames:Record<string,string>={treatment:"علاج طبيعي",reception:"استقبال",assessment:"تقييم",exercise:"تأهيل حركي"};
+ el("#room-list").innerHTML=management.rooms.map(room=>'<div class="room-summary-item"><strong>'+(roomNames[room.type]??room.type)+'</strong><small>'+room.width+' × '+room.depth+' م</small></div>').join("");
  const clinicToggle=el<HTMLButtonElement>("#clinic-open-toggle");
  clinicToggle.textContent=management.clinicOpen?"إغلاق العيادة":"فتح العيادة";
  clinicToggle.classList.toggle("closed",!management.clinicOpen);
