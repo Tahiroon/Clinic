@@ -895,6 +895,12 @@ function setMissionPhase(next:number){
  renderMission();
 }
 
+function patientGoalFor(room:{x:number;z:number;width:number;depth:number},stage:string){
+ const centerX=room.x+room.width/2,centerZ=room.z+room.depth/2;
+ if(stage==="reception")return new pc.Vec3(centerX-.12,0,centerZ+.22);
+ if(stage==="waiting")return new pc.Vec3(centerX+1.0,0,centerZ-.35);
+ return new pc.Vec3(centerX+Math.min(.95,room.width*.24),0,centerZ+.2);
+}
 function renderManagement(){
  el<HTMLElement>("#game-clock").textContent="اليوم "+management.day+" · "+formatGameTime(management);
  el<HTMLElement>("#patient-count").textContent=getActivePatientCount(management)+" مرضى";
@@ -934,7 +940,7 @@ function renderManagement(){
    patientVisualId=visiblePatient.id;patientVisualStage=visiblePatient.stage;
    const roomType=visiblePatient.stage==="reception"||visiblePatient.stage==="waiting"?"reception":visiblePatient.stage==="assessment"?"assessment":(visiblePatient.need==="mobility"||visiblePatient.need==="sports")&&management.rooms.some(r=>r.type==="exercise")?"exercise":"treatment";
    const room=management.rooms.find(r=>r.type===roomType)??management.rooms.find(r=>r.type==="treatment");
-   const goal=room?new pc.Vec3(room.x+Math.min(1.35,room.width*.34),0,room.z+Math.min(1.45,room.depth*.36)):new pc.Vec3(0,0,-4.55);
+   const goal=room?patientGoalFor(room,visiblePatient.stage):new pc.Vec3(0,0,-4.55);
    const current=patientNpc.getLocalPosition();patientNpc.enabled=false;
    if(canWalkSegment(current.x,current.z,goal.x,goal.z)){patientWalkPath=[];patientTarget=goal;}
    else{const route=findWalkPath(current.x,current.z,goal.x,goal.z);patientWalkPath=route?simplifyWalkRoute(route,current.x,current.z):[];patientTarget=goal;}
@@ -1109,7 +1115,7 @@ sessionBtn.addEventListener("click",()=>{
  if(!started.ok){status.textContent=started.message;return;}
  activeSessionPatientId=started.patient!.id;sessionCompleted=false;renderManagement();save();
  sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();
- const assessmentRoom=management.rooms.find(r=>r.type==="assessment")!;const patientGoalX=assessmentRoom.x+Math.min(1.35,assessmentRoom.width*.34),patientGoalZ=assessmentRoom.z+Math.min(1.45,assessmentRoom.depth*.36);sessionPending=moveAvatarTo(patientGoalX-.72,patientGoalZ-.1);
+ const assessmentRoom=management.rooms.find(r=>r.type==="assessment")!;const patientGoal=patientGoalFor(assessmentRoom,"assessment");sessionPending=moveAvatarTo(patientGoal.x-.72,patientGoal.z-.1);
  if(sessionPending){status.textContent="الأخصائي يتجه إلى المريض. ستبدأ الجلسة بعد الوصول إلى موضع آمن بجانبه.";}
  else{cancelPatientSession(management,activeSessionPatientId);renderManagement();focus=false;cameraGoal.set(0,0,0);viewBtn.classList.remove("active");status.textContent="لا يوجد مسار آمن إلى المريض. أعد ترتيب الأثاث وحاول مجدداً.";}
 });
