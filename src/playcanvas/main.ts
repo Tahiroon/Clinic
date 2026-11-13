@@ -329,9 +329,13 @@ loadHumanoid(characterAssets.physiotherapist,avatar,1.72,true,rig=>{
 const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.0,0,-4.55);patientNpc.enabled=false;
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 const receptionistNpc=new pc.Entity("Optional receptionist");world.addChild(receptionistNpc);receptionistNpc.enabled=false;
-const receptionistFallback=createFallbackHumanoid(receptionistNpc,"receptionist");
-let receptionistFallbackRig:FallbackRig|null=receptionistFallback,receptionistRig:HumanoidRig|null=null;
-loadHumanoid(characterAssets.receptionist,receptionistNpc,1.62,false,rig=>{receptionistFallback.entity.destroy();receptionistFallbackRig=null;receptionistRig=rig;});
+let receptionistFallbackRig:FallbackRig|null=null,receptionistRig:HumanoidRig|null=null,receptionistLoadStarted=false;
+function ensureReceptionistModel(){
+ if(receptionistLoadStarted)return;
+ receptionistLoadStarted=true;
+ const fallback=createFallbackHumanoid(receptionistNpc,"receptionist");receptionistFallbackRig=fallback;
+ loadHumanoid(characterAssets.receptionist,receptionistNpc,1.62,false,rig=>{fallback.entity.destroy();receptionistFallbackRig=null;receptionistRig=rig;});
+}
 let patientFallbackRig:FallbackRig|null=patientFallback,patientRig:HumanoidRig|null=null;
 let patientVisualId=0,patientVisualStage="",patientTarget:pc.Vec3|null=null,patientWalkPath:{x:number;z:number}[]=[];
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,rig=>{patientFallback.entity.destroy();patientFallbackRig=null;patientRig=rig;});
@@ -922,6 +926,7 @@ function renderManagement(){
  receptionistButton.disabled=management.receptionistOwned||management.balance<280;
  receptionistDescription.textContent=management.receptionistOwned?"موظف الاستقبال يعمل الآن على تنظيم وصول المرضى.":management.treated<3?"عالج "+(3-management.treated)+" حالات إضافية لفتح شراء موظف الاستقبال.":"متاح الآن: اشترِ موظف استقبال مقابل 280 عملة لتسريع التسجيل وتقليل الانتظار.";
  const receptionistRoom=management.rooms.find(r=>r.type==="reception");
+ if(management.receptionistOwned&&receptionistRoom)ensureReceptionistModel();
  receptionistNpc.enabled=management.receptionistOwned&&!!receptionistRoom;
  if(receptionistNpc.enabled&&receptionistRoom){
   receptionistNpc.setLocalPosition(receptionistRoom.x+receptionistRoom.width/2-.12,0,receptionistRoom.z+receptionistRoom.depth/2+1.62);
