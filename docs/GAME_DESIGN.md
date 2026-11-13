@@ -47,7 +47,7 @@ The goal is to borrow proven design principles, never protected art, characters,
 
 ## Starter property and player-built clinic
 
-Every new clinic begins on a 14 m × 28 m landscaped plot with one 4 m × 4 m treatment room, one treatment table and one storage unit. The player builds the reception, assessment room, exercise space and additional treatment rooms as the clinic grows. Unbuilt land remains outdoor grass; room floors and walls exist only inside constructed rooms.
+Every new clinic begins on an empty 14 m × 28 m landscaped buildable plot. The player constructs the first treatment room, buys its equipment, then builds reception, assessment, exercise space and additional treatment rooms as the clinic grows. Unbuilt land remains outdoor grass; room floors and walls exist only inside constructed rooms.
 
 ## Core management loop
 
