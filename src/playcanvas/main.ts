@@ -85,6 +85,17 @@ const trim=material(new pc.Color(.10,.39,.47));
 const roofAccent=material(new pc.Color(.16,.28,.38));
 // A narrow, deep property is intentionally composed for a portrait isometric camera.
 box("Owned landscaped property",0,-.22,0,W,.42,D,floorBase,world);
+// Distinct planted beds sit above the paved plot only OUTSIDE the 4×8 m clinic footprint.
+// Their continuous turf surface prevents the old "grass blades on concrete" appearance.
+const lawnBase=material(new pc.Color(.27,.39,.25));
+const lawnSoil=material(new pc.Color(.39,.29,.19));
+box("West natural lawn bed",-2.63,.008,0,1.04,.045,9.65,lawnBase,world);
+box("East natural lawn bed",2.63,.008,0,1.04,.045,9.65,lawnBase,world);
+box("North natural lawn bed",0,.008,5.12,5.35,.045,.92,lawnBase,world);
+box("South lawn bed west of entrance",-1.72,.008,-5.12,1.95,.045,.92,lawnBase,world);
+box("South lawn bed east of entrance",1.72,.008,-5.12,1.95,.045,.92,lawnBase,world);
+// Fine soil seams define planted edges without putting vegetation under the clinic walls.
+for(const x of [-2.105,2.105])box("Lawn soil seam",x,.036,0,.045,.018,9.58,lawnSoil,world);
 box("Entrance walk",0,.005,-5.12,1.65,.045,1.15,pathMat,world);
 for(let i=0;i<5;i++)box("Entrance stepping stone",0,.055,-5.48+i*.25,1.30,.035,.23,pathEdge,world);
 box("Entrance apron",0,.045,-4.12,2.8,.08,.65,pathMat,world);
@@ -114,7 +125,7 @@ for(const [x,z] of [[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]] as [number,n
    const count=2+Math.floor(rand()*2);
    for(let n=0;n<count;n++){
     const angle=rand()*Math.PI,half=.018+rand()*.018,height=.12+rand()*.16;
-    const lean=(rand()-.5)*.10,baseY=.015+rand()*.018;
+    const lean=(rand()-.5)*.10,baseY=.034+rand()*.018;
     const dx=Math.cos(angle)*half,dz=Math.sin(angle)*half;
     const start=positions.length/3;
     positions.push(x-dx,baseY,z-dz,x+dx,baseY,z+dz,x+lean,baseY+height,z);
@@ -130,7 +141,7 @@ for(const [x,z] of [[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]] as [number,n
   }
   for(let i=0;i<150;i++){
    const x=-2.85+rand()*5.7,z=rand()>.5?4.82+rand()*.72:-5.52+rand()*.72;
-   if(z< -5.35&&Math.abs(x)<1.05)continue;
+   if(z< -4.72&&Math.abs(x)<.95)continue;
    addTuft(x,z);
   }
   const mesh=new pc.Mesh(app.graphicsDevice);
