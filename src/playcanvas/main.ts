@@ -373,7 +373,7 @@ function syncStaffVisuals(){
 }
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=3200, xp=0, nextId=1, focus=false, wallRotation:0|90=0;
-let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v3")||0);return Math.max(0,Math.min(5,saved));}catch{return 0;}})();
+let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v3")||0);return Math.max(0,Math.min(6,saved));}catch{return 0;}})();
 
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v11";
 const managementSaveKey="therason-clinic-management-v2";
@@ -869,13 +869,14 @@ function moveAvatarSafely(dx:number,dz:number){
 function updateMode(next:"move"|"build"){mode=next;buildGrid.enabled=mode==="build";placementPreview.enabled=mode==="build";previewValidity=null;if(next==="build"){destination=null;target=null;walkPath=[];setLocomotion(false);tapMarker.enabled=false;}moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"الشبكة ظاهرة الآن: المعاينة الخضراء صالحة، والحمراء غير صالحة. المس لتأكيد المكان.";}
 function renderMission(){
  const card=el<HTMLElement>("#mission-card"),title=el<HTMLElement>("#mission-title"),detail=el<HTMLElement>("#mission-detail"),button=el<HTMLButtonElement>("#start-tour");
- card.classList.toggle("mission-done",missionPhase>=5);
- button.disabled=missionPhase>=5;
+ card.classList.toggle("mission-done",missionPhase>=6);
+ button.disabled=missionPhase>=6;
  if(missionPhase===0){title.textContent="ابنِ الاستقبال";detail.textContent="اسحب على الأرض لرسم غرفة الاستقبال. اختر الحجم المناسب لمساحتك.";button.textContent="ابدأ البناء";}
  else if(missionPhase===1){title.textContent="كوّن فريقك الأول";detail.textContent="وظّف موظف استقبال حتى يتمكن المرضى من التسجيل عند وصولهم.";button.textContent="فتح الإدارة";}
  else if(missionPhase===2){title.textContent="أنشئ غرفة التقييم";detail.textContent="ارسم غرفة للتاريخ المرضي والفحص الوظيفي قبل العلاج.";button.textContent="ابنِ غرفة التقييم";}
  else if(missionPhase===3){title.textContent="أنشئ غرفة العلاج";detail.textContent="جهّز غرفة العلاج الطبيعي لاستقبال الحالات بعد التقييم.";button.textContent="ابنِ غرفة العلاج";}
- else if(missionPhase===4){title.textContent="افتح أبواب العيادة";detail.textContent="تأكد من اكتمال الغرف والفريق، ثم افتح العيادة لاستقبال أول المرضى.";button.textContent="فتح لوحة الإدارة";}
+ else if(missionPhase===4){title.textContent="جهّز الغرف بالمعدات";detail.textContent="ضع سرير العلاج وخزانة الأدوات وسرير الفحص في الغرف الصحيحة.";button.textContent="افتح المتجر";}
+ else if(missionPhase===5){title.textContent="افتح أبواب العيادة";detail.textContent="اكتملت التجهيزات الأساسية. افتح العيادة وابدأ استقبال المرضى.";button.textContent="فتح لوحة الإدارة";}
 }
 function setMissionPhase(next:number){
  missionPhase=next;
@@ -1045,9 +1046,14 @@ document.querySelectorAll<HTMLButtonElement>("[data-hire]").forEach(button=>butt
  save();renderManagement();
 }));
 el<HTMLButtonElement>("#clinic-open-toggle").addEventListener("click",()=>{
+ if(!management.clinicOpen){
+  const inRoom=(assetKey:string,roomType:ClinicRoomType)=>{const room=management.rooms.find(r=>r.type===roomType);return !!room&&placed.some(p=>p.kind==="asset"&&p.assetKey===assetKey&&(()=>{const b=footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey);return b.x>=room.x+.08&&b.z>=room.z+.08&&b.x+b.w<=room.x+room.width-.08&&b.z+b.d<=room.z+room.depth-.08;})());};
+  const missing:string[]=[];if(!inRoom("pt-treatment-table","treatment"))missing.push("سرير العلاج");if(!inRoom("pt-storage-cabinet","treatment"))missing.push("خزانة الأدوات");if(!inRoom("pt-exam-table","assessment"))missing.push("سرير الفحص");
+  if(missing.length){status.textContent="لا يمكن فتح العيادة بعد. جهّز: "+missing.join("، ")+" داخل الغرف المناسبة.";return;}
+ }
  const result=setClinicOpen(management,!management.clinicOpen);
  status.textContent=result.message;
- if(result.ok&&management.clinicOpen&&missionPhase===4)setMissionPhase(5);
+ if(result.ok&&management.clinicOpen&&missionPhase===5)setMissionPhase(6);
  renderManagement();save();
 });
 function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",assessment:"غرفة تقييم",gym:"صالة تأهيل",staff:"استراحة الفريق",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent=isRoomKind(kind)?"تم اختيار "+names[kind]+". اسحب بإصبعك على الأرض لرسم مساحة الغرفة بالحجم الذي تريده.":"تم اختيار "+names[kind]+". المس خلية فارغة لوضع العنصر، ويمكنك تدوير الحائط من زر التدوير.";}
@@ -1120,12 +1126,14 @@ el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
   managementPanel.hidden=true;buildPanel.hidden=false;updateMode("build");
   selectBuild(missionPhase===0?"reception":missionPhase===2?"assessment":"treatment");
   status.textContent="اسحب بإصبعك على الأرض لرسم مساحة الغرفة، ثم ارفع إصبعك لتأكيد البناء.";
- }else if(missionPhase===1||missionPhase===4){
+ }else if(missionPhase===4){
+  storeBtn.click();status.textContent="اشترِ المعدات الأساسية ثم ضع كل قطعة داخل غرفتها المناسبة.";
+ }else if(missionPhase===1||missionPhase===5){
   managementPanel.hidden=false;buildPanel.hidden=true;updateMode("move");renderManagement();
   status.textContent=missionPhase===1?"وظّف موظف استقبال من لوحة الإدارة.":"تحقق من المتطلبات واضغط فتح العيادة.";
  }
 });
-el<HTMLButtonElement>("#skip-tour").addEventListener("click",()=>setMissionPhase(5));
+el<HTMLButtonElement>("#skip-tour").addEventListener("click",()=>setMissionPhase(6));
 renderMission();
 app.on("update",(dt:number)=>{
  if(document.hidden)return;
