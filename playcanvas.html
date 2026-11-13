@@ -78,13 +78,20 @@
   if(title)title.textContent="تعذر تحميل اللعبة";
   if(detail)detail.textContent=String(message||"حدث خطأ أثناء تشغيل اللعبة").slice(0,150);
  };
- window.addEventListener("error",function(e){fail(e.message||"خطأ في ملفات اللعبة");});
- window.addEventListener("unhandledrejection",function(e){fail(e.reason?.message||"تعذر إكمال تحميل أحد مكونات اللعبة");});
+ window.addEventListener("error",function(e){
+  const where=e.filename?(e.filename.split("/").pop()+":"+e.lineno+":"+e.colno):"";
+  fail((e.message||"خطأ في ملفات اللعبة")+(where?" · "+where:""));
+ });
+ window.addEventListener("unhandledrejection",function(e){
+  const reason=e.reason;
+  fail((reason?.message||String(reason)||"تعذر إكمال تحميل أحد مكونات اللعبة").slice(0,150));
+ });
  window.setTimeout(function(){
   const cover=document.getElementById("loading");
-  if(cover&&!cover.classList.contains("done")){
+  // Never overwrite a real error with the generic timeout message.
+  if(cover&&!cover.classList.contains("done")&&!cover.classList.contains("failed")){
    const detail=cover.querySelector("small");
-   if(detail)detail.textContent="ما زال التشغيل متأخراً. أعد تحميل الصفحة إذا استمر الانتظار.";
+   if(detail)detail.textContent="لم يبدأ محرك اللعبة خلال 12 ثانية. تحقق من تحميل ملف التشغيل ثم أعد المحاولة.";
   }
  },12000);
 })();
