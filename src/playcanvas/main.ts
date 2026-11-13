@@ -107,44 +107,56 @@ box("Entrance sign inset",0,2.56,-4.205,1.7,.27,.035,M.white,world);
 box("Entrance canopy",0,2.15,-4.28,2.3,.16,.78,roofAccent,world);
 const roomRoot=new pc.Entity("Starter clinic rooms");world.addChild(roomRoot);
 function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:number){
- const root=new pc.Entity("Room "+id);root.setPosition(gx+1,0,gz+1);world.addChild(root);
+ const root=new pc.Entity("Room "+id);
+ world.addChild(root);root.setLocalPosition(gx+1,0,gz+1);
  const floor=kind==="gym"?material(new pc.Color(.40,.55,.58)):material(new pc.Color(.79,.82,.79));
  box("Room floor",1,.035,1,3.95,.07,3.95,floor,root);
- // Full-height open-top architecture: the walls frame a real room while the cutaway roof keeps gameplay visible.
- box("Rear wall",1,1.12,3,4,2.24,.16,M.wall,root);
- if(id!==2)box("Left exterior wall",-1,1.12,1,.16,2.24,4,M.wallSide,root);
+ // Modular 4×4 m room shell. Every wall segment has a matching navigation rectangle.
+ box("Left exterior wall",-1,1.12,1,.16,2.24,4,M.wallSide,root);
+ box("Right exterior wall",3,1.12,1,.16,2.24,4,M.wallSide,root);
  if(id===1){
-  box("Shared wall front segment",3,1.12,-.35,.16,2.24,1.3,M.wall,root);
-  box("Shared wall rear segment",3,1.12,2.35,.16,2.24,1.3,M.wall,root);
-  box("Shared doorway lintel",3,2.18,1,.18,.16,1.4,M.white,root);
- }else box("Right exterior wall",3,1.12,1,.16,2.24,4,M.wallSide,root);
- // Front facade has a generous doorway opening; collision rectangles use these same world-space dimensions.
- box("Front wall left",.15,1.12,-1,.3,2.24,.16,M.wall,root);
- box("Front wall right",2.35,1.12,-1,1.3,2.24,.16,M.wall,root);
- box("Front doorway lintel",1.25,2.18,-1,.9,.16,.18,M.white,root);
- // Coloured plinths and wall caps give the small clinic a consistent identity.
- box("Rear wall teal plinth",1,.18,2.91,4,.24,.2,trim,root);
- box("Front wall teal plinth left",.15,.18,-1,.3,.24,.2,trim,root);
- box("Front wall teal plinth right",2.35,.18,-1,1.3,.24,.2,trim,root);
- box("Rear wall cap",1,2.25,3,4,.12,.22,M.white,root);
- // Large daylight windows on the rear elevation; glass is inset so it reads as glazing rather than painted wall.
- for(const x of [.72,2.65]){
-  box("Rear window glass",x,1.42,2.91,1.05,.82,.035,glass,root);
-  box("Window top frame",x,1.86,2.88,1.16,.07,.09,M.white,root);
-  box("Window bottom frame",x,.98,2.88,1.16,.07,.09,M.white,root);
-  box("Window mullion",x,1.42,2.87,.055,.82,.09,M.white,root);
+  // Reception opens into the treatment room through the rear shared wall.
+  box("Shared wall left",-.3,1.12,3,1.4,2.24,.16,M.wall,root);
+  box("Shared wall right",2.3,1.12,3,1.4,2.24,.16,M.wall,root);
+  box("Shared doorway lintel",1,2.18,3,1.2,.16,.18,M.white,root);
+ }else{
+  box("Rear exterior wall",1,1.12,3,4,2.24,.16,M.wall,root);
+ }
+ // Both reception and treatment have a clear 1.2 m front doorway.
+ box("Front wall left",-.3,1.12,-1,1.4,2.24,.16,M.wall,root);
+ box("Front wall right",2.3,1.12,-1,1.4,2.24,.16,M.wall,root);
+ box("Front doorway lintel",1,2.18,-1,1.2,.16,.18,M.white,root);
+ // Coloured plinths emphasize room edges without cluttering the walking space.
+ for(const x of [-1,3]){
+  box("Side wall teal plinth",x,.18,1,.18,.24,4,trim,root);
+ }
+ box("Front plinth left",-.3,.18,-1,1.4,.24,.2,trim,root);
+ box("Front plinth right",2.3,.18,-1,1.4,.24,.2,trim,root);
+ if(id===1){
+  box("Shared plinth left",-.3,.18,3,1.4,.24,.2,trim,root);
+  box("Shared plinth right",2.3,.18,3,1.4,.24,.2,trim,root);
+ }else{
+  box("Rear wall teal plinth",1,.18,3,4,.24,.2,trim,root);
+  box("Rear wall cap",1,2.25,3,4,.12,.22,M.white,root);
+  // Daylight windows belong to the treatment room's external rear wall.
+  for(const x of [.55,2.45]){
+   box("Rear window glass",x,1.42,2.91,1.15,.86,.035,glass,root);
+   box("Window top frame",x,1.89,2.88,1.24,.07,.09,M.white,root);
+   box("Window bottom frame",x,.95,2.88,1.24,.07,.09,M.white,root);
+   box("Window mullion",x,1.42,2.87,.055,.86,.09,M.white,root);
+  }
  }
  if(kind==="treatment"){
-  // Real, licensed hospital-room details are added as a separate lightweight decorative layer.
   loadTreatmentRoomDecor(root);
-  box("Wall chart",2.3,1.65,2.91,.75,.65,.04,M.pale,root);
-  box("Anatomy chart accent",2.3,1.65,2.875,.12,.45,.035,trim,root);
+  box("Anatomy chart",2.45,1.6,2.91,.72,.62,.04,M.pale,root);
+  box("Anatomy chart accent",2.45,1.6,2.875,.12,.42,.035,trim,root);
  }else if(kind==="reception"){
   loadReceptionDesk(root);
-  for(const z of [1.2,2.15]){
-   box("Waiting chair seat",.5,.38,z,.65,.18,.62,M.teal,root);
-   box("Waiting chair back",.5,.75,z+.22,.65,.6,.13,M.blue,root);
-   for(const x of [.25,.75])for(const zz of [z-.2,z+.2])box("Waiting chair leg",x,.18,zz,.055,.36,.055,M.dark,root);
+  // A clean waiting area that leaves the entrance and the shared doorway unobstructed.
+  for(const z of [.55,1.45]){
+   box("Waiting seat",.35,.38,z,.65,.18,.62,M.teal,root);
+   box("Waiting seat back",.35,.75,z+.22,.65,.6,.13,M.blue,root);
+   for(const x of [.10,.60])for(const zz of [z-.2,z+.2])box("Waiting seat leg",x,.18,zz,.055,.36,.055,M.dark,root);
   }
  }else{
   box("Exercise mat",1.1,.07,1.1,2.7,.08,1.25,M.blue,root);
@@ -155,7 +167,7 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
  return root;
 }
 // The starter clinic is assembled from lightweight procedural geometry; optional GLB assets load independently.
-const avatar=new pc.Entity("Student avatar");avatar.setPosition(-2.0,0,-1.45);world.addChild(avatar);
+const avatar=new pc.Entity("Student avatar");world.addChild(avatar);avatar.setLocalPosition(0,0,-3.15);
 let avatarAnim:any=null;let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
  student:new URL("../assets/characters/Student.glb",import.meta.url).href,
@@ -237,17 +249,16 @@ loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
  avatarAnim=rig.anim;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
-const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(.55,0,2.0);world.addChild(patientNpc);
+const patientNpc=new pc.Entity("Clinic patient");world.addChild(patientNpc);patientNpc.setLocalPosition(-.9,0,2.45);
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>patientFallback.destroy());
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=3, focus=false, wallRotation:0|90=0;
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v4"; 
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v5"; 
 const starterLayout:Placed[]=[
- {id:1,kind:"reception",gx:-4,gz:0},
- {id:2,kind:"treatment",gx:0,gz:0},
- {id:3,kind:"asset",gx:1,gz:1,rot:0,assetKey:"pt-treatment-table"},
- {id:4,kind:"asset",gx:0,gz:3,rot:0,assetKey:"pt-storage-cabinet"}
+ {id:1,kind:"reception",gx:-2,gz:-4},
+ {id:2,kind:"treatment",gx:-2,gz:0},
+ {id:3,kind:"asset",gx:-1,gz:1,rot:0,assetKey:"pt-treatment-table"}
 ];
 const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
@@ -404,7 +415,7 @@ function validSavedItem(value:any):value is Placed{
  return bounds.x>=-HALF_X&&bounds.z>=-HALF_Z&&bounds.x+bounds.w<=HALF_X&&bounds.z+bounds.d<=HALF_Z;
 }
 function load(){
- const useStarter=()=>{coins=350;xp=0;placed=starterLayout.map(p=>({...p}));nextId=5;for(const p of placed)drawPlaced(p);};
+ const useStarter=()=>{coins=350;xp=0;placed=starterLayout.map(p=>({...p}));nextId=4;for(const p of placed)drawPlaced(p);};
  try{
   const raw=localStorage.getItem(saveKey);if(!raw){useStarter();return;}
   const v=JSON.parse(raw);if(v.v!==3||!Array.isArray(v.placed)){useStarter();return;}
@@ -418,7 +429,7 @@ function load(){
    placed.push(item);ids.add(item.id);
   }
   if(v.placed.length>0&&placed.length===0){useStarter();return;}
-  nextId=Math.max(3,...placed.map(p=>p.id+1));
+  nextId=Math.max(4,...placed.map(p=>p.id+1));
   coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";
   for(const p of placed)drawPlaced(p);
  }catch{useStarter();}
