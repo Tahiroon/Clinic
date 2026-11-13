@@ -93,7 +93,7 @@ try {
     throw new Error("The artificial grass-blade mesh must be removed from the outdoor world");
   }
   for (const required of [
-    "District terrain · continuous landscape","District access road","District side road",
+    "District terrain · compact landscape","District access road","District side road",
     "Clinic buildable foundation","West clinic boundary","East clinic boundary","Rear clinic boundary",
     "Front boundary west wing","Front boundary east wing","Clinic entrance gate lintel",
     "Masonry boundary pier","makeDistrictTree","makeDistrictBuilding","Outdoor physiotherapy gait lane"
@@ -104,7 +104,7 @@ try {
       !/HALF_X\+19-halfWidth/.test(source) || !/HALF_Z\+27-halfHeight/.test(source)) {
     throw new Error("Portrait camera must frame the clinic and allow exploration into the wider district");
   }
-  console.log("✓ Clinic plot is distinct from a larger district world with roads, buildings and sculpted landscape");
+  console.log("✓ Clinic plot is distinct from a compact, scaled clay neighbourhood with roads and nearby buildings");
   console.log("✓ Clinic property has a continuous 3 m masonry perimeter and a dedicated entrance gate");
   console.log("✓ Artificial grass blades are removed; outdoor landscape uses broad terrain and composed planting");
   const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.z < b.z + b.d && a.z + a.d > b.z;
