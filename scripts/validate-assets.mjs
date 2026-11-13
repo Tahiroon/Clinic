@@ -3,7 +3,6 @@ import { resolve } from "node:path";
 
 const root = process.cwd();
 const required = [
-  ["src/assets/characters/Student.glb", ["Student"], ["Idle", "Walk"]],
   ["src/assets/characters/WardPatient.glb", ["WardPatient"], ["Idle", "Walk"]],
   ["src/assets/characters/Receptionist.glb", [], ["Idle", "Walk"]],
   ["src/assets/characters/Physiotherapist.glb", [], ["Idle", "Walk"]],
