@@ -431,7 +431,7 @@ function addRoomWallRun(parent:Entity,axis:"x"|"z",start:number,length:number,fi
  const remainder=length-cursor;
  if(remainder>.05){
   const center=start+cursor+remainder/2,x=axis==="x"?center:fixed,z=axis==="x"?fixed:center;
-  box("Short wall infill",x,1.35*heightScale,z,axis==="x"?remainder:.15,2.7*heightScale,axis==="z"?remainder:.15,M.wallSide,parent);
+  box("Short wall infill",x,1.35*heightScale,z,axis==="x"?remainder:.15,2.7*heightScale,axis==="z"?remainder:.15,M.wall,parent);
  }
 }
 function loadRoomDoor(parent:Entity,x:number,z:number){
