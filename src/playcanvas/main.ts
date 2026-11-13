@@ -203,15 +203,8 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
   box("Ceiling light housing",x,2.55,0,.68,.055,.20,M.white,root);
   box("Ceiling light diffuser",x,2.515,0,.54,.018,.13,M.pale,root);
  }
- if(kind==="treatment"||kind==="assessment"){
-  box(kind==="assessment"?"Assessment wall chart":"Treatment wall chart",halfW-.55,1.55,halfD-.18,.68,.82,.045,M.pale,root);
-  box("Chart teal stripe",halfW-.55,1.55,halfD-.21,.10,.58,.025,trimMat,root);
- }else if(kind==="reception"){
-  // Reception rooms are intentionally empty; the player buys and places the desk and seats.
- }else{
-  box("Exercise wall display",0,1.28,halfD-.18,Math.min(1.7,width*.5),.78,.05,M.pale,root);
-  box("Exercise wall display accent",0,1.28,halfD-.22,.12,.62,.025,M.teal,root);
- }
+ // Rooms stay empty after construction; equipment and optional decor are purchased separately.
+
  return root;
 }
 // The starter clinic is assembled from lightweight procedural geometry; optional GLB assets load independently.
