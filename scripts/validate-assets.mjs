@@ -26,6 +26,7 @@ const required = [
 ];
 
 let failed = false;
+const verifiedAssets = new Map();
 for (const [file, nodeNames, animationNames] of required) {
   try {
     const data = await readFile(resolve(root, file));
@@ -40,6 +41,7 @@ for (const [file, nodeNames, animationNames] of required) {
     const json = JSON.parse(data.toString("utf8", 20, 20 + jsonLength).replace(/\\0+$/g, "").trim());
     const nodes = new Set((json.nodes ?? []).map((node) => node.name).filter(Boolean));
     const animations = new Set((json.animations ?? []).map((animation) => animation.name).filter(Boolean));
+    verifiedAssets.set(file,{nodes,animations,bytes:data.length});
     const missingNodes = nodeNames.filter((name) => !nodes.has(name));
     const missingAnimations = animationNames.filter((name) => !animations.has(name));
     if (missingNodes.length || missingAnimations.length) {
@@ -55,6 +57,32 @@ for (const [file, nodeNames, animationNames] of required) {
  // Sharing the owner entity as model.graph creates a self-referential hierarchy.
 try {
   const source = await readFile(resolve(root, "src/playcanvas/main.ts"), "utf8");
+  const html = await readFile(resolve(root, "playcanvas.html"), "utf8");
+  // Verify every visible shop item resolves to a real bundled GLB and, when specified,
+  // to a node that actually exists inside that exact GLB file.
+  const urlEntries = [...source.matchAll(/"([^"]+\\.glb)":new URL\\("\\.\\.\\/assets\\/([^"]+\\.glb)",import\\.meta\\.url\\)/g)];
+  const urlPaths = new Map(urlEntries.map((match) => [match[1], "src/assets/" + match[2]]));
+  const specsStart = source.indexOf("const storeAssetSpecs:");
+  const specsEnd = source.indexOf("const clinicAssetUrls:", specsStart);
+  if (specsStart < 0 || specsEnd < 0) throw new Error("Store asset registry or URL registry is missing");
+  const specsSource = source.slice(specsStart, specsEnd);
+  const storeSpecs = [...specsSource.matchAll(/"([^"]+)":\\{file:"([^"]+)",node:"([^"]+)"/g)];
+  const storeKeys = new Set(storeSpecs.map((match) => match[1]));
+  if (!storeSpecs.length) throw new Error("No 3D store items were found");
+  for (const [,key,file,node] of storeSpecs) {
+    const path = urlPaths.get(file);
+    if (!path) throw new Error("Store item " + key + " points to an unregistered GLB: " + file);
+    const asset = verifiedAssets.get(path);
+    if (!asset) throw new Error("Store item " + key + " points to a missing/unvalidated GLB: " + path);
+    if (node !== "*" && !asset.nodes.has(node)) throw new Error("Store item " + key + " points to missing node " + node + " in " + path);
+  }
+  for (const match of html.matchAll(/data-asset="([^"]+)"/g)) {
+    if (!storeKeys.has(match[1])) throw new Error("Visible store button has no matching 3D asset spec: " + match[1]);
+  }
+  for (const [file,path] of urlPaths) {
+    if (!verifiedAssets.has(path)) throw new Error("Registered GLB URL has no verified bundled asset: " + file + " -> " + path);
+  }
+  console.log("✓ Every visible 3D store item maps to an existing GLB and verified model node");
   const lawn = source.slice(source.indexOf("function createLawnGrass"), source.indexOf("createLawnGrass();"));
   if (!lawn || /model\.graph\s*=\s*entity/.test(lawn)) {
     throw new Error("The lawn model graph must never reference its owning entity");
