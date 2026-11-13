@@ -201,7 +201,7 @@ try {
   }
   console.log("✓ Outdoor benches, flower beds and garden lamps are initialized safely");
   if (!/highDetailDevice=deviceMemory>=4&&cpuCores>=6/.test(source) ||
-      !/maxPixelRatio=highDetailDevice\\?Math\\.min\\(window\\.devicePixelRatio\\|\\|1,1\\.25\\):Math\\.min\\(window\\.devicePixelRatio\\|\\|1,\\.9\\)/.test(source)) {
+      !/maxPixelRatio=highDetailDevice\?Math\.min\(window\.devicePixelRatio\|\|1,1\.25\):Math\.min\(window\.devicePixelRatio\|\|1,\.9\)/.test(source)) {
     throw new Error("Adaptive rendering quality is missing for high-end and low-end devices");
   }
   console.log("✓ Adaptive rendering preserves low-end performance and sharpens capable devices");
