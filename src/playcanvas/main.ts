@@ -127,9 +127,7 @@ const avatar=new pc.Entity("Student avatar");avatar.setPosition(-1,0,1.7);world.
 let avatarAnim:any=null;let avatarClipNames:string[]=[];let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
  student:new URL("../assets/characters/Student.glb",import.meta.url).href,
- doctor:new URL("../assets/characters/WhiteCoatDoctor.glb",import.meta.url).href,
  patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,
- nurse:new URL("../assets/characters/WardNurse.glb",import.meta.url).href
 };
 type HumanoidRig={entity:pc.Entity;anim:any;clips:string[];idle:string;walk:string};
 const humanoidRigs:HumanoidRig[]=[];
@@ -178,15 +176,11 @@ loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
  avatarAnim=rig.anim;avatarClipNames=rig.clips;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
-const doctorNpc=new pc.Entity("Clinic doctor");doctorNpc.setPosition(3,0,-1);world.addChild(doctorNpc);
-loadHumanoid(characterAssets.doctor,doctorNpc,1.72,false);
 const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(4,0,2);world.addChild(patientNpc);
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false);
-const nurseNpc=new pc.Entity("Clinic nurse");nurseNpc.setPosition(5.5,0,-1.2);world.addChild(nurseNpc);
-loadHumanoid(characterAssets.nurse,nurseNpc,1.68,false);
 
-let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=100000, xp=0, nextId=2, focus=false, wallRotation:0|90=0;
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v2";const entities:pc.Entity[]=[];
+let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=2, focus=false, wallRotation:0|90=0;
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v3";const entities:pc.Entity[]=[];
 const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
  "pt-treatment-table":{file:"physical-therapy-room-set.glb",node:"TreatmentTable",label:"سرير علاج طبيعي",cost:90,footprint:3,targetSize:2.15},
@@ -244,8 +238,8 @@ function loadClinicAsset(p:Placed){
  }).catch(error=>{console.error("Clinic store asset failed",spec.label,error);status.textContent="تعذر تحميل "+spec.label+"؛ تأكد من الاتصال ثم أعد المحاولة.";});
 }
 
-function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:2,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
-function load(){try{const s=localStorage.getItem(saveKey);if(!s)return;const v=JSON.parse(s);if(v.v!==2)return;coins=100000;xp=Number.isFinite(v.xp)?v.xp:0;placed=Array.isArray(v.placed)?v.placed.slice(0,60):[];coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";for(const p of placed)drawPlaced(p);}catch{}}
+function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:3,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
+function load(){try{const s=localStorage.getItem(saveKey);if(!s)return;const v=JSON.parse(s);if(v.v!==3)return;coins=Number.isFinite(v.coins)?Math.max(0,v.coins):350;xp=Number.isFinite(v.xp)?v.xp:0;placed=Array.isArray(v.placed)?v.placed.slice(0,60):[];coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";for(const p of placed)drawPlaced(p);}catch{}}
 function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"||p.kind==="gym"||p.kind==="treatment"){const r=makeRoom(p.kind,p.gx,p.gz,p.id);entities.push(r);return;}
  const root=new pc.Entity("Placed "+p.kind);
  if(p.kind==="wall")root.setPosition(p.rot===90?p.gx+1.5: x,0,p.rot===90?z:p.gz+1.5);
@@ -358,7 +352,7 @@ const steps=[
 function renderStep(){const s=steps[sessionStep];el("#session-step").textContent="الجلسة التعليمية · "+(sessionStep+1)+" من 5";el("#session-title").textContent=s.title;el("#session-intro").textContent=s.intro;el("#session-question").textContent=s.question;el("#session-feedback").textContent="اختر إجابتك لتحصل على تغذية راجعة.";el<HTMLButtonElement>("#session-next").disabled=true;el("#session-next").textContent=sessionStep===4?"إنهاء الجلسة":"التالي";el("#session-options").innerHTML=s.options.map(o=>'<button type="button" data-session-choice="'+o[0]+'">'+o[1]+"</button>").join("");document.querySelectorAll<HTMLButtonElement>("[data-session-choice]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-session-choice]").forEach(x=>{(x as HTMLButtonElement).disabled=true;});b.classList.add("chosen");const option=s.options.find(o=>o[0]===b.dataset.sessionChoice)!;if(option[2])sessionScore++;el("#session-feedback").textContent=option[3] as string;el<HTMLButtonElement>("#session-next").disabled=false;}));}
 sessionBtn.addEventListener("click",()=>{sessionStep=0;sessionScore=0;renderStep();sessionDialog.showModal();});
 el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
-load();coins=100000;coinsLabel.textContent=String(coins);
+load();coinsLabel.textContent=String(coins);
 let locomotionState="";
 function setLocomotion(moving:boolean){
  if(!playerRig)return;
