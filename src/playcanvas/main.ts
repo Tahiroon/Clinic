@@ -103,7 +103,9 @@ for(const [x,z] of outdoorShrubPositions){
  box("Outdoor planter",x,.17,z,.56,.34,.78,M.wood2,world);
  const shrub=sphere("Outdoor shrub",x,.62,z,.37,M.green,world);shrub.setLocalScale(1.12,.8,.95);
 }
+let lawnGrassOwner:pc.Entity|null=null;
 function createLawnGrass(){
+ if(lawnGrassOwner){lawnGrassOwner.destroy();lawnGrassOwner=null;}
  const positions:number[]=[],indices:number[]=[],colors:number[]=[];
  let seed=7319;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
  const addTuft=(x:number,z:number)=>{
@@ -120,10 +122,11 @@ function createLawnGrass(){
  };
  for(let i=0;i<1900;i++){
   const x=-HALF_X+.28+rand()*(W-.56),z=-HALF_Z+.28+rand()*(D-.56);
-  const insideStarterRoom=x> -2.12&&x<2.12&&z> -2.12&&z<2.12;
+  const insideAnyRoom=placed.some(p=>(p.kind==="treatment"||p.kind==="reception"||p.kind==="gym")&&x>p.gx-.14&&x<p.gx+4.14&&z>p.gz-.14&&z<p.gz+4.14);
   const onEntrancePath=Math.abs(x)<1.12&&z< -2.1;
   const nearTree=outdoorTreePositions.some(([tx,tz])=>Math.hypot(x-tx,z-tz)<1.05);
-  if(insideStarterRoom||onEntrancePath||nearTree)continue;
+  const nearShrub=outdoorShrubPositions.some(([sx,sz])=>Math.abs(x-sx)<.52&&Math.abs(z-sz)<.72);
+  if(insideAnyRoom||onEntrancePath||nearTree||nearShrub)continue;
   addTuft(x,z);
  }
  const mesh=new pc.Mesh(app.graphicsDevice);
@@ -132,13 +135,12 @@ function createLawnGrass(){
  mesh.setColors32(new Uint8Array(colors));
  mesh.setIndices(indices);mesh.update();
  const grassMat=material(new pc.Color(1,1,1));grassMat.diffuseVertexColor=true;grassMat.cull=pc.CULLFACE_NONE;grassMat.update();
- const owner=new pc.Entity("Outdoor grass mesh owner");
+ lawnGrassOwner=new pc.Entity("Outdoor grass mesh owner");
  const grassGraph=new pc.GraphNode("Outdoor grass mesh graph");
  const model=new pc.Model();model.graph=grassGraph;
  model.meshInstances=[new pc.MeshInstance(mesh,grassMat,grassGraph)];
- owner.addComponent("model");owner.model!.model=model;world.addChild(owner);
+ lawnGrassOwner.addComponent("model");lawnGrassOwner.model!.model=model;world.addChild(lawnGrassOwner);
 }
-createLawnGrass();
 const arrivalMetal=material(new pc.Color(.20,.31,.38));
 const warmGlass=material(new pc.Color(.96,.76,.40));
 for(const x of [-1.12,1.12]){
@@ -886,7 +888,7 @@ canvas.addEventListener("pointerup",e=>{
   if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}
   coins-=cost;coinsLabel.textContent=String(coins);
   const item:Placed={id:nextId++,kind:selected,gx,gz,rot:wallRotation,assetKey:selected==="asset"?selectedAssetKey??undefined:undefined};
-  placed.push(item);drawPlaced(item);save();updatePlacementPreview(e.clientX,e.clientY);status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;
+  placed.push(item);drawPlaced(item);if(isRoomKind(item.kind))createLawnGrass();save();updatePlacementPreview(e.clientX,e.clientY);status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;
  }
  const start=avatar.getLocalPosition().clone(),tx=ground.x,tz=ground.z;
  destination=new pc.Vec3(tx,0,tz);
@@ -948,7 +950,7 @@ sessionBtn.addEventListener("click",()=>{
 });
 sessionDialog.addEventListener("close",()=>{focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=24.5;viewBtn.classList.remove("active");});
 el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{if(missionPhase===2)setMissionPhase(3);const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
-load();coinsLabel.textContent=String(coins);
+load();createLawnGrass();coinsLabel.textContent=String(coins);
 let locomotionState="";
 function setLocomotion(moving:boolean){
  if(!playerRig)return;
