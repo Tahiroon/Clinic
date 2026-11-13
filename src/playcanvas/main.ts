@@ -238,7 +238,8 @@ let walkVelocity=0;
 let avatarAnim:any=null;let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
  student:new URL("../assets/characters/Student.glb",import.meta.url).href,
- patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,\n receptionist:new URL("../assets/characters/Receptionist.glb",import.meta.url).href,
+ patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,
+ receptionist:new URL("../assets/characters/Receptionist.glb",import.meta.url).href,
 };
 type HumanoidRig={entity:pc.Entity;anim:any;clips:string[];idle:string;walk:string};
 type FallbackRig={entity:pc.Entity;update:(dt:number,moving:boolean)=>void};
@@ -263,7 +264,8 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"|"recep
   sphere("Humanoid hand",0,-.61,.015,.085,M.skin,pivot);
   armPivots.push(pivot);
  }
- if(kind==="student")box("Physiotherapist ID badge",.12,1.18,-.15,.1,.13,.025,trim,root);\n if(kind==="receptionist")box("Receptionist name badge",.12,1.18,-.15,.1,.13,.025,M.yellow,root);
+ if(kind==="student")box("Physiotherapist ID badge",.12,1.18,-.15,.1,.13,.025,trim,root);
+ if(kind==="receptionist")box("Receptionist name badge",.12,1.18,-.15,.1,.13,.025,M.yellow,root);
  let phase=0;
  return {entity:root,update:(dt,moving)=>{
   if(moving)phase+=dt*7.2;
@@ -1130,7 +1132,8 @@ app.on("update",(dt:number)=>{
  if(managementUiTimer>=.45){managementUiTimer=0;renderManagement();}
  if(managementSaveTimer>=8){managementSaveTimer=0;save();}
  playerFallbackRig?.update(frameDt,!!target);
- patientFallbackRig?.update(frameDt,!!patientTarget||patientWalkPath.length>0);\n receptionistFallbackRig?.update(frameDt,false);
+ patientFallbackRig?.update(frameDt,!!patientTarget||patientWalkPath.length>0);
+ receptionistFallbackRig?.update(frameDt,false);
  // Smooth camera follow/pan/zoom instead of snapping the camera on every touch event.
  const cameraAlpha=1-Math.exp(-frameDt*11);
  cameraTarget.x+=(cameraGoal.x-cameraTarget.x)*cameraAlpha;
