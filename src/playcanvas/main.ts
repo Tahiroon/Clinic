@@ -335,7 +335,7 @@ loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
  avatarAnim=rig.anim;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
-const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.25,0,1.35);patientNpc.enabled=false;
+const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.0,0,-4.55);patientNpc.enabled=false;
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 let patientFallbackRig:FallbackRig|null=patientFallback,patientRig:HumanoidRig|null=null;
 let patientVisualId=0,patientVisualStage="",patientTarget:pc.Vec3|null=null,patientWalkPath:{x:number;z:number}[]=[];
@@ -872,7 +872,7 @@ function renderManagement(){
   patientNpc.enabled=true;
   if(patientVisualId!==visiblePatient.id||patientVisualStage!==visiblePatient.stage){
    patientVisualId=visiblePatient.id;patientVisualStage=visiblePatient.stage;
-   const roomType=visiblePatient.stage==="reception"||visiblePatient.stage==="waiting"?"reception":visiblePatient.stage==="assessment"?"assessment":"treatment";
+   const roomType=visiblePatient.stage==="reception"||visiblePatient.stage==="waiting"?"reception":visiblePatient.stage==="assessment"?"assessment":(visiblePatient.need==="mobility"||visiblePatient.need==="sports")&&management.rooms.some(r=>r.type==="exercise")?"exercise":"treatment";
    const room=management.rooms.find(r=>r.type===roomType)??management.rooms.find(r=>r.type==="treatment");
    const goal=room?new pc.Vec3(room.x+Math.min(1.35,room.width*.34),0,room.z+Math.min(1.45,room.depth*.36)):new pc.Vec3(0,0,-4.55);
    const current=patientNpc.getLocalPosition();patientNpc.enabled=false;
@@ -1039,8 +1039,9 @@ const steps=[
 function renderStep(){const s=steps[sessionStep];el("#session-step").textContent="الجلسة التعليمية · "+(sessionStep+1)+" من 5";el("#session-title").textContent=s.title;el("#session-intro").textContent=s.intro;el("#session-question").textContent=s.question;el("#session-feedback").textContent="اختر إجابتك لتحصل على تغذية راجعة.";el<HTMLButtonElement>("#session-next").disabled=true;el("#session-next").textContent=sessionStep===4?"إنهاء الجلسة":"التالي";el("#session-options").innerHTML=s.options.map(o=>'<button type="button" data-session-choice="'+o[0]+'">'+o[1]+"</button>").join("");document.querySelectorAll<HTMLButtonElement>("[data-session-choice]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-session-choice]").forEach(x=>{(x as HTMLButtonElement).disabled=true;});b.classList.add("chosen");const option=s.options.find(o=>o[0]===b.dataset.sessionChoice)!;if(option[2])sessionScore++;el("#session-feedback").textContent=option[3] as string;el<HTMLButtonElement>("#session-next").disabled=false;}));}
 sessionBtn.addEventListener("click",()=>{
  if(!management.clinicOpen){status.textContent="أكمل بناء الاستقبال وغرفة التقييم والعلاج، ووظّف موظف استقبال، ثم افتح العيادة أولاً.";return;}
+ if(getActivePatientCount(management)===0){status.textContent="لا توجد حالة جاهزة حالياً. انتظر وصول المريض القادم أو راجع لوحة الإدارة.";return;}
  sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();
- sessionPending=moveAvatarTo(1.4,.2);
+ const patientPosition=patientNpc.getLocalPosition();sessionPending=moveAvatarTo(patientPosition.x-.72,patientPosition.z-.1);
  if(sessionPending){status.textContent="الأخصائي يتجه إلى المريض. ستبدأ الجلسة بعد الوصول إلى موضع آمن بجانبه.";}
  else{focus=false;cameraGoal.set(0,0,0);viewBtn.classList.remove("active");status.textContent="لا يوجد مسار آمن إلى المريض. افتح الممر أو أعد ترتيب الأثاث قبل بدء الجلسة.";}
 });
