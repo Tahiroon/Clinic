@@ -14,4 +14,8 @@ Imported individual assets:
 - Wheelchair — https://cdn.3dassets.dev/assets/23600/v1/model.glb
 - Bedside Cabinet — https://cdn.3dassets.dev/assets/23593/v1/model.glb
 
+Optional receptionist character:
+- Gobkit Receptionist — https://gobkit.com/freebies/human002/Receptionist.glb
+- License: CC0 1.0 Universal; rigged and animated with Idle/Walk clips.
+
 Only the individual GLB props needed by this physiotherapy clinic are included; the unrelated full-hospital starter scene is not used.
