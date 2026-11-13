@@ -728,7 +728,10 @@ function canAvatarStand(x:number,z:number){
    const furniture:{x:number;z:number;w:number;d:number}[]=p.kind==="reception"?[
     {x:gx+rw*.12,z:gz+rd*.60,w:Math.min(1.7,rw*.45),d:.9},
     {x:gx+rw-.95,z:gz+rd*.12,w:.95,d:Math.min(2.2,rd*.55)}
-   ]:p.kind==="treatment"||p.kind==="assessment"?[]:[
+   ]:p.kind==="treatment"&&p.id===1?[
+    {x:gx+.45,z:gz+.85,w:1.1,d:2.3},
+    {x:gx+2.07,z:gz+2.07,w:.86,d:.86}
+   ]:p.kind==="assessment"?[]:[
     {x:gx+.15,z:gz+2.05,w:.2,d:1.1},
     {x:gx+1.95,z:gz+2.05,w:.2,d:1.1},
     {x:gx+.65,z:gz+2.4,w:1,d:.16}
@@ -850,7 +853,7 @@ function renderMission(){
  if(missionPhase===0){title.textContent="ابنِ الاستقبال";detail.textContent="ارسم غرفة استقبال واسعة، ثم أضف مكتب الاستقبال ومقاعد الانتظار.";button.textContent="ابدأ البناء";}
  else if(missionPhase===1){title.textContent="أنشئ غرفة التقييم";detail.textContent="ارسم غرفة مخصصة للتاريخ المرضي والفحص الوظيفي.";button.textContent="ابنِ غرفة التقييم";}
  else if(missionPhase===2){title.textContent="أنشئ غرفة العلاج";detail.textContent="جهّز غرفة العلاج الطبيعي بسرير ومساحة حركة كافية.";button.textContent="ابنِ غرفة العلاج";}
- else if(missionPhase===3){title.textContent="جهّز عيادتك";detail.textContent="أضف سرير العلاج وخزانة الأدوات وسرير الفحص من المتجر.";button.textContent="افتح المتجر";}
+ else if(missionPhase===3){title.textContent="جهّز غرفة التقييم";detail.textContent="ضع سرير الفحص وكرسي المريض داخل غرفة التقييم. غرفة العلاج الأساسية مجهزة بالفعل.";button.textContent="افتح المتجر";}
  else if(missionPhase===4){title.textContent="افتح أبواب العيادة";detail.textContent="الغرف الأساسية جاهزة. افتح العيادة واستقبل أول مريض.";button.textContent="لوحة العيادة";}
  else if(missionPhase===5){title.textContent="طوّر عيادتك";detail.textContent=management.treated<3?"عالج 3 حالات لفتح خيار شراء موظف استقبال.":"أصبح موظف الاستقبال متاحاً للشراء من لوحة العيادة.";button.textContent="عرض المرضى";}
  else{title.textContent="عيادتك بدأت تنمو";detail.textContent="واصل علاج المرضى، ووسّع الغرف، وحسّن الأثاث والديكور.";button.textContent="متابعة اللعب";}
