@@ -43,9 +43,9 @@ const CASES = [
 ];
 const NAMES=["مريم","أحمد","سارة","محمد","آمنة","يوسف","هدى","عمر","سلمى","خالد","إسراء","مصطفى"];
 export function createInitialManagementState():ManagementState {
-  return {version:1,day:1,minuteOfDay:8*60,speed:1,balance:3200,reputation:50,experience:0,treated:0,arrivals:0,
+  return {version:1,day:1,minuteOfDay:8*60,speed:1,clinicOpen:false,balance:3200,reputation:50,experience:0,treated:0,arrivals:0,
     staff:[{id:1,name:"أنت",role:"physiotherapist",skill:70,energy:100,morale:85,wagePerHour:0,assignedRoomId:null,status:"idle"}],
-    patients:[],rooms:[{id:1,type:"treatment",x:-2,z:-2,width:4,depth:4,prestige:1,open:true,capacity:1}],events:[{id:1,minute:480,kind:"staff",message:"بدأ يومك الأول. جهّز الاستقبال وغرف العلاج قبل استقبال المرضى."}],
+    patients:[],rooms:[],events:[{id:1,minute:480,kind:"staff",message:"بدأ يومك الأول. جهّز الاستقبال وغرف العلاج قبل استقبال المرضى."}],
     nextStaffId:2,nextPatientId:1,nextRoomId:2,nextEventId:2,arrivalAccumulator:0,payrollAccumulator:0};
 }
 function event(s:ManagementState,kind:ClinicEvent["kind"],message:string){
@@ -75,6 +75,20 @@ export function buildRoom(s:ManagementState,type:ClinicRoomType,x:number,z:numbe
   return {ok:true,message:"تم بناء "+b.label+" بحجم "+width+"×"+depth+" م.",room};
 }
 export function setSimulationSpeed(s:ManagementState,speed:0|1|2|3){s.speed=speed;}
+export function setClinicOpen(s:ManagementState,open:boolean):{ok:boolean;message:string}{
+  if(open){
+    const missing:string[]=[];
+    if(!availableRoom(s,"reception"))missing.push("الاستقبال");
+    if(!availableRoom(s,"assessment"))missing.push("غرفة التقييم");
+    if(!availableRoom(s,"treatment"))missing.push("غرفة العلاج");
+    if(!s.staff.some(m=>m.role==="receptionist"&&m.energy>10))missing.push("موظف استقبال");
+    if(!s.staff.some(m=>m.role==="physiotherapist"&&m.energy>10))missing.push("أخصائي علاج طبيعي");
+    if(missing.length)return {ok:false,message:"لا يمكن فتح العيادة بعد. المطلوب: "+missing.join("، ")+"."};
+    s.clinicOpen=true;event(s,"staff","تم افتتاح العيادة! استقبل أولى الحالات وراقب سير العمل.");return {ok:true,message:"العيادة مفتوحة الآن. بدأت مواعيد المرضى بالوصول."};
+  }
+  s.clinicOpen=false;event(s,"staff","تم إغلاق العيادة مؤقتاً.");return {ok:true,message:"تم إغلاق العيادة مؤقتاً."};
+}
+
 export function assignStaff(s:ManagementState,staffId:number,roomId:number|null):boolean{
   const member=s.staff.find(x=>x.id===staffId);if(!member)return false;
   if(roomId!==null&&!s.rooms.some(r=>r.id===roomId&&r.open))return false;
@@ -96,7 +110,7 @@ export function advanceSimulation(s:ManagementState,realSeconds:number){
     if(s.minuteOfDay>=24*60){s.minuteOfDay=0;s.day++;event(s,"staff","بدأ يوم جديد في العيادة.");}
     s.arrivalAccumulator+=step;
     const reception=availableRoom(s,"reception"),assessment=availableRoom(s,"assessment"),treatment=availableRoom(s,"treatment"),exercise=availableRoom(s,"exercise");
-    const openForPatients=s.minuteOfDay>=8*60&&s.minuteOfDay<18*60;
+    const openForPatients=s.clinicOpen&&s.minuteOfDay>=8*60&&s.minuteOfDay<18*60;
     if(openForPatients&&reception&&s.arrivalAccumulator>=12){
       s.arrivalAccumulator=0;
       const active=s.patients.filter(p=>!["discharged","left"].includes(p.stage)).length;
