@@ -5,6 +5,7 @@ const root = process.cwd();
 const required = [
   ["src/assets/characters/Student.glb", ["Student"], ["Idle", "Walk"]],
   ["src/assets/characters/WardPatient.glb", ["WardPatient"], ["Idle", "Walk"]],
+  ["src/assets/characters/Receptionist.glb", [], ["Idle", "Walk"]],
   ["src/assets/clinic-kit/hospital/physical-therapy-room-set.glb", ["TreatmentTable", "StorageCabinet", "ParallelBars", "BandRack", "ExerciseBall", "ExerciseMat", "HandWeights", "PrivacyCurtain"], []],
   ["src/assets/clinic-kit/hospital/doctors-office-set.glb", ["ExamTable", "Chair_Patient", "Desk_Doctor", "PrivacyCurtain", "Sink_Cabinet", "Wall_Chart"], []],
   ["src/assets/clinic-kit/hospital/hospital-equipment-set.glb", ["Crutches", "FirstAidBag", "OxygenTrolley", "Stretcher", "TransportChair", "WalkingFrame"], []],
