@@ -76,7 +76,7 @@ tapMarker.enabled=false;
 world.addChild(tapMarker);
 
 const GRID=1, W=6.5, D=11.5, HALF_X=W/2, HALF_Z=D/2;
-const floorBase=material(new pc.Color(.34,.49,.35));
+const floorBase=material(new pc.Color(.48,.53,.55)); // neutral paving; green is reserved for outdoor landscaping
 const grassAlt=material(new pc.Color(.38,.53,.38));
 const pathMat=material(new pc.Color(.72,.68,.57));
 const pathEdge=material(new pc.Color(.48,.57,.47));
@@ -225,6 +225,7 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
 }
 // The starter clinic is assembled from lightweight procedural geometry; optional GLB assets load independently.
 const avatar=new pc.Entity("Student avatar");world.addChild(avatar);avatar.setLocalPosition(0,0,-3.15);
+let walkVelocity=0;
 let avatarAnim:any=null;let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
  student:new URL("../assets/characters/Student.glb",import.meta.url).href,
@@ -823,16 +824,18 @@ app.on("update",(dt:number)=>{
  const p=avatar.getLocalPosition().clone(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
  if(d<.10){
   if(walkPath.length){const next=walkPath.shift()!;target=new pc.Vec3(next.x,0,next.z);}
-  else{target=null;destination=null;setLocomotion(false);}
+  else{target=null;destination=null;walkVelocity=0;if(playerRig?.anim)playerRig.anim.speed=1;setLocomotion(false);}
  }else{
   setLocomotion(true);
   const desiredYaw=Math.atan2(dx,dz)*180/Math.PI;
   const currentYaw=avatar.getLocalEulerAngles().y;
   let yawDelta=((desiredYaw-currentYaw+540)%360)-180;
-  const maxTurn=Math.max(1,frameDt*360);
+  const maxTurn=Math.max(1,frameDt*240);
   avatar.setLocalEulerAngles(0,currentYaw+Math.max(-maxTurn,Math.min(maxTurn,yawDelta)),0);
-  const walkSpeed=1.55;
-  const step=Math.min(d,frameDt*walkSpeed),moved=moveAvatarSafely(dx/d*step,dz/d*step);
+  const desiredSpeed=1.42;
+   walkVelocity=Math.min(desiredSpeed,walkVelocity+frameDt*3.8);
+   if(playerRig?.anim)playerRig.anim.speed=Math.max(.72,Math.min(1.12,walkVelocity/desiredSpeed));
+   const step=Math.min(d,frameDt*walkVelocity),moved=moveAvatarSafely(dx/d*step,dz/d*step);
   if(!moved){
    const goal=destination;
    const retry=goal?findWalkPath(p.x,p.z,goal.x,goal.z):null;
