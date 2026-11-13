@@ -16,7 +16,7 @@ export interface ManagementState {
   nextPatientId:number;nextRoomId:number;nextEventId:number;arrivalAccumulator:number;
 }
 export const ROOM_BLUEPRINTS:Record<ClinicRoomType,{label:string;cost:number;width:number;depth:number;capacity:number;description:string}> = {
- reception:{label:"الاستقبال",cost:420,width:4,depth:4,capacity:3,description:"تسجيل المرضى وتنظيم الوصول"},
+ reception:{label:"الاستقبال",cost:420,width:5,depth:5,capacity:3,description:"تسجيل المرضى وتنظيم الوصول"},
  assessment:{label:"غرفة التقييم",cost:620,width:4,depth:4,capacity:1,description:"التاريخ المرضي والفحص الوظيفي"},
  treatment:{label:"غرفة العلاج",cost:720,width:4,depth:4,capacity:1,description:"جلسات العلاج الطبيعي الفردية"},
  exercise:{label:"صالة التأهيل الحركي",cost:980,width:5,depth:5,capacity:3,description:"التدريب الوظيفي والتمارين"}
