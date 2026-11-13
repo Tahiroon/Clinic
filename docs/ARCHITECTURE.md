@@ -1,60 +1,100 @@
 # THERASON CLINIC — Technical Architecture
 
-**Status:** Active implementation | **Selected engine:** PlayCanvas | **Branch:** clinic-dev
+**Status:** Active implementation blueprint | **Runtime:** PlayCanvas 2.23.3 | **Branch:** clinic-dev
 
-## Goals
-1. Separate 3D runtime from clinical learning rules.
-2. Keep game rules independent from rendering engine where practical.
-3. Make UI and data contracts testable without loading a scene.
-4. Optimize for low-end Android and weak networks.
-5. Keep the simulator independently deployable.
-6. Delay production identity, persistence, and Supabase until security contracts are reviewed.
+## Engineering goals
+1. Deliver a polished portrait-first isometric management game on low-end Android.
+2. Separate rendering, input, game rules, clinical content and persistence.
+3. Keep the first boot path and active scene payload small.
+4. Make core play work offline after initial assets are cached.
+5. Keep the game independently deployable; do not touch THERASON production or repository `main`.
+6. Introduce platform identity/cloud sync only after security contracts are reviewed and approved.
+
+## Runtime decision
+PlayCanvas is the single selected 3D runtime. Babylon.js remains only as a historical comparison prototype and must not be bundled into the shipped game. Revisit the engine only if measured low-end Android tests show PlayCanvas cannot meet the acceptance targets and a replacement materially improves them.
+
+## Character and simulation scope
+Initial release:
+- One player-controlled physiotherapist avatar.
+- One optional receptionist NPC, introduced after the core scene and movement are stable.
+- Patients as visitors/case characters.
+- No nurses, employed doctors, cleaners, assistants, or large staff/crowd simulation.
+
+Nearby visible characters use authored animation and navigation. Distant/off-screen characters are simplified or paused. Avoid expensive general-purpose agent simulation.
 
 ## Logical layers
-- **Presentation:** portrait screens, HUD, menus, build controls, accessibility, loading/error states. Communicates through typed commands and state.
-- **Simulation runtime:** selected engine adapter, scene lifecycle, camera, input, avatar movement, environment rendering, asset loading. Engine objects must not leak into domain models.
-- **Game domain:** clinic layout, grid occupancy, footprints, placement validation, progression, local session state. Prefer deterministic pure functions.
-- **Clinical domain:** simulated cases, findings, decision options, rationale, safety rules, feedback rubrics, reassessment. Independent of 3D and reviewed by clinical educators.
-- **Data/persistence:** versioned local save first. Remote sync later behind an interface with retries and conflict handling.
-- **THERASON integration (future):** narrow adapter for identity and approved progress summaries. No second game password.
+- **App/UI:** portrait navigation, HUD, menus, accessibility and feedback. Prefer lightweight DOM/CSS for interface elements when appropriate; keep 3D interaction in the canvas.
+- **Simulation runtime:** PlayCanvas lifecycle, scene, camera modes, touch, avatar animation/navigation, environment rendering and asset loading.
+- **Clinic domain:** starter plot, parcels, rooms, layout, grid, footprints, placement constraints, object catalog and expansion.
+- **Game domain:** coins, reputation, appointments, clinic progression, unlocks and events.
+- **Clinical domain:** versioned cases, actions, findings, reasoning, safety rules, rubrics and feedback. No dependency on PlayCanvas.
+- **Persistence:** versioned local saves first; remote sync later behind a queue/retry/conflict interface.
+- **THERASON bridge (future):** narrow identity and approved progress-summary adapter. No second game password.
 
-## Proposed structure
-- src/app — entry and screen composition
-- src/ui — mobile UI and HUD
-- src/simulation — engine adapter, scene, camera, input, avatar
-- src/clinic — environment and building interactions
-- src/domain/building — grid, footprints, placement rules
-- src/domain/progression — rewards and unlock rules
-- src/clinical — cases, assessment, reasoning, feedback
-- src/data — local persistence and future sync interfaces
-- public/assets — optimized assets
-- docs — product, architecture, evaluation, and test records
+## Proposed code organization
+- `src/app` — entry and screen composition
+- `src/ui` — mobile HUD, menus and accessible controls
+- `src/simulation` — PlayCanvas adapter, lifecycle, camera, input, avatar and asset streaming
+- `src/world` — plot, environment, rooms and outdoor areas
+- `src/clinic` — clinic state and build interactions
+- `src/domain/building` — grid, footprints, placement and collision rules
+- `src/domain/economy` — wallet, costs, revenue and transaction rules
+- `src/domain/progression` — unlocks, reputation and milestones
+- `src/clinical` — case schemas, assessment, reasoning, feedback and rubrics
+- `src/data` — local save and future sync interfaces
+- `public/assets` — optimized versioned assets
+- `docs` — product, architecture, performance and test records
 
-Adjust after the engine spike; do not create empty scaffolding.
+Do not create empty folders or speculative abstractions. Introduce modules only when the next vertical-slice requirement needs them.
 
-## Engine boundary
-A small adapter should expose runtime initialization/disposal, canvas sizing, scene loading/unloading, camera configuration, pointer/touch input, performance instrumentation, and asset loading. Domain code receives semantic input, never raw mesh references.
+## Camera modes
+One world and one runtime, with controlled camera states:
+1. Management overview: frame the starter clinic and property.
+2. Build mode: closer view, grid and placement preview.
+3. Clinical encounter: smooth close composition focused on the patient/treatment area.
+Transitions must not reload the whole scene. Touch pan/zoom must be smoothed, bounded and tested against Android viewport/resize behavior.
 
-## Data contracts (conceptual)
-Clinic layout: schema version, local clinic identifier, room dimensions, placed object IDs/catalog IDs/grid coordinates/rotation, timestamp, engine-independent appearance settings.
+## Domain contracts
+**Clinic layout:** schema version, plot/parcel IDs, room bounds, object catalog IDs, grid coordinates, rotation, appearance choices and timestamp. Engine-independent.
 
-Clinical attempt: case version, ordered learner actions, rationale, safety checks, findings and interpretation, goals, interventions, response, reassessment, rubric version, feedback. Store simulated data only; no identifiable patient data.
+**Object catalog item:** stable ID, asset ID, footprint, allowed rotations, cost, unlock rule, placement tags, access constraints, performance budget and preview asset.
 
-## Security
+**Economy transaction:** stable transaction ID, source, sink, amount, reason, timestamp and resulting local balance. Client state is not trusted for future server-authoritative currency.
+
+**Clinical case:** stable ID, semantic version, learner level, objectives, fictional patient profile, safety rules, decision graph, findings, rubric, references, reviewers and review date.
+
+**Clinical attempt:** case version, ordered actions, learner rationale, safety checks, findings/interpretation, goals, intervention, response, reassessment and rubric version. Simulated data only.
+
+## Mobile performance strategy
+- Explicit budgets for initial JS, first scene assets, textures, geometry, draw calls and memory.
+- Load only the active clinic/room and nearby content; defer optional assets.
+- Optimize GLB/glTF with mesh reuse and measured meshopt/Draco pipeline choices.
+- Use KTX2/Basis texture transcoding where the target browser/device support and build pipeline justify it.
+- Use LOD for assets whose screen size changes materially.
+- Use instancing for repeated props where it reduces draw calls without harming culling.
+- Reuse materials and meshes; use atlases only where they reduce state changes and memory.
+- Bake static lighting where appropriate; limit dynamic shadows, transparent surfaces, post-processing and dynamic lights.
+- Adapt render resolution/device pixel ratio by device capability and sustained frame-time measurements.
+- Use object pooling for frequently created simulation objects; no per-frame array/object churn.
+- Reduce or pause nonessential simulation while backgrounded.
+- Profile on actual entry-level Android devices, not desktop emulation alone.
+
+Do not add a new framework, physics library, ECS, AI SDK or asset pipeline merely because it is fashionable. Adopt a dependency only after a small benchmark demonstrates a clear benefit in payload, memory, stability or maintainability.
+
+## Offline and persistence
+The core local clinic loop must not require continuous network access. Save versioned layout, local progression and session state locally. Cache versioned static assets. Future remote sync uses an outbox queue, retry/backoff and conflict handling, with visible local-saved/synced states. Remote authority validates important currency, unlock and progress claims.
+
+## Security and clinical safety
 - Never ship Supabase service-role credentials or privileged secrets to the browser.
-- Never trust client-submitted currency, scores, unlocks, or completion claims.
-- Validate remote writes server-side when remote persistence is introduced.
-- Use platform identity rather than a second game password.
+- Do not trust client-submitted currency, scores, unlocks or completion claims.
 - Keep production database access out of engine prototypes.
-- Do not commit environment files, tokens, private keys, or real student/patient data.
-
-## Offline and performance
-First slice stores layout locally in a versioned format. Cache static assets deliberately. Remote sync later uses a queue, retry policy, and conflict strategy. Clearly distinguish locally saved from remotely synced.
-
-Load only active scene assets. Prefer compressed textures, efficient materials, baked static lighting, limited dynamic shadows, instancing for repeated props, no unnecessary frame allocations, capped render resolution on weak devices, and Low/Medium/High presets.
+- Use platform identity rather than a second game password.
+- Do not store real patient-identifiable data.
+- AI may assist with case drafting but cannot independently approve or publish cases.
+- Clinical cases require qualified physiotherapy educator review and additional experts when warranted.
 
 ## Failure isolation
-The simulator is separately deployable. Platform integration is optional and narrow. Authentication, sync, or runtime failure must not destabilize the THERASON website.
+The simulator remains separately deployable. Auth, sync, content delivery or engine failure must not destabilize the THERASON website. Keep all current development on `clinic-dev`; do not merge to `main` without explicit owner approval.
 
-## Open decisions
-Engine choice, app shell/deployment, local persistence technology, and platform integration protocol remain open pending prototype evidence and security review.
+## First vertical-slice technical gate
+Prove: stable portrait canvas; no camera/avatar jitter; credible scale; obstacle-aware movement; correct grid/placement; one small starter property; one player avatar; optional receptionist deferred; one patient encounter; local save/reload; low-end Android frame-time/memory/startup measurements.
