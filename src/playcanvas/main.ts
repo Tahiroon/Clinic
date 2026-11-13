@@ -1,4 +1,4 @@
-import * as pc from "playcanvas";
+import { Application, BLEND_NORMAL, CULLFACE_NONE, Color, Entity, FILLMODE_NONE, GraphNode, Mat4, Mesh, MeshInstance, Model, PROJECTION_ORTHOGRAPHIC, RESOLUTION_AUTO, StandardMaterial, Vec3, calculateNormals } from "playcanvas";
 import "../style.css";
 import { createInitialManagementState, advanceSimulation, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, setClinicOpen, hireReceptionist, beginPatientSession, completePatientSession, cancelPatientSession, registerPatient, recoverInterruptedSessions, ROOM_BLUEPRINTS, type ManagementState, type ClinicRoomType } from "../game/management";
 
@@ -12,9 +12,9 @@ const managementPanel=el<HTMLElement>("#management-panel"),managementToggle=el<H
 let management:ManagementState=createInitialManagementState();
 const deviceMemory=Number((navigator as any).deviceMemory??2),cpuCores=navigator.hardwareConcurrency||4;
 const highDetailDevice=deviceMemory>=4&&cpuCores>=6;
-const app=new pc.Application(canvas,{graphicsDeviceOptions:{antialias:highDetailDevice,alpha:false,powerPreference:"low-power"}});
-app.setCanvasFillMode(pc.FILLMODE_NONE);
-app.setCanvasResolution(pc.RESOLUTION_AUTO);
+const app=new Application(canvas,{graphicsDeviceOptions:{antialias:highDetailDevice,alpha:false,powerPreference:"low-power"}});
+app.setCanvasFillMode(FILLMODE_NONE);
+app.setCanvasResolution(RESOLUTION_AUTO);
 // A 1× render scale reduces GPU fill cost and memory bandwidth on low-end phones.
 app.graphicsDevice.maxPixelRatio=highDetailDevice?Math.min(window.devicePixelRatio||1,1.25):1.0;
 canvas.style.width="100%";canvas.style.height="100%";canvas.style.display="block";
@@ -51,31 +51,31 @@ window.addEventListener("resize",queueResize,{passive:true});
 window.addEventListener("orientationchange",()=>window.setTimeout(queueResize,150),{passive:true});
 window.visualViewport?.addEventListener("resize",queueResize,{passive:true});
 window.visualViewport?.addEventListener("scroll",queueResize,{passive:true});
-app.scene.ambientLight=new pc.Color(.72,.75,.78);
-function material(c:pc.Color){const m=new pc.StandardMaterial();m.diffuse=c;m.update();return m;}
-const M={ground:material(new pc.Color(.24,.52,.39)),tile:material(new pc.Color(.34,.66,.48)),grid:material(new pc.Color(.12,.62,.72)),room:material(new pc.Color(.86,.91,.88)),wall:material(new pc.Color(.96,.97,.93)),wallSide:material(new pc.Color(.40,.68,.72)),wood:material(new pc.Color(.54,.34,.23)),wood2:material(new pc.Color(.78,.55,.31)),teal:material(new pc.Color(.02,.64,.70)),blue:material(new pc.Color(.10,.34,.66)),pale:material(new pc.Color(.82,.95,.94)),green:material(new pc.Color(.20,.65,.39)),skin:material(new pc.Color(.72,.49,.36)),dark:material(new pc.Color(.08,.15,.23)),white:material(new pc.Color(.98,.98,.92)),yellow:material(new pc.Color(.98,.73,.23))};
+app.scene.ambientLight=new Color(.72,.75,.78);
+function material(c:Color){const m=new StandardMaterial();m.diffuse=c;m.update();return m;}
+const M={ground:material(new Color(.24,.52,.39)),tile:material(new Color(.34,.66,.48)),grid:material(new Color(.12,.62,.72)),room:material(new Color(.86,.91,.88)),wall:material(new Color(.96,.97,.93)),wallSide:material(new Color(.40,.68,.72)),wood:material(new Color(.54,.34,.23)),wood2:material(new Color(.78,.55,.31)),teal:material(new Color(.02,.64,.70)),blue:material(new Color(.10,.34,.66)),pale:material(new Color(.82,.95,.94)),green:material(new Color(.20,.65,.39)),skin:material(new Color(.72,.49,.36)),dark:material(new Color(.08,.15,.23)),white:material(new Color(.98,.98,.92)),yellow:material(new Color(.98,.73,.23))};
 type PrimitiveModelType="box"|"capsule"|"cone"|"cylinder"|"plane"|"sphere"|"torus";
-function primitive(name:string,type:PrimitiveModelType,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){
- const e=new pc.Entity(name);e.addComponent("model",{type});parent.addChild(e);e.setLocalPosition(x,y,z);e.setLocalScale(sx,sy,sz);
+function primitive(name:string,type:PrimitiveModelType,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){
+ const e=new Entity(name);e.addComponent("model",{type});parent.addChild(e);e.setLocalPosition(x,y,z);e.setLocalScale(sx,sy,sz);
  e.model!.material=m;e.model!.castShadows=false;e.model!.receiveShadows=false;return e;
 }
-function box(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){return primitive(name,"box",x,y,z,sx,sy,sz,m,parent);}
-function sphere(name:string,x:number,y:number,z:number,s:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){return primitive(name,"sphere",x,y,z,s,s,s,m,parent);}
-function cylinder(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){return primitive(name,"cylinder",x,y,z,sx,sy,sz,m,parent);}
-function cone(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){return primitive(name,"cone",x,y,z,sx,sy,sz,m,parent);}
-const camera=new pc.Entity("Portrait isometric camera");
-camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:15.5,clearColor:new pc.Color(.69,.79,.80),nearClip:.1,farClip:200});
-const cameraTarget=new pc.Vec3(0,0,0),cameraGoal=new pc.Vec3(0,0,0);
+function box(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){return primitive(name,"box",x,y,z,sx,sy,sz,m,parent);}
+function sphere(name:string,x:number,y:number,z:number,s:number,m:StandardMaterial,parent:Entity=app.root){return primitive(name,"sphere",x,y,z,s,s,s,m,parent);}
+function cylinder(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){return primitive(name,"cylinder",x,y,z,sx,sy,sz,m,parent);}
+function cone(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){return primitive(name,"cone",x,y,z,sx,sy,sz,m,parent);}
+const camera=new Entity("Portrait isometric camera");
+camera.addComponent("camera",{projection:PROJECTION_ORTHOGRAPHIC,orthoHeight:15.5,clearColor:new Color(.69,.79,.80),nearClip:.1,farClip:200});
+const cameraTarget=new Vec3(0,0,0),cameraGoal=new Vec3(0,0,0);
 camera.setPosition(3.5,21.5,-15);camera.lookAt(cameraTarget);app.root.addChild(camera);
 let desiredOrthoHeight=15.5;
-const light=new pc.Entity("Soft daylight");
+const light=new Entity("Soft daylight");
 light.addComponent("light",{type:"directional",intensity:1.22,castShadows:highDetailDevice});
 if(highDetailDevice){light.light!.shadowResolution=1024;light.light!.shadowDistance=36;light.light!.normalOffsetBias=.035;}
 light.setEulerAngles(48,25,0);app.root.addChild(light);
-const world=new pc.Entity("Clinic property · portrait 3/4 world");
+const world=new Entity("Clinic property · portrait 3/4 world");
 world.setEulerAngles(0,10,0);app.root.addChild(world);world.syncHierarchy();
-const worldInverse=new pc.Mat4().invert(world.getWorldTransform() as pc.Mat4);
-const tapMarker=new pc.Entity("Tap destination marker");
+const worldInverse=new Mat4().invert(world.getWorldTransform() as Mat4);
+const tapMarker=new Entity("Tap destination marker");
 tapMarker.addComponent("model",{type:"cylinder"});
 tapMarker.model!.material=M.yellow;
 tapMarker.setLocalScale(.34,.035,.34);
@@ -83,13 +83,13 @@ tapMarker.enabled=false;
 world.addChild(tapMarker);
 
 const GRID=1, W=14, D=28, HALF_X=W/2, HALF_Z=D/2;
-const grassAlt=material(new pc.Color(.38,.53,.38));
-const pathMat=material(new pc.Color(.67,.62,.49));
-const pathEdge=material(new pc.Color(.43,.48,.37));
-const glass=material(new pc.Color(.28,.67,.76));
-const trim=material(new pc.Color(.10,.39,.47));
-const roofAccent=material(new pc.Color(.16,.28,.38));
-const lawnBase=material(new pc.Color(.25,.39,.24));
+const grassAlt=material(new Color(.38,.53,.38));
+const pathMat=material(new Color(.67,.62,.49));
+const pathEdge=material(new Color(.43,.48,.37));
+const glass=material(new Color(.28,.67,.76));
+const trim=material(new Color(.10,.39,.47));
+const roofAccent=material(new Color(.16,.28,.38));
+const lawnBase=material(new Color(.25,.39,.24));
 const outdoorTreePositions:[number,number][]=[[-5.65,-11.4],[5.65,-11.4],[-5.65,11.4],[5.65,11.4]];
 const outdoorShrubPositions:[number,number][]=[[-5.9,-5.5],[5.9,-2.5],[-5.9,4.2],[5.9,6.0]];
 // The property is a continuous outdoor lawn. Only constructed rooms receive a finished interior floor.
@@ -109,9 +109,9 @@ for(const [x,z] of outdoorShrubPositions){
  box("Outdoor planter",x,.17,z,.56,.34,.78,M.wood2,world);
  const shrub=sphere("Outdoor shrub",x,.62,z,.37,M.green,world);shrub.setLocalScale(1.12,.8,.95);
 }
-const lawnGrassMaterial=material(new pc.Color(1,1,1));
-lawnGrassMaterial.diffuseVertexColor=true;lawnGrassMaterial.cull=pc.CULLFACE_NONE;lawnGrassMaterial.update();
-let lawnGrassOwner:pc.Entity|null=null;
+const lawnGrassMaterial=material(new Color(1,1,1));
+lawnGrassMaterial.diffuseVertexColor=true;lawnGrassMaterial.cull=CULLFACE_NONE;lawnGrassMaterial.update();
+let lawnGrassOwner:Entity|null=null;
 function createLawnGrass(){
  if(lawnGrassOwner){lawnGrassOwner.destroy();lawnGrassOwner=null;}
  const positions:number[]=[],indices:number[]=[],colors:number[]=[];
@@ -137,19 +137,19 @@ function createLawnGrass(){
   if(insideAnyRoom||onEntrancePath||nearTree||nearShrub)continue;
   addTuft(x,z);
  }
- const mesh=new pc.Mesh(app.graphicsDevice);
+ const mesh=new Mesh(app.graphicsDevice);
  mesh.setPositions(new Float32Array(positions));
- mesh.setNormals(pc.calculateNormals(positions,indices));
+ mesh.setNormals(calculateNormals(positions,indices));
  mesh.setColors32(new Uint8Array(colors));
  mesh.setIndices(indices);mesh.update();
- lawnGrassOwner=new pc.Entity("Outdoor grass mesh owner");
- const grassGraph=new pc.GraphNode("Outdoor grass mesh graph");
- const model=new pc.Model();model.graph=grassGraph;
- model.meshInstances=[new pc.MeshInstance(mesh,lawnGrassMaterial,grassGraph)];
+ lawnGrassOwner=new Entity("Outdoor grass mesh owner");
+ const grassGraph=new GraphNode("Outdoor grass mesh graph");
+ const model=new Model();model.graph=grassGraph;
+ model.meshInstances=[new MeshInstance(mesh,lawnGrassMaterial,grassGraph)];
  lawnGrassOwner.addComponent("model");lawnGrassOwner.model!.model=model;world.addChild(lawnGrassOwner);
 }
-const arrivalMetal=material(new pc.Color(.20,.31,.38));
-const warmGlass=material(new pc.Color(.96,.76,.40));
+const arrivalMetal=material(new Color(.20,.31,.38));
+const warmGlass=material(new Color(.96,.76,.40));
 for(const x of [-1.12,1.12]){
  cylinder("Entrance path light base",x,.12,-3.75,.18,.22,.18,arrivalMetal,world);
  cylinder("Entrance path light stem",x,.52,-3.75,.065,.78,.065,arrivalMetal,world);
@@ -160,9 +160,9 @@ box("Clinic facade upper accent",0,2.82,-2.08,4.15,.10,.12,arrivalMetal,world);
 box("THERASON entrance sign",0,2.55,-2.13,2.0,.46,.12,trim,world);
 box("Entrance sign inset",0,2.56,-2.205,1.7,.27,.035,M.white,world);
 box("Entrance canopy",0,2.15,-2.28,2.3,.16,.78,roofAccent,world);
-const roomRoot=new pc.Entity("Player-built clinic rooms");world.addChild(roomRoot);
-const buildGrid=new pc.Entity("Expandable property construction grid");world.addChild(buildGrid);
-const gridMaterial=material(new pc.Color(.20,.57,.65));
+const roomRoot=new Entity("Player-built clinic rooms");world.addChild(roomRoot);
+const buildGrid=new Entity("Expandable property construction grid");world.addChild(buildGrid);
+const gridMaterial=material(new Color(.20,.57,.65));
 for(let i=0;i<=W;i++){
  const x=-HALF_X+i*GRID;
  box("Property grid vertical",x,.035,0,.012,.012,D,gridMaterial,buildGrid);
@@ -173,13 +173,13 @@ for(let i=0;i<=D;i++){
 }
 buildGrid.enabled=false;
 const ROOM_SURFACES={
- reception:material(new pc.Color(.80,.91,.89)),
- assessment:material(new pc.Color(.83,.91,.96)),
- treatment:material(new pc.Color(.86,.94,.91)),
- exercise:material(new pc.Color(.83,.90,.96))
+ reception:material(new Color(.80,.91,.89)),
+ assessment:material(new Color(.83,.91,.96)),
+ treatment:material(new Color(.86,.94,.91)),
+ exercise:material(new Color(.83,.90,.96))
 };
 function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number,gz:number,id:number,width=4,depth=4){
- const root=new pc.Entity("Room "+id+" · "+kind);
+ const root=new Entity("Room "+id+" · "+kind);
  world.addChild(root);root.setLocalPosition(gx+width/2,0,gz+depth/2);
  const halfW=width/2,halfD=depth/2,wallThickness=.15,wallHeight=2.7;
  box("Room floor base",0,.025,0,width,.05,depth,ROOM_SURFACES[kind],root);
@@ -225,7 +225,7 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
  return root;
 }
 // The starter clinic is assembled from lightweight procedural geometry; optional GLB assets load independently.
-const avatar=new pc.Entity("Player physiotherapist");world.addChild(avatar);avatar.setLocalPosition(0,0,-4.55);
+const avatar=new Entity("Player physiotherapist");world.addChild(avatar);avatar.setLocalPosition(0,0,-4.55);
 let walkVelocity=0;
 let avatarAnim:any=null;let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
@@ -233,25 +233,25 @@ const characterAssets:Record<string,string>={
  patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,
  receptionist:new URL("../assets/characters/Receptionist.glb",import.meta.url).href,
 };
-type HumanoidRig={entity:pc.Entity;anim:any;clips:string[];idle:string;walk:string};
-type FallbackRig={entity:pc.Entity;update:(dt:number,moving:boolean)=>void};
-function createFallbackHumanoid(parent:pc.Entity,kind:"physiotherapist"|"patient"|"receptionist"):FallbackRig{
- const root=new pc.Entity("Fallback character rig · "+kind);parent.addChild(root);
+type HumanoidRig={entity:Entity;anim:any;clips:string[];idle:string;walk:string};
+type FallbackRig={entity:Entity;update:(dt:number,moving:boolean)=>void};
+function createFallbackHumanoid(parent:Entity,kind:"physiotherapist"|"patient"|"receptionist"):FallbackRig{
+ const root=new Entity("Fallback character rig · "+kind);parent.addChild(root);
  const shirt=kind==="physiotherapist"?M.white:kind==="receptionist"?M.teal:M.pale,trousers=kind==="physiotherapist"?M.blue:kind==="receptionist"?M.dark:M.teal;
  box("Humanoid torso",0,1.02,0,.42,.62,.27,shirt,root);
  box("Humanoid neck",0,1.38,0,.11,.14,.12,M.skin,root);
  sphere("Humanoid head",0,1.57,0,.155,M.skin,root);
  sphere("Humanoid hair",0,1.69,-.025,.15,M.dark,root);
- const legPivots:pc.Entity[]=[];
+ const legPivots:Entity[]=[];
  for(const x of [-.14,.14]){
-  const pivot=new pc.Entity("Leg swing pivot");root.addChild(pivot);pivot.setLocalPosition(x,.78,0);
+  const pivot=new Entity("Leg swing pivot");root.addChild(pivot);pivot.setLocalPosition(x,.78,0);
   box("Humanoid thigh and lower leg",0,-.34,0,.15,.68,.17,trousers,pivot);
   box("Humanoid shoe",0,-.69,.075,.19,.13,.29,M.dark,pivot);
   legPivots.push(pivot);
  }
- const armPivots:pc.Entity[]=[];
+ const armPivots:Entity[]=[];
  for(const x of [-.27,.27]){
-  const pivot=new pc.Entity("Arm swing pivot");root.addChild(pivot);pivot.setLocalPosition(x,1.27,0);
+  const pivot=new Entity("Arm swing pivot");root.addChild(pivot);pivot.setLocalPosition(x,1.27,0);
   box("Humanoid arm",0,-.29,0,.13,.58,.15,shirt,pivot);
   sphere("Humanoid hand",0,-.61,.015,.085,M.skin,pivot);
   armPivots.push(pivot);
@@ -268,7 +268,7 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"physiotherapist"|"patient
 }
 
  const humanoidAssetCache=new Map<string,Promise<any>>();
- function loadHumanoid(url:string,parent:pc.Entity,height:number,castShadow:boolean,onReady?:(rig:HumanoidRig)=>void){
+ function loadHumanoid(url:string,parent:Entity,height:number,castShadow:boolean,onReady?:(rig:HumanoidRig)=>void){
   let pending=humanoidAssetCache.get(url);
   if(!pending){pending=new Promise((resolve,reject)=>app.assets.loadFromUrl(url,"container",(err,asset)=>err||!asset?.resource?reject(err??new Error("Character asset unavailable")):resolve(asset)));humanoidAssetCache.set(url,pending);}
   pending.then(asset=>{
@@ -292,9 +292,9 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"physiotherapist"|"patient
   }
   // AABBs are in world space. Convert the bounds centre into the avatar's local frame
   // before setting the child model origin; never write world coordinates into localPosition.
-  const parentInverse=new pc.Mat4().invert(parent.getWorldTransform() as pc.Mat4);
-  const worldCenter=new pc.Vec3((scaledMinX+scaledMaxX)/2,parent.getPosition().y,(scaledMinZ+scaledMaxZ)/2);
-  const localCenter=parentInverse.transformPoint(worldCenter,new pc.Vec3());
+  const parentInverse=new Mat4().invert(parent.getWorldTransform() as Mat4);
+  const worldCenter=new Vec3((scaledMinX+scaledMaxX)/2,parent.getPosition().y,(scaledMinZ+scaledMaxZ)/2);
+  const localCenter=parentInverse.transformPoint(worldCenter,new Vec3());
   model.setLocalPosition(-localCenter.x,-scaledMinY,-localCenter.z);
   model.addComponent("anim",{activate:false,speed:1});
   const anim:any=(model as any).anim;
@@ -341,9 +341,9 @@ loadHumanoid(characterAssets.physiotherapist,avatar,1.72,true,rig=>{
  avatarAnim=rig.anim;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
-const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.0,0,-4.55);patientNpc.enabled=false;
+const patientNpc=new Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.0,0,-4.55);patientNpc.enabled=false;
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
-const receptionistNpc=new pc.Entity("Optional receptionist");world.addChild(receptionistNpc);receptionistNpc.enabled=false;
+const receptionistNpc=new Entity("Optional receptionist");world.addChild(receptionistNpc);receptionistNpc.enabled=false;
 let receptionistFallbackRig:FallbackRig|null=null,receptionistRig:HumanoidRig|null=null,receptionistLoadStarted=false;
 function ensureReceptionistModel(){
  if(receptionistLoadStarted)return;
@@ -352,23 +352,23 @@ function ensureReceptionistModel(){
  loadHumanoid(characterAssets.receptionist,receptionistNpc,1.62,false,rig=>{fallback.entity.destroy();receptionistFallbackRig=null;receptionistRig=rig;});
 }
 let patientFallbackRig:FallbackRig|null=patientFallback,patientRig:HumanoidRig|null=null;
-let patientVisualId=0,patientVisualStage="",patientTarget:pc.Vec3|null=null,patientWalkPath:{x:number;z:number}[]=[];
+let patientVisualId=0,patientVisualStage="",patientTarget:Vec3|null=null,patientWalkPath:{x:number;z:number}[]=[];
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,rig=>{patientFallback.entity.destroy();patientFallbackRig=null;patientRig=rig;});
 
-type WaitingPatientVisual={root:pc.Entity;fallback:FallbackRig|null;rig:HumanoidRig|null};
+type WaitingPatientVisual={root:Entity;fallback:FallbackRig|null;rig:HumanoidRig|null};
 const waitingPatientVisuals:WaitingPatientVisual[]=[];
 for(let i=0;i<2;i++){
- const root=new pc.Entity("Waiting patient "+(i+2));world.addChild(root);root.enabled=false;
+ const root=new Entity("Waiting patient "+(i+2));world.addChild(root);root.enabled=false;
  const fallback=createFallbackHumanoid(root,"patient");
  const visual:WaitingPatientVisual={root,fallback,rig:null};waitingPatientVisuals.push(visual);
  loadHumanoid(characterAssets.patient,root,1.62,false,rig=>{visual.fallback?.entity.destroy();visual.fallback=null;visual.rig=rig;});
 }
 
 
-let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=3200, xp=0, nextId=1, focus=false, wallRotation:0|90=0;
+let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:Vec3|null=null, coins=3200, xp=0, nextId=1, focus=false, wallRotation:0|90=0;
 let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v3")||0);return Math.max(0,Math.min(6,saved));}catch{return 0;}})();
 
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v12";
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:Vec3|null=null;const saveKey="therason-clinic-world-v12";
 const managementSaveKey="therason-clinic-management-v4";
 const TRIAL_ACCOUNT_COINS=3200; 
 const starterLayout:Placed[]=[{id:1,kind:"treatment",gx:-2,gz:-2,width:4,depth:4}];
@@ -416,7 +416,7 @@ const clinicAssetUrls:Record<string,string>={
  "corridor-floor-tile.glb":new URL("../assets/clinic-kit/management-sim/corridor-floor-tile.glb",import.meta.url).href
 };
 const containerCache=new Map<string,Promise<any>>();
-function loadRoomModule(parent:pc.Entity,file:string,x:number,y:number,z:number,rotation:number,scaleX=1,scaleZ=1,fallback:"floor"|"wall"="wall",scaleY=1){
+function loadRoomModule(parent:Entity,file:string,x:number,y:number,z:number,rotation:number,scaleX=1,scaleZ=1,fallback:"floor"|"wall"="wall",scaleY=1){
  const url=clinicAssetUrls[file];if(!url)return;
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:highDetailDevice,receiveShadows:highDetailDevice});
@@ -427,7 +427,7 @@ function loadRoomModule(parent:pc.Entity,file:string,x:number,y:number,z:number,
   else{const fallbackWall=box("Fallback wall module",x,y+1.35*scaleY,z,scaleX*2,2.7*scaleY,scaleZ*.15,M.wallSide,parent);fallbackWall.setLocalEulerAngles(0,rotation,0);}
  });
 }
-function addRoomWallRun(parent:pc.Entity,axis:"x"|"z",start:number,length:number,fixed:number,kind:"solid"|"glazed",heightScale=1){
+function addRoomWallRun(parent:Entity,axis:"x"|"z",start:number,length:number,fixed:number,kind:"solid"|"glazed",heightScale=1){
  let cursor=0;
  const rotation=axis==="z"?90:0;
  const place=(file:string,span:number,center:number)=>{
@@ -443,7 +443,7 @@ function addRoomWallRun(parent:pc.Entity,axis:"x"|"z",start:number,length:number
   box("Short wall infill",x,1.35*heightScale,z,axis==="x"?remainder:.15,2.7*heightScale,axis==="z"?remainder:.15,M.wallSide,parent);
  }
 }
-function loadRoomDoor(parent:pc.Entity,x:number,z:number){
+function loadRoomDoor(parent:Entity,x:number,z:number){
  const url=clinicAssetUrls["door-leaf.glb"];
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:true});
@@ -468,7 +468,7 @@ function getClinicContainer(url:string):Promise<any>{
 function drawAssetFallback(p:Placed,spec:{label:string}){
  const key=p.assetKey??"";
  const size=storeAssetSpecs[key]?.footprint??1;
- const root=new pc.Entity("Fallback prop · "+spec.label);
+ const root=new Entity("Fallback prop · "+spec.label);
  root.setPosition(p.gx+size/2,0,p.gz+size/2);world.addChild(root);
  const bed=(name:string)=>{box(name+" base",0,.3,0,1.8,.2,.82,M.dark,root);box(name+" mattress",0,.47,0,1.76,.18,.78,M.blue,root);box(name+" pillow",0,.59,-.3,.46,.1,.28,M.pale,root);for(const x of [-.72,.72])for(const z of [-.28,.28])box(name+" leg",x,.13,z,.08,.28,.08,M.dark,root);};
  const chair=(name:string)=>{box(name+" seat",0,.48,0,.62,.15,.62,M.teal,root);box(name+" back",0,.82,-.23,.62,.62,.13,M.blue,root);for(const x of [-.23,.23])for(const z of [-.23,.23])box(name+" leg",x,.22,z,.06,.44,.06,M.dark,root);};
@@ -497,38 +497,38 @@ function drawAssetFallback(p:Placed,spec:{label:string}){
  else if(key==="hospital-stretcher"){bed("Fallback stretcher");for(const x of [-.7,.7])for(const z of [-.3,.3])sphere("Fallback stretcher wheel",x,.08,z,.12,M.dark,root);}
  else if(key==="hospital-walking-frame"){for(const x of [-.3,.3]){box("Fallback walking frame side",x,.58,0,.055,1.15,.055,M.dark,root);box("Fallback walking frame handle",x,1.18,-.12,.08,.07,.35,M.teal,root);}box("Fallback walking frame crossbar",0,.62,0,.62,.055,.055,M.dark,root);}
 }
-function collectDescendants(root:pc.Entity):pc.Entity[]{
+function collectDescendants(root:Entity):Entity[]{
  // Imported GLB hierarchies can be unusually deep. Traverse iteratively so a
  // vendor model can never exhaust the browser's JavaScript call stack.
- const found:pc.Entity[]=[];
- const stack=[...(root.children as pc.Entity[])];
- const seen=new Set<pc.Entity>();
+ const found:Entity[]=[];
+ const stack=[...(root.children as Entity[])];
+ const seen=new Set<Entity>();
  while(stack.length){
   const node=stack.pop()!;
   if(seen.has(node))continue;
   seen.add(node);found.push(node);
-  for(const child of node.children as pc.Entity[])stack.push(child);
+  for(const child of node.children as Entity[])stack.push(child);
  }
  return found;
 }
-function collectRenderMeshes(root:pc.Entity):any[]{
- const meshes:any[]=[];const stack=[root];const seen=new Set<pc.Entity>();
+function collectRenderMeshes(root:Entity):any[]{
+ const meshes:any[]=[];const stack=[root];const seen=new Set<Entity>();
  while(stack.length){const node=stack.pop()!;if(seen.has(node))continue;seen.add(node);
   const component=(node as any).render;if(component?.meshInstances?.length)for(const mesh of component.meshInstances)meshes.push(mesh);
-  for(const child of node.children as pc.Entity[])stack.push(child);
+  for(const child of node.children as Entity[])stack.push(child);
  }return meshes;
 }
-function findEntityByName(root:pc.Entity,name:string):pc.Entity|null{
- const stack=[root],seen=new Set<pc.Entity>();while(stack.length){const node=stack.pop()!;if(seen.has(node))continue;seen.add(node);if(node.name===name)return node;for(const child of node.children as pc.Entity[])stack.push(child);}return null;
+function findEntityByName(root:Entity,name:string):Entity|null{
+ const stack=[root],seen=new Set<Entity>();while(stack.length){const node=stack.pop()!;if(seen.has(node))continue;seen.add(node);if(node.name===name)return node;for(const child of node.children as Entity[])stack.push(child);}return null;
 }
-function renderBounds(root:pc.Entity){
+function renderBounds(root:Entity){
  const meshes=collectRenderMeshes(root);
  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
  for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
  if(!meshes.length||![minX,maxX,minY,maxY,minZ,maxZ].every(Number.isFinite))return null;
  return {minX,maxX,minY,maxY,minZ,maxZ,width:maxX-minX,height:maxY-minY,depth:maxZ-minZ};
 }
-function loadWaitingSeats(parent:pc.Entity){
+function loadWaitingSeats(parent:Entity){
  const url=clinicAssetUrls["waiting-bench-two-seat.glb"];
  getClinicContainer(url).then(asset=>{
   for(let i=0;i<2;i++){
@@ -544,7 +544,7 @@ function loadWaitingSeats(parent:pc.Entity){
   }
  });
 }
-function loadReceptionDesk(parent:pc.Entity){
+function loadReceptionDesk(parent:Entity){
  const url=clinicAssetUrls["reception-desk.glb"];
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
@@ -554,7 +554,7 @@ function loadReceptionDesk(parent:pc.Entity){
   const scale=Math.min(2.1/bounds.width,.88/bounds.depth,1.08/bounds.height);
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();
   bounds=renderBounds(model);if(!bounds)throw new Error("Reception counter has no render meshes");
-  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(-.35,0,1.0),new pc.Vec3());
+  const target=parent.getWorldTransform().transformPoint(new Vec3(-.35,0,1.0),new Vec3());
   const current=model.getPosition();
   model.setPosition(current.x+target.x-(bounds.minX+bounds.maxX)/2,current.y-bounds.minY,current.z+target.z-(bounds.minZ+bounds.maxZ)/2);
   model.syncHierarchy();
@@ -565,7 +565,7 @@ function loadReceptionDesk(parent:pc.Entity){
   box("Reception fallback monitor",.2,1.18,2.25,.42,.34,.05,M.dark,parent);
  });
 }
-function loadTreatmentRoomDecor(parent:pc.Entity){
+function loadTreatmentRoomDecor(parent:Entity){
  const url=clinicAssetUrls["hospital-patient-room.glb"];
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:highDetailDevice,receiveShadows:highDetailDevice});
@@ -583,7 +583,7 @@ function loadTreatmentRoomDecor(parent:pc.Entity){
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();
   b=renderBounds(model);
   if(!b)throw new Error("Treatment-room props have no renderable meshes");
-  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(1,0,1),new pc.Vec3());
+  const target=parent.getWorldTransform().transformPoint(new Vec3(1,0,1),new Vec3());
   const current=model.getPosition();
   model.setPosition(current.x+target.x-(b.minX+b.maxX)/2,current.y-b.minY,current.z+target.z-(b.minZ+b.maxZ)/2);
   model.syncHierarchy();
@@ -600,8 +600,8 @@ function loadClinicAsset(p:Placed){
   const container=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
   const chosen=spec.node==="*"?container:findEntityByName(container,spec.node);
   if(!chosen){container.destroy();throw new Error("Missing model node "+spec.node);}
-  if(spec.node!=="*"){const sourceParent=chosen.parent as pc.Entity|null;if(sourceParent)sourceParent.removeChild(chosen);container.destroy();}
-  const size=spec.footprint,holder=new pc.Entity("3D asset · "+spec.label);
+  if(spec.node!=="*"){const sourceParent=chosen.parent as Entity|null;if(sourceParent)sourceParent.removeChild(chosen);container.destroy();}
+  const size=spec.footprint,holder=new Entity("3D asset · "+spec.label);
   world.addChild(holder);holder.setLocalPosition(p.gx+size/2,0,p.gz+size/2);holder.addChild(chosen);
   chosen.setLocalPosition(0,0,0);chosen.setLocalEulerAngles(0,p.rot??0,0);holder.syncHierarchy();
   const before=renderBounds(chosen);
@@ -652,7 +652,7 @@ function load(){
  }catch{useStarter();}
 }
 function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"exercise":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"exercise",p.gx,p.gz,p.id,p.width??4,p.depth??4);if(p.kind==="treatment"&&p.id===1){loadClinicAsset({id:90001,kind:"asset",gx:-1,gz:-1,assetKey:"pt-treatment-table"});loadClinicAsset({id:90002,kind:"asset",gx:1,gz:1,assetKey:"pt-storage-cabinet"});}else if(p.kind==="assessment"){loadClinicAsset({id:p.id*1000+1,kind:"asset",gx:p.gx,gz:p.gz+1,assetKey:"pt-exam-table"});loadClinicAsset({id:p.id*1000+2,kind:"asset",gx:p.gx+2,gz:p.gz+1,assetKey:"pt-privacy-screen"});}else if(p.kind==="gym"){loadClinicAsset({id:p.id*1000+1,kind:"asset",gx:p.gx,gz:p.gz,assetKey:"pt-parallel-bars"});loadClinicAsset({id:p.id*1000+2,kind:"asset",gx:p.gx+3,gz:p.gz+3,assetKey:"pt-exercise-ball"});}return;}
- const root=new pc.Entity("Placed "+p.kind);
+ const root=new Entity("Placed "+p.kind);
  world.addChild(root);
  if(p.kind==="wall")root.setLocalPosition(p.rot===90?p.gx+1.5:x,0,p.rot===90?z:p.gz+1.5);
  else root.setLocalPosition(x,0,z);
@@ -718,9 +718,9 @@ function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string
 }
 
 // Reusable placement ghost: one lightweight mesh, updated in place (never spawned per pointer event).
-const placementPreviewMaterial=material(new pc.Color(.12,.82,.48));
+const placementPreviewMaterial=material(new Color(.12,.82,.48));
 placementPreviewMaterial.opacity=.42;
-placementPreviewMaterial.blendType=pc.BLEND_NORMAL;
+placementPreviewMaterial.blendType=BLEND_NORMAL;
 placementPreviewMaterial.depthWrite=false;
 placementPreviewMaterial.update();
 const placementPreview=box("Placement preview · validity ghost",0,.12,0,1,.035,1,placementPreviewMaterial,world);
@@ -738,8 +738,8 @@ function updatePlacementPreview(clientX:number,clientY:number){
  placementPreview.setLocalPosition(bounds.x+bounds.w/2,.12,bounds.z+bounds.d/2);
  placementPreview.setLocalScale(Math.max(.08,bounds.w),.035,Math.max(.08,bounds.d));
  if(previewValidity!==valid){
-  placementPreviewMaterial.diffuse=valid?new pc.Color(.12,.88,.48):new pc.Color(.96,.22,.20);
-  placementPreviewMaterial.emissive=valid?new pc.Color(.025,.16,.07):new pc.Color(.16,.018,.015);
+  placementPreviewMaterial.diffuse=valid?new Color(.12,.88,.48):new Color(.96,.22,.20);
+  placementPreviewMaterial.emissive=valid?new Color(.025,.16,.07):new Color(.16,.018,.015);
   placementPreviewMaterial.update();
   previewValidity=valid;
  }
@@ -916,10 +916,10 @@ function setMissionPhase(next:number){
 
 function patientGoalFor(room:{x:number;z:number;width:number;depth:number},stage:string){
  const centerX=room.x+room.width/2,centerZ=room.z+room.depth/2;
- if(stage==="departing")return new pc.Vec3(0,0,-4.55);
- if(stage==="reception")return new pc.Vec3(centerX-.35,0,centerZ+.22);
- if(stage==="waiting")return new pc.Vec3(centerX+.75,0,centerZ+.4);
- return new pc.Vec3(centerX+Math.min(.95,room.width*.24),0,centerZ+.2);
+ if(stage==="departing")return new Vec3(0,0,-4.55);
+ if(stage==="reception")return new Vec3(centerX-.35,0,centerZ+.22);
+ if(stage==="waiting")return new Vec3(centerX+.75,0,centerZ+.4);
+ return new Vec3(centerX+Math.min(.95,room.width*.24),0,centerZ+.2);
 }
 function renderManagement(){
  el<HTMLElement>("#game-clock").textContent="اليوم "+management.day+" · "+formatGameTime(management);
@@ -961,7 +961,7 @@ function renderManagement(){
    patientVisualId=visiblePatient.id;patientVisualStage=visiblePatient.stage;
    const roomType=visiblePatient.stage==="reception"||visiblePatient.stage==="waiting"?"reception":visiblePatient.stage==="assessment"?"assessment":(visiblePatient.need==="mobility"||visiblePatient.need==="sports")&&management.rooms.some(r=>r.type==="exercise")?"exercise":"treatment";
    const room=management.rooms.find(r=>r.type===roomType)??management.rooms.find(r=>r.type==="treatment");
-   const goal=room?patientGoalFor(room,visiblePatient.stage):new pc.Vec3(0,0,-4.55);
+   const goal=room?patientGoalFor(room,visiblePatient.stage):new Vec3(0,0,-4.55);
    const current=patientNpc.getLocalPosition();patientNpc.enabled=false;
    if(canWalkSegment(current.x,current.z,goal.x,goal.z)){patientWalkPath=[];patientTarget=goal;}
    else{const route=findWalkPath(current.x,current.z,goal.x,goal.z);patientWalkPath=route?simplifyWalkRoute(route,current.x,current.z):[];patientTarget=goal;}
@@ -979,7 +979,7 @@ function screenToGround(clientX:number,clientY:number){
  if(Math.abs(direction.y)<.0001)return null;
  const t=-near.y/direction.y;if(t<0)return null;
  const worldPoint=near.add(direction.mulScalar(t));
- const localPoint=worldInverse.transformPoint(worldPoint,new pc.Vec3());
+ const localPoint=worldInverse.transformPoint(worldPoint,new Vec3());
  if(Math.abs(localPoint.x)>HALF_X||Math.abs(localPoint.z)>HALF_Z)return null;
  return localPoint;
 }
@@ -998,7 +998,7 @@ function updateRoomDrawPreview(){
  const cost=base.cost+Math.max(0,b.w*b.d-base.width*base.depth)*35;
  const valid=!occupied(b.x,b.z,selected,wallRotation,undefined,true,b.w,b.d)&&coins>=cost;
  placementPreview.setLocalPosition(b.x+b.w/2,.12,b.z+b.d/2);placementPreview.setLocalScale(b.w,.035,b.d);
- if(previewValidity!==valid){placementPreviewMaterial.diffuse=valid?new pc.Color(.12,.88,.48):new pc.Color(.96,.22,.20);placementPreviewMaterial.emissive=valid?new pc.Color(.025,.16,.07):new pc.Color(.16,.018,.015);placementPreviewMaterial.update();previewValidity=valid;}
+ if(previewValidity!==valid){placementPreviewMaterial.diffuse=valid?new Color(.12,.88,.48):new Color(.96,.22,.20);placementPreviewMaterial.emissive=valid?new Color(.025,.16,.07):new Color(.16,.018,.015);placementPreviewMaterial.update();previewValidity=valid;}
  placementPreview.enabled=true;
 }
 canvas.addEventListener("pointerdown",e=>{
@@ -1051,7 +1051,7 @@ canvas.addEventListener("pointerup",e=>{
   placed.push(item);drawPlaced(item);if(isRoomKind(item.kind))createLawnGrass();else if(item.kind==="asset")updateMissionEquipment();save();updatePlacementPreview(e.clientX,e.clientY);status.textContent=isRoomKind(item.kind)?"تم بناء الغرفة. أضف الأجهزة والأثاث المناسبين.":"تمت إضافة العنصر إلى العيادة.";return;
  }
  const start=avatar.getLocalPosition().clone(),tx=ground.x,tz=ground.z;
- destination=new pc.Vec3(tx,0,tz);
+ destination=new Vec3(tx,0,tz);
  tapMarker.setLocalPosition(tx,.035,tz);tapMarker.enabled=true;
  // Open-floor taps move to the exact point; the grid pathfinder is reserved for blocked lines of sight.
  if(canWalkSegment(start.x,start.z,tx,tz)){
@@ -1067,7 +1067,7 @@ canvas.addEventListener("pointerup",e=>{
  const last=walkPath[walkPath.length-1];
  if(canWalkSegment(last.x,last.z,tx,tz))walkPath.push({x:tx,z:tz});
  const first=walkPath.shift()!;
- target=new pc.Vec3(first.x,0,first.z);
+ target=new Vec3(first.x,0,first.z);
  setLocomotion(true);
  status.textContent="الأخصائي يلتف حول العائق ويتجه إلى النقطة المحددة.";
 });
@@ -1153,7 +1153,7 @@ function setLocomotion(moving:boolean){
 }
 function moveAvatarTo(tx:number,tz:number){
  const start=avatar.getLocalPosition().clone();
- destination=new pc.Vec3(tx,0,tz);
+ destination=new Vec3(tx,0,tz);
  tapMarker.setLocalPosition(tx,.035,tz);tapMarker.enabled=true;
  if(canWalkSegment(start.x,start.z,tx,tz)){
   walkPath=[];target=destination.clone();setLocomotion(true);return true;
@@ -1165,7 +1165,7 @@ function moveAvatarTo(tx:number,tz:number){
  if(last&&canWalkSegment(last.x,last.z,tx,tz))walkPath.push({x:tx,z:tz});
  const first=walkPath.shift();
  if(!first){destination=null;tapMarker.enabled=false;walkPath=[];setLocomotion(false);return false;}
- target=new pc.Vec3(first.x,0,first.z);setLocomotion(true);return true;
+ target=new Vec3(first.x,0,first.z);setLocomotion(true);return true;
 }
 el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
  if(missionPhase===0||missionPhase===1||missionPhase===2){
@@ -1202,7 +1202,7 @@ app.on("update",(dt:number)=>{
  if(!target){if(sessionPending){sessionPending=false;sessionDialog.showModal();}return;}
  const p=avatar.getLocalPosition().clone(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
  if(d<.10){
-  if(walkPath.length){const next=walkPath.shift()!;target=new pc.Vec3(next.x,0,next.z);}
+  if(walkPath.length){const next=walkPath.shift()!;target=new Vec3(next.x,0,next.z);}
   else{target=null;destination=null;walkVelocity=0;if(playerRig?.anim)playerRig.anim.speed=1;setLocomotion(false);}
  }else{
   setLocomotion(true);
@@ -1220,7 +1220,7 @@ app.on("update",(dt:number)=>{
    const retry=goal?findWalkPath(p.x,p.z,goal.x,goal.z):null;
    if(retry&&retry.length){
     walkPath=simplifyWalkRoute(retry,p.x,p.z);
-    const next=walkPath.shift()!;target=new pc.Vec3(next.x,0,next.z);
+    const next=walkPath.shift()!;target=new Vec3(next.x,0,next.z);
    }else{
     target=null;destination=null;walkPath=[];setLocomotion(false);
     status.textContent="الممر مغلق حالياً. اختر نقطة أخرى داخل المساحة المتاحة.";
