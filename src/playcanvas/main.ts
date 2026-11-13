@@ -51,7 +51,7 @@ window.visualViewport?.addEventListener("resize",queueResize,{passive:true});
 window.visualViewport?.addEventListener("scroll",queueResize,{passive:true});
 app.scene.ambientLight=new pc.Color(.76,.78,.80);
 function material(c:pc.Color){const m=new pc.StandardMaterial();m.diffuse=c;m.update();return m;}
-const M={ground:material(new pc.Color(.32,.48,.43)),tile:material(new pc.Color(.43,.59,.51)),grid:material(new pc.Color(.25,.4,.36)),room:material(new pc.Color(.78,.82,.79)),wall:material(new pc.Color(.88,.91,.86)),wallSide:material(new pc.Color(.53,.68,.69)),wood:material(new pc.Color(.48,.33,.23)),wood2:material(new pc.Color(.68,.49,.31)),teal:material(new pc.Color(.13,.48,.55)),blue:material(new pc.Color(.18,.35,.58)),pale:material(new pc.Color(.79,.9,.88)),green:material(new pc.Color(.2,.53,.36)),skin:material(new pc.Color(.7,.49,.36)),dark:material(new pc.Color(.1,.16,.21)),white:material(new pc.Color(.93,.94,.87)),yellow:material(new pc.Color(.85,.65,.27))};
+const M={ground:material(new pc.Color(.24,.52,.39)),tile:material(new pc.Color(.34,.66,.48)),grid:material(new pc.Color(.12,.62,.72)),room:material(new pc.Color(.86,.91,.88)),wall:material(new pc.Color(.96,.97,.93)),wallSide:material(new pc.Color(.40,.68,.72)),wood:material(new pc.Color(.54,.34,.23)),wood2:material(new pc.Color(.78,.55,.31)),teal:material(new pc.Color(.02,.64,.70)),blue:material(new pc.Color(.10,.34,.66)),pale:material(new pc.Color(.82,.95,.94)),green:material(new pc.Color(.20,.65,.39)),skin:material(new pc.Color(.72,.49,.36)),dark:material(new pc.Color(.08,.15,.23)),white:material(new pc.Color(.98,.98,.92)),yellow:material(new pc.Color(.98,.73,.23))};
 type PrimitiveModelType="box"|"capsule"|"cone"|"cylinder"|"plane"|"sphere"|"torus";
 function primitive(name:string,type:PrimitiveModelType,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){
  const e=new pc.Entity(name);e.addComponent("model",{type});parent.addChild(e);e.setLocalPosition(x,y,z);e.setLocalScale(sx,sy,sz);
@@ -169,15 +169,30 @@ for(let i=0;i<=D;i++){
  box("Property grid horizontal",0,.035,z,W,.012,.012,gridMaterial,buildGrid);
 }
 buildGrid.enabled=false;
+const ROOM_SURFACES={
+ reception:material(new pc.Color(.80,.91,.89)),
+ assessment:material(new pc.Color(.83,.91,.96)),
+ treatment:material(new pc.Color(.86,.94,.91)),
+ exercise:material(new pc.Color(.83,.90,.96))
+};
+const ROOM_TILE_A=material(new pc.Color(.96,.97,.92));
+const ROOM_TILE_B=material(new pc.Color(.82,.91,.90));
 function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number,gz:number,id:number,width=4,depth=4){
  const root=new pc.Entity("Room "+id+" · "+kind);
  world.addChild(root);root.setLocalPosition(gx+width/2,0,gz+depth/2);
- const floor=material(new pc.Color(.72,.75,.71));
- box("Room floor",0,.035,0,width-.06,.07,depth-.06,floor,root);
  const wallThickness=.16,wallHeight=2.25,halfW=width/2,halfD=depth/2;
- const wallMat=material(new pc.Color(.88,.91,.87)),sideMat=material(new pc.Color(.58,.70,.70));
- const trimMat=material(new pc.Color(.12,.42,.48)),frameMat=material(new pc.Color(.94,.95,.91));
- // Continuous cutaway shell with a centered entrance opening; the floor is only inside this room.
+ const floor=ROOM_SURFACES[kind];
+ box("Room floor base",0,.035,0,width-.06,.07,depth-.06,floor,root);
+ // Small alternating floor tiles create the bright, readable toy-clinic finish without texturing the entire plot.
+ for(let x=0;x<Math.ceil(width);x++)for(let z=0;z<Math.ceil(depth);z++){
+  const tw=Math.min(.94,width-x-.06),td=Math.min(.94,depth-z-.06);
+  if(tw<=.08||td<=.08)continue;
+  box("Room floor tile",-.5*width+.5+x,.078,-.5*depth+.5+z,tw,.018,td,(x+z)%2?ROOM_TILE_A:ROOM_TILE_B,root);
+ }
+ const wallMat=material(new pc.Color(.96,.97,.94)),sideMat=material(new pc.Color(.58,.78,.79));
+ const trimMat=kind==="reception"?M.teal:kind==="assessment"?M.blue:kind==="exercise"?M.yellow:M.teal;
+ const frameMat=material(new pc.Color(.99,.99,.95));
+ // Open-front cutaway room, like a management sim: the room remains legible while its furniture is visible.
  box("Left wall",-halfW,wallHeight/2,0,wallThickness,wallHeight,depth,sideMat,root);
  box("Right wall",halfW,wallHeight/2,0,wallThickness,wallHeight,depth,sideMat,root);
  box("Rear wall",0,wallHeight/2,halfD,width,wallHeight,wallThickness,wallMat,root);
@@ -187,13 +202,12 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
  box("Door lintel",0,wallHeight-.08,-halfD,doorWidth,.16,wallThickness,frameMat,root);
  box("Door frame left",-doorWidth/2,1.08,-halfD-.035,.07,2.16,.12,frameMat,root);
  box("Door frame right",doorWidth/2,1.08,-halfD-.035,.07,2.16,.12,frameMat,root);
- box("Door leaf ajar",-doorWidth*.32,1.02,-halfD+.13,.07,2.02,Math.min(.82,depth*.22),material(new pc.Color(.68,.73,.71)),root);
+ box("Door leaf ajar",-doorWidth*.32,1.02,-halfD+.13,.07,2.02,Math.min(.82,depth*.22),M.white,root);
  cylinder("Door handle",-doorWidth*.32,1.03,-halfD+.48,.035,.035,.035,M.yellow,root);
- // Low plinth and top cap give every room a consistent management-game silhouette.
- for(const x of [-halfW,halfW])box("Wall teal plinth",x,.17,0,wallThickness,.22,depth,trimMat,root);
+ for(const x of [-halfW,halfW])box("Colored wall base",x,.17,0,wallThickness,.22,depth,trimMat,root);
+ box("Rear wall color band",0,.35,halfD-wallThickness-.03,width,.16,.08,trimMat,root);
  box("Rear wall cap",0,wallHeight+.04,halfD,width,.1,.22,frameMat,root);
- box("Room name panel",0,1.85,halfD-wallThickness-.02,Math.min(1.8,width*.55),.42,.04,trimMat,root);
- // Rear glazing gives the room a readable architectural edge without a roof blocking the isometric view.
+ box("Room identity plaque",0,1.86,halfD-wallThickness-.02,Math.min(1.8,width*.55),.42,.06,trimMat,root);
  const windowWidth=Math.min(1.05,(width-.5)/2);
  for(const x of [-width*.25,width*.25]){
   box("Rear window glass",x,1.35,halfD-wallThickness-.025,windowWidth,.82,.035,glass,root);
@@ -210,7 +224,7 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
  }else if(kind==="reception"){
   loadReceptionDesk(root);loadWaitingSeats(root);
  }else{
-  box("Exercise mat",0,.07,0,Math.min(width*.68,2.7),.08,Math.min(depth*.42,1.25),M.blue,root);
+  box("Exercise mat",0,.09,0,Math.min(width*.68,2.7),.08,Math.min(depth*.42,1.25),M.blue,root);
   for(const x of [-Math.min(width*.25,.9),Math.min(width*.25,.9)]){
    box("Parallel bar support",x,.6,depth*.24,.1,1.1,.1,M.wood2,root);
    box("Parallel bar rail",x,1.08,depth*.24,.08,.08,Math.min(2.2,depth*.5),M.yellow,root);
@@ -1074,7 +1088,7 @@ sessionBtn.addEventListener("click",()=>{
  else{focus=false;cameraGoal.set(0,0,0);viewBtn.classList.remove("active");status.textContent="لا يوجد مسار آمن إلى المريض. افتح الممر أو أعد ترتيب الأثاث قبل بدء الجلسة.";}
 });
 sessionDialog.addEventListener("close",()=>{focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=15.5;viewBtn.classList.remove("active");});
-el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{const earned=completePatientSession(management,activeSessionPatientId,sessionScore);xp=management.experience;coins=management.balance;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
+el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{const earned=completePatientSession(management,activeSessionPatientId,sessionScore);xp=management.experience;coins=management.balance;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};renderManagement();renderMission();save();}});
 load();createLawnGrass();coinsLabel.textContent=String(coins);renderManagement();
 let locomotionState="",managementUiTimer=0,managementSaveTimer=0;
 function setLocomotion(moving:boolean){
