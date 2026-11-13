@@ -149,20 +149,45 @@ const characterAssets:Record<string,string>={
  patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,
 };
 type HumanoidRig={entity:pc.Entity;anim:any;clips:string[];idle:string;walk:string};
+function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
+ const root=new pc.Entity("Visible fallback "+kind);parent.addChild(root);
+ const shirt=kind==="student"?M.white:M.pale,trousers=kind==="student"?M.blue:M.teal;
+ box("Humanoid torso",0,1.02,0,.43,.66,.25,shirt,root);
+ box("Humanoid neck",0,1.39,0,.14,.13,.14,M.skin,root);
+ sphere("Humanoid head",0,1.59,0,.43,M.skin,root);
+ sphere("Humanoid hair",0,1.77,-.035,.34,M.dark,root);
+ for(const x of [-.13,.13]){
+  box("Humanoid leg",x,.43,0,.17,.72,.19,trousers,root);
+  box("Humanoid shoe",x,.075,.07,.2,.13,.34,M.dark,root);
+ }
+ for(const x of [-.29,.29]){
+  box("Humanoid arm",x,1.02,0,.14,.62,.16,shirt,root);
+  sphere("Humanoid hand",x,.68,.015,.15,M.skin,root);
+ }
+ if(kind==="student"){
+  box("Physiotherapist ID badge",.12,1.18,-.132,.1,.13,.025,trim,root);
+ }
+ return root;
+}
+
  function loadHumanoid(url:string,parent:pc.Entity,height:number,castShadow:boolean,onReady?:(rig:HumanoidRig)=>void){
  app.assets.loadFromUrl(url,"container",(err,asset)=>{
-  if(err||!asset?.resource){console.error("Character asset failed",url,err);status.textContent="تعذر تحميل شخصية؛ بقية العيادة تستمر بالعمل.";return;}
+  if(err||!asset?.resource){console.error("Character asset failed",url,err);status.textContent="تم تشغيل شخصية بديلة خفيفة؛ تعذر تحميل النموذج الخارجي.";return;}
   const model=asset.resource.instantiateRenderEntity({castShadows:castShadow,receiveShadows:false});
   model.name="Animated humanoid";parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
   const meshes=model.findComponents("render").flatMap(r=>r.meshInstances);
   if(!meshes.length){console.error("Character GLB has no render meshes",url);model.destroy();return;}
   let minY=Infinity,maxY=-Infinity;
   for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);}
-  const measuredHeight=maxY-minY;const scale=height/Math.max(0.000001,measuredHeight);
+  const measuredHeight=maxY-minY;
+  if(!Number.isFinite(measuredHeight)||measuredHeight<.25||measuredHeight>8){console.error("Character asset has implausible dimensions",url,measuredHeight);model.destroy();return;}
+  const scale=height/measuredHeight;
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
   const scaled=model.findComponents("render").flatMap(r=>r.meshInstances);
-  minY=Infinity;for(const mesh of scaled){const b=mesh.aabb;minY=Math.min(minY,b.center.y-b.halfExtents.y);}
-  model.setLocalPosition(0,-minY,0);
+  let scaledMinY=Infinity,scaledCenterX=0,scaledCenterZ=0;
+  for(const mesh of scaled){const b=mesh.aabb;scaledMinY=Math.min(scaledMinY,b.center.y-b.halfExtents.y);scaledCenterX+=b.center.x;scaledCenterZ+=b.center.z;}
+  const meshCount=Math.max(1,scaled.length);
+  model.setLocalPosition(-scaledCenterX/meshCount,-scaledMinY,-scaledCenterZ/meshCount);
   model.addComponent("anim",{activate:true,speed:1});
   const anim:any=(model as any).anim;
   const clips:any[]=asset.resource.animations??[];
@@ -189,12 +214,15 @@ function transitionHumanoid(rig:HumanoidRig|null,moving:boolean){
  try{rig.anim.baseLayer.transition(desired,moving ? 0.22 : 0.3);rig.anim.speed=moving?1:1;}
  catch{try{rig.anim.baseLayer.play(desired);}catch{}}
 }
+const studentFallback=createFallbackHumanoid(avatar,"student");
 loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
+ studentFallback.destroy();
  avatarAnim=rig.anim;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
 const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(1.55,0,1.5);world.addChild(patientNpc);
-loadHumanoid(characterAssets.patient,patientNpc,1.62,false);
+const patientFallback=createFallbackHumanoid(patientNpc,"patient");
+loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>patientFallback.destroy());
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=3, focus=false, wallRotation:0|90=0;
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v4"; 
@@ -319,35 +347,37 @@ function rectanglesOverlap(a:{x:number;z:number;w:number;d:number},b:{x:number;z
  return placed.some(p=>{const existingRoom=isRoom(p.kind),candidateRoom=isRoom(kind);if(existingRoom&&!candidateRoom)return false;return rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey));});
 }
 function canAvatarStand(x:number,z:number){
- const r=.28;
- if(x-r< -HALF||x+r>HALF||z-r< -HALF||z+r>HALF)return false;
- const player={x:x-r,z:z-r,w:r*2,d:r*2};
- const boundary=[{x:-HALF,z:-HALF,w:W,d:.22},{x:-HALF,z:HALF-.22,w:W,d:.22},{x:-HALF,z:-HALF,w:.22,d:D},{x:HALF-.22,z:-HALF,w:.22,d:D}];
- if(boundary.some(w=>rectanglesOverlap(player,w)))return false;
+ const radius=.28;
+ if(x-radius< -HALF||x+radius>HALF||z-radius< -HALF||z+radius>HALF)return false;
+ const player={x:x-radius,z:z-radius,w:radius*2,d:radius*2};
  const roomBlocked=placed.some(p=>{
-  if(p.kind==="treatment"||p.kind==="reception"||p.kind==="gym"){
-   const x=p.gx,z=p.gz;
-   // Match the collision rectangles to the actual room geometry (root is offset by +1,+1).
+  const isRoom=p.kind==="treatment"||p.kind==="reception"||p.kind==="gym";
+  if(isRoom){
+   const gx=p.gx,gz=p.gz;
+   // These rectangles are derived from makeRoom's actual wall transforms and dimensions.
    const walls=[
-    {x:x,z:z+3.9,w:4,d:.16},
-    ...(p.id===2?[]:[{x:x,z:z,w:.16,d:4}]),
+    {x:gx,z:gz+3.92,w:4,d:.16}, // rear wall
+    ...(p.id!==2?[{x:gx-.08,z:gz,w:.16,d:4}]:[]), // left wall
     ...(p.id===1?[
-     {x:x+3.9,z:z,w:.16,d:1.3},
-     {x:x+3.9,z:z+2.7,w:.16,d:1.3}
-    ]:[{x:x+3.9,z:z,w:.16,d:4}]),
-    {x:x+1,z:z-.05,w:.3,d:.14},
-    {x:x+2.7,z:z-.05,w:1.3,d:.14}
+     {x:gx+3.92,z:gz,w:.16,d:1.3},
+     {x:gx+3.92,z:gz+2.7,w:.16,d:1.3}
+    ]:[{x:gx+3.92,z:gz,w:.16,d:4}]),
+    {x:gx+1,z:gz-.08,w:.3,d:.16}, // front wall left of entrance
+    {x:gx+2.7,z:gz-.08,w:1.3,d:.16} // front wall right of entrance
    ];
    if(walls.some(w=>rectanglesOverlap(player,w)))return true;
-   // Built-in furniture must block walking just like furniture placed by the learner.
-   const furniture: {x:number;z:number;w:number;d:number}[] = p.kind==="reception"?[
-    {x:x+.3,z:z+3.025,w:1.8,d:.65}, // reception counter
-    {x:x+1.175,z:z+1.89,w:.65,d:.62}, // waiting seat
-    {x:x+1.175,z:z+2.84,w:.65,d:.62}  // waiting seat
+   const furniture:{x:number;z:number;w:number;d:number}[]=p.kind==="reception"?[
+    {x:gx+.3,z:gz+3.025,w:1.8,d:.65},
+    {x:gx+1.175,z:gz+1.89,w:.65,d:.62},
+    {x:gx+1.175,z:gz+2.84,w:.65,d:.62}
    ]:p.kind==="treatment"?[
-    {x:x+1.925,z:z+2.0,w:2.05,d:.9}, // treatment bed
-    {x:x+.975,z:z+3.125,w:.55,d:.55} // equipment cabinet
-   ]:[];
+    {x:gx+1.925,z:gz+2.0,w:2.05,d:.9},
+    {x:gx+.975,z:gz+3.125,w:.55,d:.55}
+   ]:[
+    {x:gx+.15,z:gz+2.05,w:.2,d:1.1},
+    {x:gx+1.95,z:gz+2.05,w:.2,d:1.1},
+    {x:gx+.65,z:gz+2.4,w:1,d:.16}
+   ];
    return furniture.some(w=>rectanglesOverlap(player,w));
   }
   return rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey));
@@ -390,9 +420,19 @@ function findWalkPath(sx:number,sz:number,tx:number,tz:number){
  return null;
 }
 function moveAvatarSafely(dx:number,dz:number){
- const p=avatar.getPosition(),distance=Math.hypot(dx,dz),steps=Math.max(1,Math.ceil(distance/.1));let x=p.x,z=p.z;
- for(let i=1;i<=steps;i++){const nx=p.x+dx*i/steps,nz=p.z+dz*i/steps;if(canAvatarStand(nx,nz)){x=nx;z=nz;}else break;}
- avatar.setPosition(x,0,z);return Math.hypot(x-p.x,z-p.z)>.001;
+ const p=avatar.getPosition(),distance=Math.hypot(dx,dz),steps=Math.max(1,Math.ceil(distance/.06));
+ let x=p.x,z=p.z;
+ for(let i=1;i<=steps;i++){
+  const nx=p.x+dx*i/steps,nz=p.z+dz*i/steps;
+  if(canAvatarStand(nx,nz)){x=nx;z=nz;continue;}
+  // Wall sliding: if a diagonal sample is blocked, try each axis independently.
+  const canX=canAvatarStand(nx,z),canZ=canAvatarStand(x,nz);
+  if(canX)x=nx;
+  if(canZ)z=nz;
+  if(!canX&&!canZ)break;
+ }
+ avatar.setPosition(x,0,z);
+ return Math.hypot(x-p.x,z-p.z)>.001;
 }
 function updateMode(next:"move"|"build"){mode=next;moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"اختر غرفة أو قطعة ثم المس خلية فارغة في الشبكة.";}
 function screenToGround(clientX:number,clientY:number){const r=canvas.getBoundingClientRect(),x=(clientX-r.left)*(canvas.width/r.width),y=(clientY-r.top)*(canvas.height/r.height);const a=camera.camera!.screenToWorld(x,y,.1),b=camera.camera!.screenToWorld(x,y,100),d=b.sub(a);if(Math.abs(d.y)<.0001)return null;const t=-a.y/d.y;if(t<0)return null;const p=a.add(d.mulScalar(t));if(Math.abs(p.x)>HALF||Math.abs(p.z)>HALF)return null;return p;}
