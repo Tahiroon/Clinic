@@ -214,7 +214,36 @@ function loadClinicAsset(p:Placed){
 }
 
 function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:3,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
-function load(){const useStarter=()=>{coins=350;xp=0;placed=starterLayout.map(p=>({...p}));nextId=3;for(const p of placed)drawPlaced(p);};try{const s=localStorage.getItem(saveKey);if(!s){useStarter();return;}const v=JSON.parse(s);if(v.v!==3){useStarter();return;}coins=Number.isFinite(v.coins)?Math.max(0,v.coins):350;xp=Number.isFinite(v.xp)?v.xp:0;placed=Array.isArray(v.placed)?v.placed.slice(0,60):[];nextId=Math.max(3,...placed.map((p:Placed)=>p.id+1));coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";for(const p of placed)drawPlaced(p);}catch{useStarter();}}
+function validSavedItem(value:any):value is Placed{
+ if(!value||typeof value!=="object")return false;
+ const kinds:BuildKind[]=["treatment","reception","gym","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
+ if(!kinds.includes(value.kind)||!Number.isSafeInteger(value.id)||value.id<1)return false;
+ if(!Number.isInteger(value.gx)||!Number.isInteger(value.gz)||![0,90].includes(value.rot??0))return false;
+ if(value.kind==="asset"&&(!value.assetKey||!storeAssetSpecs[value.assetKey]))return false;
+ if(value.kind!=="asset"&&value.assetKey!==undefined)return false;
+ const bounds=footprintAt(value.gx,value.gz,value.kind,value.rot??0,value.assetKey);
+ return bounds.x>=-HALF&&bounds.z>=-HALF&&bounds.x+bounds.w<=HALF&&bounds.z+bounds.d<=HALF;
+}
+function load(){
+ const useStarter=()=>{coins=350;xp=0;placed=starterLayout.map(p=>({...p}));nextId=3;for(const p of placed)drawPlaced(p);};
+ try{
+  const raw=localStorage.getItem(saveKey);if(!raw){useStarter();return;}
+  const v=JSON.parse(raw);if(v.v!==3||!Array.isArray(v.placed)){useStarter();return;}
+  coins=Number.isFinite(v.coins)?Math.max(0,Math.min(10000000,v.coins)):350;
+  xp=Number.isFinite(v.xp)?Math.max(0,Math.min(1000000000,v.xp)):0;
+  placed=[];const ids=new Set<number>();
+  for(const candidate of v.placed.slice(0,60)){
+   if(!validSavedItem(candidate)||ids.has(candidate.id))continue;
+   if(occupied(candidate.gx,candidate.gz,candidate.kind,candidate.rot??0,candidate.assetKey))continue;
+   const item:Placed={id:candidate.id,kind:candidate.kind,gx:candidate.gx,gz:candidate.gz,rot:candidate.rot??0,assetKey:candidate.assetKey};
+   placed.push(item);ids.add(item.id);
+  }
+  if(v.placed.length>0&&placed.length===0){useStarter();return;}
+  nextId=Math.max(3,...placed.map(p=>p.id+1));
+  coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";
+  for(const p of placed)drawPlaced(p);
+ }catch{useStarter();}
+}
 function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"||p.kind==="gym"||p.kind==="treatment"){const r=makeRoom(p.kind,p.gx,p.gz,p.id); return;}
  const root=new pc.Entity("Placed "+p.kind);
  if(p.kind==="wall")root.setPosition(p.rot===90?p.gx+1.5: x,0,p.rot===90?z:p.gz+1.5);
