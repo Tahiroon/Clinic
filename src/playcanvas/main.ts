@@ -10,11 +10,13 @@ const stage=el<HTMLElement>(".stage"), moveBtn=el<HTMLButtonElement>("#move-mode
 const buildPanel=el<HTMLElement>("#build-panel"), saveState=el<HTMLElement>("#save-state"), coinsLabel=el<HTMLElement>("#coins"), sessionDialog=el<HTMLDialogElement>("#session-dialog");
 const managementPanel=el<HTMLElement>("#management-panel"),managementToggle=el<HTMLButtonElement>("#management-toggle");
 let management:ManagementState=createInitialManagementState();
-const app=new pc.Application(canvas,{graphicsDeviceOptions:{antialias:false,alpha:false,powerPreference:"low-power"}});
+const deviceMemory=Number((navigator as any).deviceMemory??4),cpuCores=navigator.hardwareConcurrency||4;
+const highDetailDevice=deviceMemory>=4&&cpuCores>=6;
+const app=new pc.Application(canvas,{graphicsDeviceOptions:{antialias:highDetailDevice,alpha:false,powerPreference:"low-power"}});
 app.setCanvasFillMode(pc.FILLMODE_NONE);
 app.setCanvasResolution(pc.RESOLUTION_AUTO);
 // A 1× render scale reduces GPU fill cost and memory bandwidth on low-end phones.
-app.graphicsDevice.maxPixelRatio=Math.min(window.devicePixelRatio||1,1.0);
+app.graphicsDevice.maxPixelRatio=highDetailDevice?Math.min(window.devicePixelRatio||1,1.25):1.0;
 canvas.style.width="100%";canvas.style.height="100%";canvas.style.display="block";
 let lastViewportWidth=0,lastViewportHeight=0,resizeQueued=false;
 const syncViewportHeight=()=>{
@@ -193,6 +195,18 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
  addRoomWallRun(root,"x",doorWidth/2,sideSegment,-halfD,"solid",.62);
  loadRoomDoor(root,0,-halfD);
  const trimMat=kind==="reception"?M.teal:kind==="assessment"?M.blue:kind==="exercise"?M.yellow:M.teal;
+ // A continuous coloured crown and skirting give each room a finished, readable silhouette.
+ box("Left wall crown", -halfW,2.73,0,.20,.12,depth+.12,trimMat,root);
+ box("Right wall crown",halfW,2.73,0,.20,.12,depth+.12,trimMat,root);
+ box("Rear wall crown",0,2.73,halfD,width,.12,.20,trimMat,root);
+ box("Front wall crown",0,2.73,-halfD,width,.12,.20,trimMat,root);
+ box("Left wall skirting",-halfW,.14,0,.19,.20,depth,trimMat,root);
+ box("Right wall skirting",halfW,.14,0,.19,.20,depth,trimMat,root);
+ box("Rear wall skirting",0,.14,halfD,width,.20,.18,trimMat,root);
+ // The front sign is visible from the management camera and reads like a real clinic room entrance.
+ box("Room identity signboard",0,2.24,-halfD-.105,Math.min(1.75,width*.62),.38,.10,trimMat,root);
+ box("Room identity sign inset",0,2.24,-halfD-.165,Math.min(1.48,width*.52),.24,.025,M.white,root);
+ box("Room identity sign accent",0,2.24,-halfD-.183,.10,.18,.018,M.teal,root);
  box("Room identity plaque",-halfW+.12,2.0,0,.06,.42,.86,trimMat,root);
  for(const x of [-Math.min(1,width*.25),Math.min(1,width*.25)]){
   box("Ceiling light housing",x,2.55,0,.68,.055,.20,M.white,root);
@@ -636,7 +650,7 @@ function load(){
   for(const p of placed)drawPlaced(p);
  }catch{useStarter();}
 }
-function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"exercise":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"exercise",p.gx,p.gz,p.id,p.width??4,p.depth??4);if(p.kind==="treatment"&&p.id===1){loadClinicAsset({id:90001,kind:"asset",gx:-1,gz:-1,assetKey:"pt-treatment-table"});loadClinicAsset({id:90002,kind:"asset",gx:1,gz:1,assetKey:"pt-storage-cabinet"});}return;}
+function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"exercise":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"exercise",p.gx,p.gz,p.id,p.width??4,p.depth??4);if(p.kind==="treatment"&&p.id===1){loadClinicAsset({id:90001,kind:"asset",gx:-1,gz:-1,assetKey:"pt-treatment-table"});loadClinicAsset({id:90002,kind:"asset",gx:1,gz:1,assetKey:"pt-storage-cabinet"});}else if(p.kind==="assessment"){loadClinicAsset({id:p.id*1000+1,kind:"asset",gx:p.gx,gz:p.gz+1,assetKey:"pt-exam-table"});loadClinicAsset({id:p.id*1000+2,kind:"asset",gx:p.gx+2,gz:p.gz+1,assetKey:"pt-privacy-screen"});}else if(p.kind==="gym"){loadClinicAsset({id:p.id*1000+1,kind:"asset",gx:p.gx,gz:p.gz,assetKey:"pt-parallel-bars"});loadClinicAsset({id:p.id*1000+2,kind:"asset",gx:p.gx+3,gz:p.gz+3,assetKey:"pt-exercise-ball"});}return;}
  const root=new pc.Entity("Placed "+p.kind);
  world.addChild(root);
  if(p.kind==="wall")root.setLocalPosition(p.rot===90?p.gx+1.5:x,0,p.rot===90?z:p.gz+1.5);
