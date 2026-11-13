@@ -93,10 +93,12 @@ try {
   if (!/const GRID=1, W=14, D=28, HALF_X=W\/2, HALF_Z=D\/2/.test(source)) {
     throw new Error("Starter property must remain 14 m × 28 m");
   }
-  const starter = source.match(/const starterLayout:Placed\[\]=\[([\s\S]*?)\];/);
-  if (!starter) throw new Error("Starter layout definition is missing");
-  if (!/id:1,kind:"treatment",gx:-2,gz:-2,width:4,depth:4/.test(starter[1])) {
-    throw new Error("The starter clinic must contain exactly one 4×4 treatment room");
+  if (!/const starterLayout:Placed\[\]=\[\]/.test(source)) {
+    throw new Error("The new clinic campaign must start on an empty buildable plot");
+  }
+  const managementSource = await readFile(resolve(root, "src/game/management.ts"), "utf8");
+  if (!/patients:\[\],rooms:\[\]/.test(managementSource)) {
+    throw new Error("Management state must not create prebuilt rooms on a new account");
   }
   if (!/Surrounding green landscape/.test(source) || !/Clinic buildable foundation/.test(source) || !/Main entrance garden path/.test(source) || !/outdoorTreePositions/.test(source) || !/setClinicOpen\(management/.test(source)) {
     throw new Error("The open green property, entrance path and outdoor landscaping must exist");
@@ -114,12 +116,6 @@ try {
   const treePositions = [[-9.1,-16.1],[9.1,-16.1],[-9.1,16.1],[9.1,16.1]];
   const shrubPositions = [[-8.8,-7.5],[8.8,-4.5],[-8.8,5.2],[8.8,8.0]];
   const routeObstacles = [
-    {x:.97,z:1.07,w:.56,d:.56},
-    {x:-2.08,z:-2,w:.16,d:4},{x:1.92,z:-2,w:.16,d:4},
-    {x:-2,z:-2.08,w:1.4,d:.16},{x:.6,z:-2.08,w:1.4,d:.16},
-    {x:-2,z:1.92,w:4,d:.16},
-    {x:-.55,z:-1.15,w:1.1,d:2.3},
-    {x:1.07,z:1.07,w:.86,d:.86},
     {x:-7,z:-14,w:.18,d:28},{x:6.82,z:-14,w:.18,d:28},
     {x:-7,z:-14,w:14,d:.18},{x:-7,z:13.82,w:14,d:.18},
     ...treePositions.map(([x,z])=>({x:x-.42,z:z-.42,w:.84,d:.84})),
