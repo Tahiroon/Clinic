@@ -59,9 +59,10 @@ type PrimitiveModelType="box"|"capsule"|"cone"|"cylinder"|"plane"|"sphere"|"toru
 function primitive(name:string,type:PrimitiveModelType,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){
  const e=new Entity(name);e.addComponent("model",{type});parent.addChild(e);e.setLocalPosition(x,y,z);e.setLocalScale(sx,sy,sz);
  e.model!.material=m;
- const simpleDetail=/grass|tuft|flower bloom|gait lane marker|tap destination/i.test(name);
- const architecturalCaster=/wall|tree|trunk|bench|planter|lamp|facade|canopy|pillar|door|cabinet|desk|bed|chair|equipment|room|sign|column|counter/i.test(name);
+ const simpleDetail=/grass|tuft|flower bloom|gait lane marker|tap destination|recess|reveal|skirting|coping|mullion|inset|joint|plaque|handle|identity tile|paving|shadow/i.test(name);
+ const architecturalCaster=/wall|tree|trunk|bench|planter|lamp|facade|canopy|pillar|door|cabinet|desk|bed|chair|equipment|room|column|counter/i.test(name);
  const surfaceReceiver=/floor|ground|landscape|path|foundation|tile|wall|plinth|paver/i.test(name);
+ // Only large readable forms cast the expensive map; fine trim stays visible but does not pollute the shadow pass.
  e.model!.castShadows=highDetailDevice&&!simpleDetail&&architecturalCaster;
  e.model!.receiveShadows=highDetailDevice&&!simpleDetail&&(surfaceReceiver||architecturalCaster);
  return e;
@@ -90,15 +91,15 @@ const light=new Entity("Soft daylight");
 light.addComponent("light",{type:"directional",intensity:1.08,castShadows:highDetailDevice});
 if(highDetailDevice){
  light.light!.shadowType=SHADOW_PCSS_32F;
- light.light!.shadowResolution=1024;
- light.light!.shadowDistance=42;
- light.light!.shadowIntensity=.52;
+ light.light!.shadowResolution=2048;
+ light.light!.shadowDistance=38;
+ light.light!.shadowIntensity=.56;
  light.light!.shadowBias=.025;
  light.light!.normalOffsetBias=.018;
  light.light!.penumbraSize=1.35;
  light.light!.penumbraFalloff=1.15;
- light.light!.shadowSamples=8;
- light.light!.shadowBlockerSamples=8;
+ light.light!.shadowSamples=12;
+ light.light!.shadowBlockerSamples=6;
 }
 light.setEulerAngles(48,25,0);app.root.addChild(light);
 const world=new Entity("Clinic property · portrait 3/4 world");
@@ -355,7 +356,7 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
 }
 // The starter clinic is assembled from lightweight procedural geometry; optional GLB assets load independently.
 const avatar=new Entity("Player physiotherapist");world.addChild(avatar);avatar.setLocalPosition(0,0,-4.55);
-const avatarContactShadow=addContactShadow(world,"Player physiotherapist shadow",0,-4.55,.42,.25);
+const avatarContactShadow=addContactShadow(world,"Player physiotherapist shadow",0,-4.55,.42,.25,.006);
 let walkVelocity=0;
 let avatarAnim:any=null;let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
