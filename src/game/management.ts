@@ -105,7 +105,8 @@ export function beginPatientSession(s:ManagementState):{ok:boolean;message:strin
  patient.stage="assessment";patient.waitMinutes=0;event(s,"treatment","بدأ الأخصائي جلسة تقييم "+patient.name+".");
  return {ok:true,message:"بدأت جلسة "+patient.name+".",patient};
 }
-export function cancelPatientSession(s:ManagementState,patientId:number){const p=s.patients.find(x=>x.id===patientId&&x.stage==="assessment");if(p){p.stage="waiting";p.waitMinutes=0;event(s,"warning","تم تأجيل جلسة "+p.name+" وإعادته إلى قائمة الانتظار.");}}\nexport function completePatientSession(s:ManagementState,patientId:number,score:number):number{
+export function cancelPatientSession(s:ManagementState,patientId:number){const p=s.patients.find(x=>x.id===patientId&&x.stage==="assessment");if(p){p.stage="waiting";p.waitMinutes=0;event(s,"warning","تم تأجيل جلسة "+p.name+" وإعادته إلى قائمة الانتظار.");}}
+export function completePatientSession(s:ManagementState,patientId:number,score:number):number{
  const p=s.patients.find(x=>x.id===patientId&&x.stage==="assessment");if(!p)return 0;
  const quality=Math.max(0,Math.min(100,score*20));
  p.stage="discharged";p.satisfaction=Math.max(45,Math.min(100,quality*.65+p.patience*.35));
