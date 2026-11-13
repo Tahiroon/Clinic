@@ -110,6 +110,26 @@ for(const [x,z] of outdoorShrubPositions){
  box("Outdoor planter",x,.17,z,.56,.34,.78,M.wood2,world);
  const shrub=sphere("Outdoor shrub",x,.62,z,.37,M.green,world);shrub.setLocalScale(1.12,.8,.95);
 }
+const outdoorBenchPositions:[number,number][]=[[-8.15,0],[8.15,0]];
+const outdoorFlowerPositions:[number,number][]=[[-8.25,-9.5],[8.25,-9.5],[-8.25,9.5],[8.25,9.5]];
+const outdoorLampPositions:[number,number][]=[[-8.25,-13.5],[8.25,-13.5],[-8.25,13.5],[8.25,13.5]];
+for(const [x,z] of outdoorBenchPositions){
+ box("Garden bench seat",x,.38,z,1.55,.16,.52,M.wood2,world);
+ box("Garden bench back",x,.78,z+.2,1.55,.62,.12,M.wood,world);
+ for(const dx of [-.58,.58])box("Garden bench support",x+dx,.19,z,.09,.38,.42,arrivalMetal,world);
+}
+for(const [x,z] of outdoorFlowerPositions){
+ box("Outdoor flower bed",x,.16,z,1.15,.3,.72,M.wood2,world);
+ for(const [dx,dz] of [[-.34,-.12],[0,.08],[.34,-.1]] as [number,number][]){
+  cylinder("Garden flower stem",x+dx,.42,z+dz,.025,.28,.025,M.green,world);
+  sphere("Garden flower bloom",x+dx,.57,z+dz,.13,dx<0?M.yellow:M.pale,world);
+ }
+}
+for(const [x,z] of outdoorLampPositions){
+ cylinder("Garden lamp base",x,.12,z,.22,.24,.22,arrivalMetal,world);
+ cylinder("Garden lamp post",x,.92,z,.07,1.6,.07,arrivalMetal,world);
+ sphere("Garden lamp globe",x,1.82,z,.2,warmGlass,world);
+}
 const lawnGrassMaterial=material(new Color(1,1,1));
 lawnGrassMaterial.diffuseVertexColor=true;lawnGrassMaterial.cull=CULLFACE_NONE;lawnGrassMaterial.update();
 let lawnGrassOwner:Entity|null=null;
@@ -137,7 +157,10 @@ function createLawnGrass(){
   const onEntrancePath=Math.abs(x)<1.12&&z< -2.1;
   const nearTree=outdoorTreePositions.some(([tx,tz])=>Math.hypot(x-tx,z-tz)<1.05);
   const nearShrub=outdoorShrubPositions.some(([sx,sz])=>Math.abs(x-sx)<.52&&Math.abs(z-sz)<.72);
-  if(insideAnyRoom||onEntrancePath||nearTree||nearShrub)continue;
+  const nearBench=outdoorBenchPositions.some(([bx,bz])=>Math.abs(x-bx)<1.0&&Math.abs(z-bz)<.55);
+  const nearFlower=outdoorFlowerPositions.some(([fx,fz])=>Math.abs(x-fx)<.72&&Math.abs(z-fz)<.5);
+  const nearLamp=outdoorLampPositions.some(([lx,lz])=>Math.hypot(x-lx,z-lz)<.32);
+  if(insideAnyRoom||onEntrancePath||nearTree||nearShrub||nearBench||nearFlower||nearLamp)continue;
   addTuft(x,z);
  }
  const mesh=new Mesh(app.graphicsDevice);
