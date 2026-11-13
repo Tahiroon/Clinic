@@ -57,43 +57,30 @@
 <p class="panel-hint" id="build-hint">اختر نوع الغرفة ثم اسحب على أرض العيادة لتحديد المساحة. جهّزها بنفسك من المتجر.</p>
 </section>
 <section class="store-panel" id="store-panel" hidden aria-label="متجر تجهيز العيادة">
- <div class="store-heading"><div><span class="eyebrow">THERASON EQUIPMENT STORE</span><h2>متجر تجهيز العيادة</h2><p>اختر الجهاز لمعاينة نموذجه الحقيقي ثلاثي الأبعاد، ثم ضعه داخل غرفتك</p></div><div class="store-balance">◈ <b id="store-coins">3200</b><button id="store-close" type="button" aria-label="إغلاق المتجر">×</button></div></div>
- <div class="store-categories">
+ <div class="store-heading">
+  <div><span class="eyebrow">THERASON CLINIC SUPPLY</span><h2>سوق تجهيز العيادة</h2><p>أصول ثلاثية الأبعاد فعلية — عاين المجسم قبل الشراء</p></div>
+  <div class="store-balance">◈ <b id="store-coins">3200</b><button id="store-close" type="button" aria-label="إغلاق المتجر">×</button></div>
+ </div>
+ <div class="store-search-row">
+  <label class="store-search"><span aria-hidden="true">⌕</span><input id="store-search" type="search" placeholder="ابحث عن جهاز أو أثاث أو تجهيز..." autocomplete="off" /></label>
+  <strong id="store-count">0 منتج</strong>
+ </div>
+ <div class="store-categories" role="tablist" aria-label="أقسام المتجر">
   <button class="store-category active" data-store-category="therapy" type="button">العلاج الطبيعي</button>
-  <button class="store-category" data-store-category="assessment" type="button">التقييم والفحص</button>
-  <button class="store-category" data-store-category="mobility" type="button">الحركة والمساعدة</button>
-  <button class="store-category" data-store-category="furnishing" type="button">الأثاث والتجهيز</button>
+  <button class="store-category" data-store-category="assessment" type="button">الفحص</button>
+  <button class="store-category" data-store-category="mobility" type="button">الحركة</button>
+  <button class="store-category" data-store-category="furnishing" type="button">الأثاث</button>
+  <button class="store-category" data-store-category="safety" type="button">السلامة</button>
+  <button class="store-category" data-store-category="decor" type="button">التشطيب</button>
+  <button class="store-category" data-store-category="specialty" type="button">التخصصات</button>
+  <button class="store-category" data-store-category="kits" type="button">الحزم</button>
  </div>
  <div class="store-preview" id="store-preview" hidden>
-  <div class="store-preview-copy"><span class="store-preview-kicker">معاينة أصلية · 3D</span><strong id="store-preview-name">اختر جهازاً للمعاينة</strong><small id="store-preview-detail">ستظهر هنا معاينة من نفس النموذج ثلاثي الأبعاد المستخدم داخل العيادة.</small></div>
-  <button id="store-place-selected" type="button" disabled>اختيار الجهاز ووضعه</button>
+  <div class="store-preview-copy"><span class="store-preview-kicker">معاينة من الأصل ثلاثي الأبعاد</span><strong id="store-preview-name">اختر منتجاً للمعاينة</strong><small id="store-preview-detail">سيتم عرض نفس المجسم الذي سيُوضع داخل العيادة، دون رسم بديل.</small></div>
+  <div class="store-preview-actions"><button id="store-rotate-selected" type="button" aria-label="تدوير المجسم">تدوير 90°</button><button id="store-place-selected" type="button" disabled>اختيار ووضع</button></div>
  </div>
- <div class="store-grid">
-  <button class="store-item" data-asset="pt-treatment-table" data-store-cat="therapy" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>سرير علاج طبيعي</b><small>سرير جلسات قابل للوصول من الجانبين</small><strong>◈ 90</strong></span></button>
-  <button class="store-item" data-asset="pt-parallel-bars" data-store-cat="therapy" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>جهاز المتوازي</b><small>تدريب الاتزان والمشي</small><strong>◈ 100</strong></span></button>
-  <button class="store-item" data-asset="pt-band-rack" data-store-cat="therapy" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>حامل أحزمة المقاومة</b><small>تخزين أدوات المقاومة</small><strong>◈ 35</strong></span></button>
-  <button class="store-item" data-asset="pt-exercise-ball" data-store-cat="therapy" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>كرة علاجية</b><small>تمارين الثبات والتحكم</small><strong>◈ 20</strong></span></button>
-  <button class="store-item" data-asset="pt-exercise-mat" data-store-cat="therapy" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>بساط تمارين</b><small>تمارين أرضية وإطالة</small><strong>◈ 25</strong></span></button>
-  <button class="store-item" data-asset="pt-hand-weights" data-store-cat="therapy" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>أوزان علاجية</b><small>تقوية تدريجية للأطراف</small><strong>◈ 30</strong></span></button>
-  <button class="store-item" data-asset="pt-exam-table" data-store-cat="assessment" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>سرير فحص سريري</b><small>للتقييم والفحص الأولي</small><strong>◈ 95</strong></span></button>
-  <button class="store-item" data-asset="pt-wall-chart" data-store-cat="assessment" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>لوحة فحص سريري</b><small>مرجع بصري داخل غرفة التقييم</small><strong>◈ 25</strong></span></button>
-  <button class="store-item" data-asset="pt-privacy-screen" data-store-cat="assessment" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>حاجز خصوصية طبي</b><small>فصل مساحة الفحص</small><strong>◈ 60</strong></span></button>
-  <button class="store-item" data-asset="pt-patient-chair" data-store-cat="assessment" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>كرسي المريض</b><small>جلوس آمن أثناء المقابلة</small><strong>◈ 45</strong></span></button>
-  <button class="store-item" data-asset="pt-wheelchair" data-store-cat="mobility" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>كرسي متحرك</b><small>مساعدة التنقل داخل العيادة</small><strong>◈ 75</strong></span></button>
-  <button class="store-item" data-asset="hospital-crutches" data-store-cat="mobility" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>عكازات طبية</b><small>تدريب المشي والدعم</small><strong>◈ 18</strong></span></button>
-  <button class="store-item" data-asset="hospital-walking-frame" data-store-cat="mobility" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>مشاية طبية</b><small>دعم الاتزان والمشي</small><strong>◈ 35</strong></span></button>
-  <button class="store-item" data-asset="hospital-transport-chair" data-store-cat="mobility" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>كرسي نقل مرضى</b><small>نقل الحالات داخل المنشأة</small><strong>◈ 55</strong></span></button>
-  <button class="store-item" data-asset="hospital-first-aid" data-store-cat="mobility" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>حقيبة إسعافات</b><small>مستلزمات السلامة الأولية</small><strong>◈ 15</strong></span></button>
-  <button class="store-item" data-asset="hospital-oxygen" data-store-cat="mobility" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>عربة أكسجين</b><small>معدات دعم تنفسي طارئ</small><strong>◈ 55</strong></span></button>
-  <button class="store-item" data-asset="hospital-stretcher" data-store-cat="mobility" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>نقالة طبية</b><small>نقل الحالات غير القادرة على المشي</small><strong>◈ 75</strong></span></button>
-  <button class="store-item" data-asset="pt-storage-cabinet" data-store-cat="furnishing" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>خزانة أدوات</b><small>حفظ المستلزمات الطبية</small><strong>◈ 40</strong></span></button>
-  <button class="store-item" data-asset="pt-reception-desk" data-store-cat="furnishing" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>مكتب استقبال</b><small>كاونتر استقبال وتسجيل المرضى</small><strong>◈ 160</strong></span></button>
-  <button class="store-item" data-asset="pt-waiting-bench" data-store-cat="furnishing" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>مقعد انتظار مزدوج</b><small>مقاعد منطقة الانتظار</small><strong>◈ 65</strong></span></button>
-  <button class="store-item" data-asset="pt-doctor-desk" data-store-cat="furnishing" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>مكتب الأخصائي</b><small>مكتب عمل وتجهيز إداري</small><strong>◈ 65</strong></span></button>
-  <button class="store-item" data-asset="pt-clinical-sink" data-store-cat="furnishing" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>حوض غسل طبي</b><small>نقطة نظافة داخل الغرفة</small><strong>◈ 50</strong></span></button>
-  <button class="store-item" data-asset="pt-privacy-curtain" data-store-cat="furnishing" type="button"><span class="store-item-art"><span class="store-item-type">3D</span></span><span class="store-item-copy"><b>ستارة خصوصية</b><small>تقسيم مرن لمساحة العلاج</small><strong>◈ 45</strong></span></button>
- </div>
- <div class="store-footnote">اختر الجهاز من القائمة، ثم المس موضعه داخل الغرفة لإتمام الشراء. السعر يُخصم عند نجاح وضعه.</div>
+ <div class="store-grid" id="store-grid" aria-live="polite"></div>
+ <div class="store-footnote">المعاينة والمنتج الموضوع يستخدمان ملف GLB نفسه. لا يتم خصم السعر إلا عند اعتماد وضع العنصر. بعض الحزم الكبيرة مخصصة للغرف الواسعة.</div>
 </section>
 <section class="progress-card"><div><span class="eyebrow">تقدمك المهني</span><h2>خبرة تُبنى مع كل مريض</h2><p id="experience-text">ابدأ أول جلسة تعليمية لاكتساب خبرتك.</p></div><div class="progress-ring"><strong id="experience">0 XP</strong><small>الخبرة</small></div></section>
 <footer>THERASON CLINIC <span>·</span> Learn by reasoning</footer>
