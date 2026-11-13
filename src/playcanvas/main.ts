@@ -1,6 +1,6 @@
 import * as pc from "playcanvas";
 import "../style.css";
-import { createInitialManagementState, advanceSimulation, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, setClinicOpen, hireReceptionist, beginPatientSession, completePatientSession, cancelPatientSession, type ManagementState, type ClinicRoomType } from "../game/management";
+import { createInitialManagementState, advanceSimulation, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, setClinicOpen, hireReceptionist, beginPatientSession, completePatientSession, cancelPatientSession, ROOM_BLUEPRINTS, type ManagementState, type ClinicRoomType } from "../game/management";
 
 type BuildKind = "treatment" | "reception" | "assessment" | "gym" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door" | "asset";
 type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90; assetKey?:string; width?:number; depth?:number };
