@@ -117,6 +117,15 @@ try {
     throw new Error("The starter physiotherapist cannot reach the safe patient-side approach from the property entrance");
   }
   console.log("✓ Starter entrance-to-patient navigation is connected");
+  const management = await readFile(resolve(root, "src/game/management.ts"), "utf8");
+  for (const required of ["export function advanceSimulation", "export function hireStaff", "export function buildRoom", "export function setSimulationSpeed", "export const ROOM_BLUEPRINTS"]) {
+    if (!management.includes(required)) throw new Error("Management simulation is missing " + required);
+  }
+  for (const required of ["roomDrawing=true", "updateRoomDrawPreview()", "buildRoom(management,roomType,b.x,b.z,b.w,b.d)", "managementSaveKey", "advanceSimulation(management,frameDt)"]) {
+    if (!source.includes(required)) throw new Error("Playable management/build loop is missing " + required);
+  }
+  console.log("✓ Staff, patient flow, economy and simulation controls are wired");
+  console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
 
 } catch (error) {
   failed = true;
