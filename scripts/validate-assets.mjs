@@ -176,18 +176,18 @@ try {
   }
   console.log("✓ Plain opaque room architecture and player-controlled furnishing are wired");
   console.log("✓ Dedicated mobile equipment store contains categorized, priced clinical assets");
-  if (!/function showStorePreview\\(key:string\\)/.test(source) ||
-      !/getClinicContainer\\(url\\)\\.then\\(asset=>/.test(source) ||
+  if (!/function showStorePreview\(key:string\)/.test(source) ||
+      !/getClinicContainer\(url\)\.then\(asset=>/.test(source) ||
       !/id="store-preview"/.test(html) || !/id="store-place-selected"/.test(html) ||
       /class="store-item-art art-/.test(html)) {
     throw new Error("The shop must preview the exact bundled GLB model before placement, not use fake product drawings");
   }
-  if (!/storePreviewGeneration/.test(source) || !/clearStorePreview\\(\\)/.test(source) ||
-      !/storePreviewRoot\\.destroy\\(\\)/.test(source)) {
+  if (!/storePreviewGeneration/.test(source) || !/clearStorePreview\(\)/.test(source) ||
+      !/storePreviewRoot\.destroy\(\)/.test(source)) {
     throw new Error("Store preview lifecycle must cancel stale loads and release preview entities");
   }
-  if (!/\\[-9\\.1,-7\\.2\\]\\,\\[9\\.1,-7\\.2\\]\\,\\[-9\\.1,7\\.2\\]\\,\\[9\\.1,7\\.2\\]/.test(source) ||
-      !/\\[-8\\.8,-12\\.0\\]\\,\\[8\\.8,-12\\.0\\]/.test(source)) {
+  if (!/\[-9\.1,-7\.2\],\[9\.1,-7\.2\],\[-9\.1,7\.2\],\[9\.1,7\.2\]/.test(source) ||
+      !/\[-8\.8,-12\.0\],\[8\.8,-12\.0\]/.test(source)) {
     throw new Error("The outdoor clinic landscape needs the expanded tree and garden planting layout");
   }
   console.log("✓ Store preview uses the same verified GLB model as placement and cleans up safely");
