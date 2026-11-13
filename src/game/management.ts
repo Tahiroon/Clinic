@@ -61,16 +61,18 @@ export function hireStaff(s:ManagementState,role:StaffRole):{ok:boolean;message:
   s.staff.push(member);event(s,"staff","تم توظيف "+STAFF_BLUEPRINTS[role].label+" جديد: "+member.name+".");
   return {ok:true,message:"انضم "+member.name+" إلى فريق العيادة."};
 }
-export function buildRoom(s:ManagementState,type:ClinicRoomType,x:number,z:number):{ok:boolean;message:string;room?:ClinicRoom}{
+export function buildRoom(s:ManagementState,type:ClinicRoomType,x:number,z:number,width=ROOM_BLUEPRINTS[type]?.width??4,depth=ROOM_BLUEPRINTS[type]?.depth??4):{ok:boolean;message:string;room?:ClinicRoom}{
   const b=ROOM_BLUEPRINTS[type];if(!b)return {ok:false,message:"نوع الغرفة غير معروف."};
-  if(s.balance<b.cost)return {ok:false,message:"الرصيد لا يكفي لبناء "+b.label+"."};
-  if(x< -7||z< -14||x+b.width>7||z+b.depth>14)return {ok:false,message:"الغرفة خارج حدود أرض العيادة."};
-  const overlaps=s.rooms.some(r=>x<r.x+r.width&&x+b.width>r.x&&z<r.z+r.depth&&z+b.depth>r.z);
+  width=Math.max(b.width,Math.min(12,Math.floor(width)));depth=Math.max(b.depth,Math.min(12,Math.floor(depth)));
+  const cost=b.cost+Math.max(0,width*depth-b.width*b.depth)*35;
+  if(s.balance<cost)return {ok:false,message:"الرصيد لا يكفي لبناء "+b.label+" بهذا الحجم."};
+  if(x< -7||z< -14||x+width>7||z+depth>14)return {ok:false,message:"الغرفة خارج حدود أرض العيادة."};
+  const overlaps=s.rooms.some(r=>x<r.x+r.width&&x+width>r.x&&z<r.z+r.depth&&z+depth>r.z);
   if(overlaps)return {ok:false,message:"المساحة تتداخل مع غرفة أخرى."};
-  s.balance-=b.cost;
-  const room:ClinicRoom={id:s.nextRoomId++,type,x,z,width:b.width,depth:b.depth,prestige:1,open:true,capacity:b.capacity};
+  s.balance-=cost;
+  const room:ClinicRoom={id:s.nextRoomId++,type,x,z,width,depth,prestige:1,open:true,capacity:b.capacity};
   s.rooms.push(room);event(s,"staff","تم إنشاء "+b.label+". جهّزها بالأثاث والأجهزة المطلوبة.");
-  return {ok:true,message:"تم بناء "+b.label+".",room};
+  return {ok:true,message:"تم بناء "+b.label+" بحجم "+width+"×"+depth+" م.",room};
 }
 export function setSimulationSpeed(s:ManagementState,speed:0|1|2|3){s.speed=speed;}
 export function assignStaff(s:ManagementState,staffId:number,roomId:number|null):boolean{
