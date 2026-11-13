@@ -372,11 +372,11 @@ const TRIAL_ACCOUNT_COINS=3200;
 const starterLayout:Placed[]=[{id:1,kind:"treatment",gx:-2,gz:-2,width:4,depth:4}];
 const costs:Record<BuildKind,number>={treatment:720,reception:420,assessment:620,gym:980,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
- "pt-treatment-table":{file:"physical-therapy-room-set.glb",node:"TreatmentTable",label:"سرير علاج طبيعي",cost:90,footprint:2,targetSize:1.9},
+ "pt-treatment-table":{file:"examination-couch.glb",node:"*",label:"سرير علاج طبيعي",cost:90,footprint:2,targetSize:2.3},
  "pt-exam-table":{file:"doctors-office-set.glb",node:"ExamTable",label:"سرير فحص سريري",cost:95,footprint:2,targetSize:1.9},
  "pt-patient-chair":{file:"doctors-office-set.glb",node:"Chair_Patient",label:"كرسي المريض",cost:45,footprint:1,targetSize:0.9},
  "pt-doctor-desk":{file:"doctors-office-set.glb",node:"Desk_Doctor",label:"مكتب الأخصائي",cost:65,footprint:2,targetSize:1.35},
- "pt-privacy-screen":{file:"doctors-office-set.glb",node:"PrivacyCurtain",label:"حاجز خصوصية طبي",cost:60,footprint:2,targetSize:1.8},
+ "pt-privacy-screen":{file:"privacy-screen.glb",node:"*",label:"حاجز خصوصية طبي",cost:60,footprint:2,targetSize:1.8},
  "pt-clinical-sink":{file:"doctors-office-set.glb",node:"Sink_Cabinet",label:"حوض غسل طبي",cost:50,footprint:1,targetSize:0.95},
  "pt-wall-chart":{file:"doctors-office-set.glb",node:"Wall_Chart",label:"لوحة فحص سريري",cost:25,footprint:1,targetSize:0.85},
  "pt-parallel-bars":{file:"physical-therapy-room-set.glb",node:"ParallelBars",label:"جهاز المتوازي",cost:100,footprint:3,targetSize:2.8},
@@ -385,7 +385,8 @@ const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:n
  "pt-exercise-mat":{file:"physical-therapy-room-set.glb",node:"ExerciseMat",label:"بساط تمارين",cost:25,footprint:2,targetSize:2.2},
  "pt-hand-weights":{file:"physical-therapy-room-set.glb",node:"HandWeights",label:"أوزان علاجية",cost:30,footprint:2,targetSize:1.2},
  "pt-privacy-curtain":{file:"physical-therapy-room-set.glb",node:"PrivacyCurtain",label:"ستارة خصوصية",cost:45,footprint:3,targetSize:2.8},
- "pt-storage-cabinet":{file:"physical-therapy-room-set.glb",node:"StorageCabinet",label:"خزانة أدوات",cost:40,footprint:1,targetSize:1.1},
+ "pt-storage-cabinet":{file:"bedside-cabinet.glb",node:"*",label:"خزانة أدوات",cost:40,footprint:1,targetSize:.85},
+ "pt-wheelchair":{file:"wheelchair.glb",node:"*",label:"كرسي متحرك",cost:75,footprint:2,targetSize:1.1},
  "hospital-crutches":{file:"hospital-equipment-set.glb",node:"Crutches",label:"عكازات طبية",cost:18,footprint:1,targetSize:1.35},
  "hospital-first-aid":{file:"hospital-equipment-set.glb",node:"FirstAidBag",label:"حقيبة إسعافات",cost:15,footprint:1,targetSize:.65},
  "hospital-oxygen":{file:"hospital-equipment-set.glb",node:"OxygenTrolley",label:"عربة أكسجين",cost:55,footprint:1,targetSize:1.15},
@@ -399,7 +400,13 @@ const clinicAssetUrls:Record<string,string>={
  "hospital-reception-desk.glb":new URL("../assets/clinic-kit/hospital/hospital-reception-desk.glb",import.meta.url).href,
  "hospital-patient-room.glb":new URL("../assets/clinic-kit/hospital/hospital-patient-room.glb",import.meta.url).href,
  "hospital-waiting-room.glb":new URL("../assets/clinic-kit/hospital/hospital-waiting-room.glb",import.meta.url).href,
- "doctors-office-set.glb":new URL("../assets/clinic-kit/hospital/doctors-office-set.glb",import.meta.url).href
+ "doctors-office-set.glb":new URL("../assets/clinic-kit/hospital/doctors-office-set.glb",import.meta.url).href,
+ "examination-couch.glb":new URL("../assets/clinic-kit/management-sim/examination-couch.glb",import.meta.url).href,
+ "reception-desk.glb":new URL("../assets/clinic-kit/management-sim/reception-desk.glb",import.meta.url).href,
+ "waiting-bench-two-seat.glb":new URL("../assets/clinic-kit/management-sim/waiting-bench-two-seat.glb",import.meta.url).href,
+ "privacy-screen.glb":new URL("../assets/clinic-kit/management-sim/privacy-screen.glb",import.meta.url).href,
+ "wheelchair.glb":new URL("../assets/clinic-kit/management-sim/wheelchair.glb",import.meta.url).href,
+ "bedside-cabinet.glb":new URL("../assets/clinic-kit/management-sim/bedside-cabinet.glb",import.meta.url).href
 };
 const containerCache=new Map<string,Promise<any>>();
 function getClinicContainer(url:string):Promise<any>{
@@ -421,7 +428,7 @@ function drawAssetFallback(p:Placed,spec:{label:string}){
  else if(key==="pt-storage-cabinet"||key==="pt-clinical-sink"){
   box("Fallback cabinet body",0,.55,0,.72,1.1,.52,M.wood2,root);box("Fallback cabinet front",0,.55,.27,.64,.98,.025,M.wood,root);
   if(key==="pt-clinical-sink"){box("Fallback sink basin",0,1.13,.02,.5,.08,.34,M.pale,root);cylinder("Fallback faucet",0,1.25,-.1,.035,.2,.035,M.dark,root);}
- }else if(key==="pt-patient-chair"||key==="hospital-transport-chair")chair("Fallback "+spec.label);
+ }else if(key==="pt-patient-chair"||key==="hospital-transport-chair"||key==="pt-wheelchair")chair("Fallback "+spec.label);
  else if(key==="pt-doctor-desk"){
   box("Fallback desk top",0,.88,0,1.55,.12,.82,M.wood2,root);for(const x of [-.65,.65])box("Fallback desk leg",x,.43,0,.09,.82,.72,M.dark,root);box("Fallback monitor",0,1.18,-.2,.48,.38,.06,M.dark,root);
  }else if(key==="pt-privacy-screen"||key==="pt-privacy-curtain"){
@@ -474,62 +481,34 @@ function renderBounds(root:pc.Entity){
  return {minX,maxX,minY,maxY,minZ,maxZ,width:maxX-minX,height:maxY-minY,depth:maxZ-minZ};
 }
 function loadWaitingSeats(parent:pc.Entity){
- const url=clinicAssetUrls["hospital-waiting-room.glb"];
+ const url=clinicAssetUrls["waiting-bench-two-seat.glb"];
  getClinicContainer(url).then(asset=>{
-  const source=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:true});
-  const seats=source.children.find((child:pc.Entity)=>child.name==="ChairRow_4");
-  if(!seats){source.destroy();throw new Error("ChairRow_4 missing from waiting-room asset");}
-  source.removeChild(seats);source.destroy();
-  seats.setLocalPosition(0,0,0);seats.setLocalScale(1,1,1);
-  // Rotate the four-seat row along the reception's right wall, preserving a clear central lane to the treatment doorway.
-  seats.setLocalEulerAngles(0,90,0);
-  parent.addChild(seats);seats.syncHierarchy();
-  let bounds=renderBounds(seats);
-  if(!bounds||bounds.width<.1||bounds.depth<.1){seats.destroy();throw new Error("Waiting seats have invalid bounds");}
-  const scale=Math.min(.95/bounds.width,2.2/bounds.depth,1.05/bounds.height);
-  seats.setLocalScale(scale,scale,scale);seats.syncHierarchy();
-  bounds=renderBounds(seats);
-  if(!bounds)throw new Error("Waiting seats have no render meshes");
-  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(1.45,0,.45),new pc.Vec3());
-  const current=seats.getPosition();
-  seats.setPosition(current.x+target.x-(bounds.minX+bounds.maxX)/2,current.y-bounds.minY,current.z+target.z-(bounds.minZ+bounds.maxZ)/2);
-  seats.syncHierarchy();
+  for(let i=0;i<2;i++){
+   const seat=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
+   parent.addChild(seat);seat.setLocalScale(.94,.94,.94);seat.setLocalEulerAngles(0,90,0);
+   seat.setLocalPosition(1.35,0,-.35+i*1.22);seat.syncHierarchy();
+  }
  }).catch(error=>{
-  console.warn("Waiting-room GLB could not load; using compact seats",error);
-  for(const z of [.55,1.45]){
-   box("Waiting seat fallback",.35,.38,z,.65,.18,.62,M.teal,parent);
-   box("Waiting seat back fallback",.35,.75,z+.22,.65,.6,.13,M.blue,parent);
+  console.warn("Matching waiting bench GLB unavailable; using compact seats",error);
+  for(const z of [-.35,.85]){
+   box("Waiting seat fallback",1.35,.38,z,.65,.18,.62,M.teal,parent);
+   box("Waiting seat back fallback",1.35,.75,z+.22,.65,.6,.13,M.blue,parent);
   }
  });
 }
 function loadReceptionDesk(parent:pc.Entity){
- const url=clinicAssetUrls["hospital-reception-desk.glb"];
+ const url=clinicAssetUrls["reception-desk.glb"];
  getClinicContainer(url).then(asset=>{
-  const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
-  const keep=/^(HospitalReception|Desk_|Drawer_|Keyboard_|Monitor_|Pedestal_|Screen_)/;
-  // The source GLB is a complete reception scene (desk + chairs + curtains + plant + sanitizer).
-  // Keep only the desk assembly; scaling the entire scene to desk size made the actual counter microscopic.
-  // Avoid recursive descent: some downloaded GLB scene graphs contain
-  // thousands of nested nodes and can overflow the JS call stack.
-  const stack=[...(model.children as pc.Entity[])];
-  const visited=new Set<pc.Entity>();
-  while(stack.length){
-   const node=stack.pop()!;
-   if(visited.has(node))continue;
-   visited.add(node);
-   if(!keep.test(node.name)){node.destroy();continue;}
-   for(const child of node.children as pc.Entity[])stack.push(child);
-  }
+  const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
   parent.addChild(model);model.syncHierarchy();
-  let b=renderBounds(model);
-  if(!b||b.width<.05||b.depth<.05||b.height<.05){model.destroy();throw new Error("Reception desk subset is empty or has invalid bounds");}
-  const scale=Math.min(1.7/b.width,.9/b.depth,1.15/b.height);
+  let bounds=renderBounds(model);
+  if(!bounds||bounds.width<.05||bounds.depth<.05||bounds.height<.05){model.destroy();throw new Error("Reception counter asset has invalid bounds");}
+  const scale=Math.min(2.25/bounds.width,.92/bounds.depth,1.08/bounds.height);
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();
-  b=renderBounds(model);
-  if(!b)throw new Error("Reception desk has no renderable meshes after scaling");
-  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(-.15,0,1.0),new pc.Vec3());
+  bounds=renderBounds(model);if(!bounds)throw new Error("Reception counter has no render meshes");
+  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(-.12,0,1.0),new pc.Vec3());
   const current=model.getPosition();
-  model.setPosition(current.x+target.x-(b.minX+b.maxX)/2,current.y-b.minY,current.z+target.z-(b.minZ+b.maxZ)/2);
+  model.setPosition(current.x+target.x-(bounds.minX+bounds.maxX)/2,current.y-bounds.minY,current.z+target.z-(bounds.minZ+bounds.maxZ)/2);
   model.syncHierarchy();
  }).catch(error=>{
   console.error("Reception desk GLB failed; using graceful fallback",error);
@@ -571,10 +550,9 @@ function loadClinicAsset(p:Placed){
  if(!url){drawAssetFallback(p,spec);return;}
  getClinicContainer(url).then(asset=>{
   const container=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
-  const chosen=findEntityByName(container,spec.node);
+  const chosen=spec.node==="*"?container:findEntityByName(container,spec.node);
   if(!chosen){container.destroy();throw new Error("Missing model node "+spec.node);}
-  const sourceParent=chosen.parent as pc.Entity|null;if(sourceParent)sourceParent.removeChild(chosen);
-  container.destroy();
+  if(spec.node!=="*"){const sourceParent=chosen.parent as pc.Entity|null;if(sourceParent)sourceParent.removeChild(chosen);container.destroy();}
   const size=spec.footprint,holder=new pc.Entity("3D asset · "+spec.label);
   world.addChild(holder);holder.setLocalPosition(p.gx+size/2,0,p.gz+size/2);holder.addChild(chosen);
   chosen.setLocalPosition(0,0,0);chosen.setLocalEulerAngles(0,p.rot??0,0);holder.syncHierarchy();
