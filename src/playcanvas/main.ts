@@ -629,7 +629,7 @@ function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}co
  if(p.kind==="wall"){box("Interior partition",0,1.3,0,1,.12,2.6,M.wall,root);box("Wall teal trim",0,.22,.07,1,.12,.08,M.teal,root);box("Wall cap",0,2.62,0,1.05,.12,.18,M.white,root);}
  if(p.kind==="door"){box("Door left jamb",-.43,1.25,0,.12,2.5,.18,M.white,root);box("Door right jamb",.43,1.25,0,.12,2.5,.18,M.white,root);box("Door lintel",0,2.48,0,1,.16,.18,M.white,root);box("Door leaf",-.22,1.08,.09,.42,2.12,.055,M.wood2,root);}
 }
-function footprint(kind:BuildKind,assetKey?:string){if(kind==="asset")return storeAssetSpecs[assetKey??""]?.footprint??1;return kind==="treatment"||kind==="reception"||kind==="assessment"||kind==="gym"||kind==="staff"?4:1;}
+function footprint(kind:BuildKind,assetKey?:string){if(kind==="asset")return storeAssetSpecs[assetKey??""]?.footprint??1;return kind==="treatment"||kind==="reception"||kind==="assessment"||kind==="gym"?4:1;}
 function isRoomKind(kind:BuildKind){return kind==="treatment"||kind==="reception"||kind==="assessment"||kind==="gym";}
 function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string,width?:number,depth?:number){
  const size=footprint(kind,assetKey);
@@ -736,9 +736,7 @@ function canAvatarStand(x:number,z:number){
    const furniture:{x:number;z:number;w:number;d:number}[]=p.kind==="reception"?[
     {x:gx+rw*.12,z:gz+rd*.60,w:Math.min(1.7,rw*.45),d:.9},
     {x:gx+rw-.95,z:gz+rd*.12,w:.95,d:Math.min(2.2,rd*.55)}
-   ]:p.kind==="treatment"||p.kind==="assessment"?[]:p.kind==="staff"?[
-    {x:gx+rw*.25,z:gz+rd*.55,w:Math.min(2.1,rw*.55),d:.82}
-   ]:[
+   ]:p.kind==="treatment"||p.kind==="assessment"?[]:[
     {x:gx+.15,z:gz+2.05,w:.2,d:1.1},
     {x:gx+1.95,z:gz+2.05,w:.2,d:1.1},
     {x:gx+.65,z:gz+2.4,w:1,d:.16}
@@ -852,18 +850,18 @@ function hasAssetInRoom(assetKey:string,roomType:ClinicRoomType){
  })());
 }
 function updateMissionEquipment(){
- if(missionPhase===4&&hasAssetInRoom("pt-treatment-table","treatment")&&hasAssetInRoom("pt-storage-cabinet","treatment")&&hasAssetInRoom("pt-exam-table","assessment"))setMissionPhase(5);
+ if(missionPhase===3&&hasAssetInRoom("pt-treatment-table","treatment")&&hasAssetInRoom("pt-storage-cabinet","treatment")&&hasAssetInRoom("pt-exam-table","assessment"))setMissionPhase(4);
 }
 function renderMission(){
  const card=el<HTMLElement>("#mission-card"),title=el<HTMLElement>("#mission-title"),detail=el<HTMLElement>("#mission-detail"),button=el<HTMLButtonElement>("#start-tour");
- card.classList.toggle("mission-done",missionPhase>=6);
- button.disabled=missionPhase>=6;
- if(missionPhase===0){title.textContent="ابنِ الاستقبال";detail.textContent="اسحب على الأرض لرسم غرفة الاستقبال. اختر الحجم المناسب لمساحتك.";button.textContent="ابدأ البناء";}
- else if(missionPhase===1){title.textContent="كوّن فريقك الأول";detail.textContent="وظّف موظف استقبال حتى يتمكن المرضى من التسجيل عند وصولهم.";button.textContent="فتح الإدارة";}
- else if(missionPhase===2){title.textContent="أنشئ غرفة التقييم";detail.textContent="ارسم غرفة للتاريخ المرضي والفحص الوظيفي قبل العلاج.";button.textContent="ابنِ غرفة التقييم";}
- else if(missionPhase===3){title.textContent="أنشئ غرفة العلاج";detail.textContent="جهّز غرفة العلاج الطبيعي لاستقبال الحالات بعد التقييم.";button.textContent="ابنِ غرفة العلاج";}
- else if(missionPhase===4){title.textContent="جهّز الغرف بالمعدات";detail.textContent="ضع سرير العلاج وخزانة الأدوات وسرير الفحص في الغرف الصحيحة.";button.textContent="افتح المتجر";}
- else if(missionPhase===5){title.textContent="افتح أبواب العيادة";detail.textContent="اكتملت التجهيزات الأساسية. افتح العيادة وابدأ استقبال المرضى.";button.textContent="فتح لوحة الإدارة";}
+ card.classList.toggle("mission-done",missionPhase>=6);button.disabled=missionPhase>=6;
+ if(missionPhase===0){title.textContent="ابنِ الاستقبال";detail.textContent="ارسم غرفة استقبال واسعة، ثم أضف مكتب الاستقبال ومقاعد الانتظار.";button.textContent="ابدأ البناء";}
+ else if(missionPhase===1){title.textContent="أنشئ غرفة التقييم";detail.textContent="ارسم غرفة مخصصة للتاريخ المرضي والفحص الوظيفي.";button.textContent="ابنِ غرفة التقييم";}
+ else if(missionPhase===2){title.textContent="أنشئ غرفة العلاج";detail.textContent="جهّز غرفة العلاج الطبيعي بسرير ومساحة حركة كافية.";button.textContent="ابنِ غرفة العلاج";}
+ else if(missionPhase===3){title.textContent="جهّز عيادتك";detail.textContent="أضف سرير العلاج وخزانة الأدوات وسرير الفحص من المتجر.";button.textContent="افتح المتجر";}
+ else if(missionPhase===4){title.textContent="افتح أبواب العيادة";detail.textContent="الغرف الأساسية جاهزة. افتح العيادة واستقبل أول مريض.";button.textContent="لوحة العيادة";}
+ else if(missionPhase===5){title.textContent="طوّر عيادتك";detail.textContent=management.treated<3?"عالج 3 حالات لفتح خيار شراء موظف استقبال.":"أصبح موظف الاستقبال متاحاً للشراء من لوحة العيادة.";button.textContent="عرض المرضى";}
+ else{title.textContent="عيادتك بدأت تنمو";detail.textContent="واصل علاج المرضى، ووسّع الغرف، وحسّن الأثاث والديكور.";button.textContent="متابعة اللعب";}
 }
 function setMissionPhase(next:number){
  missionPhase=next;
@@ -878,22 +876,22 @@ function renderManagement(){
  el("#mg-balance").textContent=String(Math.round(management.balance));
  el("#mg-treated").textContent=String(management.treated);
  el("#mg-reputation").textContent=Math.round(management.reputation)+"%";
- el("#mg-completed").textContent=String(management.treated);
- const clinicToggle=el<HTMLButtonElement>("#clinic-open-toggle");clinicToggle.textContent=management.clinicOpen?"إغلاق العيادة":"فتح العيادة";clinicToggle.classList.toggle("closed",!management.clinicOpen);
+ el("#mg-completed").textContent=String(management.treated);\n if(management.treated>=3&&missionPhase===5&&!management.receptionistOwned){setMissionPhase(5);}
+ const clinicToggle=el<HTMLButtonElement>("#clinic-open-toggle");
+ clinicToggle.textContent=management.clinicOpen?"إغلاق العيادة":"فتح العيادة";
+ clinicToggle.classList.toggle("closed",!management.clinicOpen);
  el("#management-date").textContent="اليوم "+management.day+" · "+formatGameTime(management)+" · "+(management.speed===0?"متوقفة":management.speed+"×");
- const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"التسجيل",waiting:"ينتظر",assessment:"التقييم",treatment:"جلسة علاج"};
- const queue=getPatientQueue(management);
- const visiblePatient=queue[0];
- const receptionRoom=management.rooms.find(r=>r.type==="reception");
+ const receptionistButton=el<HTMLButtonElement>("#buy-receptionist");
+ const receptionistDescription=el<HTMLElement>("#receptionist-description");
+ receptionistButton.hidden=management.receptionistOwned||management.treated<3;
+ receptionistButton.disabled=management.receptionistOwned||management.balance<280;
+ receptionistDescription.textContent=management.receptionistOwned?"موظف الاستقبال يعمل الآن على تنظيم وصول المرضى.":management.treated<3?"عالج "+(3-management.treated)+" حالات إضافية لفتح شراء موظف الاستقبال.":"متاح الآن: اشترِ موظف استقبال مقابل 280 عملة لتسريع التسجيل وتقليل الانتظار.";
+ const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"التسجيل",waiting:"ينتظر الأخصائي",assessment:"جلسة التقييم",treatment:"جلسة العلاج"};
+ const queue=getPatientQueue(management),visiblePatient=queue[0],receptionRoom=management.rooms.find(r=>r.type==="reception");
  for(let i=0;i<waitingPatientVisuals.length;i++){
-  const visual=waitingPatientVisuals[i],queued=queue[i+1];
-  const show=!!queued&&!!receptionRoom&&(queued.stage==="reception"||queued.stage==="waiting");
+  const visual=waitingPatientVisuals[i],queued=queue[i+1],show=!!queued&&!!receptionRoom&&(queued.stage==="reception"||queued.stage==="waiting");
   visual.root.enabled=show;
-  if(show&&receptionRoom){
-   visual.root.setLocalPosition(receptionRoom.x+1.05+i*.82,0,receptionRoom.z+1.05);
-   visual.root.setLocalEulerAngles(0,180,0);
-   visual.fallback?.update(0,false);transitionHumanoid(visual.rig,false);
-  }
+  if(show&&receptionRoom){visual.root.setLocalPosition(receptionRoom.x+1.05+i*.82,0,receptionRoom.z+1.05);visual.root.setLocalEulerAngles(0,180,0);visual.fallback?.update(0,false);transitionHumanoid(visual.rig,false);}
  }
  if(!visiblePatient){patientNpc.enabled=false;patientVisualId=0;patientVisualStage="";patientTarget=null;patientWalkPath=[];}
  else{
@@ -909,12 +907,10 @@ function renderManagement(){
    patientNpc.enabled=true;
   }
  }
- el("#patient-queue").innerHTML=queue.length?queue.map(patient=>'<div class="management-row"><div><strong>'+patient.name+' · '+patient.caseLabel+'</strong><small>'+stageLabels[patient.stage]+' · انتظار '+Math.round(patient.waitMinutes)+' دقيقة</small></div><div><small>الصبر '+Math.round(patient.patience)+'%</small><div class="meter"><i style="width:'+Math.round(patient.patience)+'%"></i></div></div></div>').join(""):'<p class="empty-management">لا توجد حالات نشطة حالياً. ابنِ الاستقبال ووظّف موظف استقبال وغرفة تقييم وعلاج.</p>';
-
+ el("#patient-queue").innerHTML=queue.length?queue.map(patient=>'<div class="management-row"><div><strong>'+patient.name+' · '+patient.caseLabel+'</strong><small>'+stageLabels[patient.stage]+' · انتظار '+Math.round(patient.waitMinutes)+' دقيقة</small></div><div><small>الصبر '+Math.round(patient.patience)+'%</small><div class="meter"><i style="width:'+Math.round(patient.patience)+'%"></i></div></div></div>').join(""):'<p class="empty-management">لا توجد حالات نشطة حالياً. افتح العيادة وانتظر وصول المرضى.</p>';
  el("#clinic-events").innerHTML=management.events.slice(0,6).map(item=>'<div class="management-event">'+item.message+'</div>').join("");
  document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>button.classList.toggle("selected",Number(button.dataset.speed)===management.speed));
 }
-
 function screenToGround(clientX:number,clientY:number){
  const rect=canvas.getBoundingClientRect();
  const px=(clientX-rect.left)*(canvas.width/rect.width),py=(clientY-rect.top)*(canvas.height/rect.height);
@@ -965,7 +961,7 @@ canvas.addEventListener("pointerup",e=>{
    if(!result.ok){status.textContent=result.message;return;}
    coins=management.balance;coinsLabel.textContent=String(coins);
    const item:Placed={id:nextId++,kind:selected,gx:b.x,gz:b.z,width:b.w,depth:b.d,rot:wallRotation};
-   placed.push(item);drawPlaced(item);createLawnGrass();if(missionPhase===0&&selected==="reception")setMissionPhase(1);else if(missionPhase===2&&selected==="assessment")setMissionPhase(3);else if(missionPhase===3&&selected==="treatment")setMissionPhase(4);save();status.textContent=result.message+" يمكنك إضافة الأجهزة والأثاث من المتجر.";return;
+   placed.push(item);drawPlaced(item);createLawnGrass();if(missionPhase===0&&selected==="reception")setMissionPhase(1);else if(missionPhase===1&&selected==="assessment")setMissionPhase(2);else if(missionPhase===2&&selected==="treatment")setMissionPhase(3);save();status.textContent=result.message+" يمكنك إضافة الأجهزة والأثاث من المتجر.";return;
   }
  }
  if(!pointerStart){
@@ -1034,7 +1030,7 @@ el<HTMLButtonElement>("#clinic-open-toggle").addEventListener("click",()=>{
  }
  const result=setClinicOpen(management,!management.clinicOpen);
  status.textContent=result.message;
- if(result.ok&&management.clinicOpen&&missionPhase===5)setMissionPhase(6);
+ if(result.ok&&management.clinicOpen&&missionPhase===4)setMissionPhase(5);
  renderManagement();save();
 });
 function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",assessment:"غرفة تقييم",gym:"صالة تأهيل",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent=isRoomKind(kind)?"تم اختيار "+names[kind]+". اسحب بإصبعك على الأرض لرسم مساحة الغرفة بالحجم الذي تريده.":"تم اختيار "+names[kind]+". المس خلية فارغة لوضع العنصر، ويمكنك تدوير الحائط من زر التدوير.";}
@@ -1057,7 +1053,7 @@ document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEve
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";el("#catalog-furniture").hidden=cat!=="furniture";if(cat==="structure")selectBuild("wall");else if(cat==="rooms")selectBuild("reception");else selectAsset("pt-treatment-table");}));
 el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;previewValidity=null;status.textContent="اتجاه العنصر الآن "+(wallRotation===0?"0°":"90°")+". سيتم تطبيقه على القطعة التالية.";});
 viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:15.5;viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
-let sessionStep=0,sessionScore=0;
+let sessionStep=0,sessionScore=0,activeSessionPatientId=0;
 let sessionPending=false;
 const steps=[
  {title:"استقبال المريض",intro:"وصل مريض جديد إلى عيادتك. ابدأ الجلسة بخطوة آمنة ومنظمة.",question:"ما أول خطوة مناسبة؟",options:[["safe","التحقق من علامات الخطر وأخذ التاريخ المرضي",true,"اختيار ممتاز. سلامة المريض وجمع المعلومات يسبقان أي تدخل."],["exercise","بدء التمارين مباشرة",false,"لا تبدأ التدخل قبل فهم الحالة والتحقق من علامات الخطر."],["diagnosis","تحديد التشخيص النهائي فوراً",false,"المعلومات الحالية لا تكفي لتشخيص نهائي. ابدأ بالتقييم."]]},
@@ -1076,7 +1072,7 @@ sessionBtn.addEventListener("click",()=>{
  else{focus=false;cameraGoal.set(0,0,0);viewBtn.classList.remove("active");status.textContent="لا يوجد مسار آمن إلى المريض. افتح الممر أو أعد ترتيب الأثاث قبل بدء الجلسة.";}
 });
 sessionDialog.addEventListener("close",()=>{focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=15.5;viewBtn.classList.remove("active");});
-el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;management.balance=coins;management.experience=xp;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
+el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{const earned=sessionScore*8;xp+=sessionScore*10;coins=management.balance;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
 load();createLawnGrass();coinsLabel.textContent=String(coins);renderManagement();
 let locomotionState="",managementUiTimer=0,managementSaveTimer=0;
 function setLocomotion(moving:boolean){
@@ -1103,15 +1099,15 @@ function moveAvatarTo(tx:number,tz:number){
  target=new pc.Vec3(first.x,0,first.z);setLocomotion(true);return true;
 }
 el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
- if(missionPhase===0||missionPhase===2||missionPhase===3){
+ if(missionPhase===0||missionPhase===1||missionPhase===2){
   managementPanel.hidden=true;buildPanel.hidden=false;updateMode("build");
-  selectBuild(missionPhase===0?"reception":missionPhase===2?"assessment":"treatment");
+  selectBuild(missionPhase===0?"reception":missionPhase===1?"assessment":"treatment");
   status.textContent="اسحب بإصبعك على الأرض لرسم مساحة الغرفة، ثم ارفع إصبعك لتأكيد البناء.";
  }else if(missionPhase===4){
   storeBtn.click();status.textContent="اشترِ المعدات الأساسية ثم ضع كل قطعة داخل غرفتها المناسبة.";
- }else if(missionPhase===1||missionPhase===5){
+ }else if(missionPhase===4||missionPhase===5){
   managementPanel.hidden=false;buildPanel.hidden=true;updateMode("move");renderManagement();
-  status.textContent=missionPhase===1?"وظّف موظف استقبال من لوحة الإدارة.":"تحقق من المتطلبات واضغط فتح العيادة.";
+  status.textContent=missionPhase===4?"تحقق من المتطلبات واضغط فتح العيادة.":"تابع المرضى من اللوحة، وعالج ثلاث حالات لفتح ترقية الاستقبال.";
  }
 });
 el<HTMLButtonElement>("#skip-tour").addEventListener("click",()=>setMissionPhase(6));
