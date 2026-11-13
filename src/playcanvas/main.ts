@@ -1021,7 +1021,7 @@ document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>but
  const speed=Number(button.dataset.speed) as 0|1|2|3;setSimulationSpeed(management,speed);renderManagement();save();
 }));
 el<HTMLButtonElement>("#buy-receptionist").addEventListener("click",()=>{
- const result=hireReceptionist(management);coins=management.balance;coinsLabel.textContent=String(coins);status.textContent=result.message;renderManagement();save();
+ const result=hireReceptionist(management);coins=management.balance;coinsLabel.textContent=String(coins);status.textContent=result.message;if(result.ok)setMissionPhase(6);renderManagement();save();
 });
 el<HTMLButtonElement>("#clinic-open-toggle").addEventListener("click",()=>{
  if(!management.clinicOpen){
