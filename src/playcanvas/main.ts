@@ -189,8 +189,8 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
  addRoomWallRun(root,"z",-halfD,depth,halfW,"solid");
  addRoomWallRun(root,"x",-halfW,width,halfD,"glazed");
  const doorWidth=Math.min(1.2,width*.34),sideSegment=(width-doorWidth)/2;
- addRoomWallRun(root,"x",-halfW,sideSegment,-halfD,"solid");
- addRoomWallRun(root,"x",doorWidth/2,sideSegment,-halfD,"solid");
+ addRoomWallRun(root,"x",-halfW,sideSegment,-halfD,"solid",.62);
+ addRoomWallRun(root,"x",doorWidth/2,sideSegment,-halfD,"solid",.62);
  loadRoomDoor(root,0,-halfD);
  const trimMat=kind==="reception"?M.teal:kind==="assessment"?M.blue:kind==="exercise"?M.yellow:M.teal;
  box("Room identity plaque",-halfW+.12,2.0,0,.06,.42,.86,trimMat,root);
@@ -397,23 +397,23 @@ const clinicAssetUrls:Record<string,string>={
  "corridor-floor-tile.glb":new URL("../assets/clinic-kit/management-sim/corridor-floor-tile.glb",import.meta.url).href
 };
 const containerCache=new Map<string,Promise<any>>();
-function loadRoomModule(parent:pc.Entity,file:string,x:number,y:number,z:number,rotation:number,scaleX=1,scaleZ=1,fallback:"floor"|"wall"="wall"){
+function loadRoomModule(parent:pc.Entity,file:string,x:number,y:number,z:number,rotation:number,scaleX=1,scaleZ=1,fallback:"floor"|"wall"="wall",scaleY=1){
  const url=clinicAssetUrls[file];if(!url)return;
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:true});
-  parent.addChild(model);model.setLocalPosition(x,y,z);model.setLocalEulerAngles(0,rotation,0);model.setLocalScale(scaleX,1,scaleZ);model.syncHierarchy();
+  parent.addChild(model);model.setLocalPosition(x,y,z);model.setLocalEulerAngles(0,rotation,0);model.setLocalScale(scaleX,scaleY,scaleZ);model.syncHierarchy();
  }).catch(error=>{
   console.warn("Room module fallback:",file,error);
   if(fallback==="floor")box("Fallback floor tile",x,y+.012,z,scaleX*2,.018,scaleZ*2,(Math.round(x+z)%2)?M.pale:M.room,parent);
-  else{const fallbackWall=box("Fallback wall module",x,y+1.35,z,scaleX*2,2.7,scaleZ*.15,M.wallSide,parent);fallbackWall.setLocalEulerAngles(0,rotation,0);}
+  else{const fallbackWall=box("Fallback wall module",x,y+1.35*scaleY,z,scaleX*2,2.7*scaleY,scaleZ*.15,M.wallSide,parent);fallbackWall.setLocalEulerAngles(0,rotation,0);}
  });
 }
-function addRoomWallRun(parent:pc.Entity,axis:"x"|"z",start:number,length:number,fixed:number,kind:"solid"|"glazed"){
+function addRoomWallRun(parent:pc.Entity,axis:"x"|"z",start:number,length:number,fixed:number,kind:"solid"|"glazed",heightScale=1){
  let cursor=0;
  const rotation=axis==="z"?90:0;
  const place=(file:string,span:number,center:number)=>{
   const x=axis==="x"?center:fixed,z=axis==="x"?fixed:center;
-  loadRoomModule(parent,file,x,0,z,rotation,1,1,"wall");
+  loadRoomModule(parent,file,x,0,z,rotation,1,1,"wall",heightScale);
  };
  const twoMetreFile=kind==="glazed"?"glazed-partition.glb":"partition-wall.glb";
  while(length-cursor>=1.95){place(twoMetreFile,2,start+cursor+1);cursor+=2;}
@@ -421,7 +421,7 @@ function addRoomWallRun(parent:pc.Entity,axis:"x"|"z",start:number,length:number
  const remainder=length-cursor;
  if(remainder>.05){
   const center=start+cursor+remainder/2,x=axis==="x"?center:fixed,z=axis==="x"?fixed:center;
-  box("Short wall infill",x,1.35,z,axis==="x"?remainder:.15,2.7,axis==="z"?remainder:.15,M.wallSide,parent);
+  box("Short wall infill",x,1.35*heightScale,z,axis==="x"?remainder:.15,2.7*heightScale,axis==="z"?remainder:.15,M.wallSide,parent);
  }
 }
 function loadRoomDoor(parent:pc.Entity,x:number,z:number){
