@@ -1212,10 +1212,16 @@ el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation
 viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:15.5;viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
 let sessionStep=0,sessionScore=0,activeSessionPatientId=0,sessionCompleted=false;
 let sessionPending=false;
+const patientBriefs:Record<"pain"|"mobility"|"post_op"|"sports",string>={
+ pain:"يشكو من ألم يؤثر في نشاطه اليومي. استكشف بداية المشكلة ومكانها وسلوكها والأعراض المصاحبة.",
+ mobility:"يواجه صعوبة في المشي والتنقل. افهم متى تظهر الصعوبة وما الأنشطة التي أصبحت محدودة.",
+ post_op:"في مرحلة إعادة التأهيل بعد تدخل جراحي. راجع نوع الإجراء والقيود والاحتياطات الموثقة قبل الفحص.",
+ sports:"يعاني من إصابة مرتبطة بالنشاط الرياضي. استكشف آلية الإصابة والأعراض والقدرة الوظيفية قبل اختيار الفحص."
+};
 const steps=[
- {title:"استقبال المريض",intro:"وصل مريض جديد إلى عيادتك. ابدأ الجلسة بخطوة آمنة ومنظمة.",question:"ما أول خطوة مناسبة؟",options:[["safe","التحقق من علامات الخطر وأخذ التاريخ المرضي",true,"اختيار ممتاز. سلامة المريض وجمع المعلومات يسبقان أي تدخل."],["exercise","بدء التمارين مباشرة",false,"لا تبدأ التدخل قبل فهم الحالة والتحقق من علامات الخطر."],["diagnosis","تحديد التشخيص النهائي فوراً",false,"المعلومات الحالية لا تكفي لتشخيص نهائي. ابدأ بالتقييم."]]},
- {title:"التاريخ المرضي",intro:"المريض يذكر ألماً بعد رفع جسم ثقيل. اسأل عن تفاصيل الأعراض وتأثيرها.",question:"أي مجموعة أسئلة تساعدك أكثر؟",options:[["history","بداية الألم ومكانه وشدته وسلوكه والأعراض المصاحبة",true,"صحيح. هذه المعلومات تبني صورة سريرية أولية وتوجه الفحص."],["onlypain","السؤال عن شدة الألم فقط",false,"شدة الألم وحدها لا تكفي لفهم المشكلة."],["skip","تجاوز الأسئلة والانتقال للعلاج",false,"التاريخ المرضي جزء أساسي من التقييم."]]},
- {title:"الفحص السريري",intro:"بعد التاريخ المرضي والتحقق من الأمان، حان وقت اختيار فحص مناسب.",question:"ما التصرف الأفضل؟",options:[["exam","اختيار فحوصات مرتبطة بالفرضيات السريرية وبموافقة المريض",true,"ممتاز. اختر فحوصات موجهة وآمنة بناءً على المعلومات."],["random","إجراء كل الاختبارات بلا ترتيب",false,"الفحص العشوائي يرهق المريض ولا يحسن القرار."],["force","إجبار المريض على حركة مؤلمة",false,"الفحص يجب أن يكون آمناً ومناسباً لتحمل المريض."]]},
+ {title:"استقبال المريض",intro:"ابدأ كل لقاء بفهم احتياجات المريض والتحقق من السلامة قبل اختيار أي فحص أو تدخل.",question:"ما أول خطوة مناسبة؟",options:[["safe","التحقق من علامات الخطر وأخذ التاريخ المرضي",true,"اختيار ممتاز. سلامة المريض وجمع المعلومات يسبقان أي تدخل."],["exercise","بدء التمارين مباشرة",false,"لا تبدأ التدخل قبل فهم الحالة والتحقق من علامات الخطر."],["diagnosis","تحديد التشخيص النهائي فوراً",false,"المعلومات الحالية لا تكفي لتشخيص نهائي. ابدأ بالتقييم."]]},
+ {title:"التاريخ المرضي",intro:"اجمع تفاصيل المشكلة الحالية وتأثيرها على الحركة والأنشطة اليومية، بما يناسب حالة المريض.",question:"أي مجموعة أسئلة تساعدك أكثر؟",options:[["history","بداية المشكلة وطبيعتها وسلوكها والأعراض المصاحبة وتأثيرها الوظيفي",true,"صحيح. التاريخ المرضي يوضح المشكلة وسياقها ويساعد على توجيه الفحص."],["onlypain","التركيز على عرض واحد دون بقية القصة",false,"معلومة واحدة لا تكفي لفهم المشكلة أو تأثيرها الوظيفي."],["skip","تجاوز الأسئلة والانتقال للعلاج",false,"التاريخ المرضي جزء أساسي من التقييم."]]},
+ {title:"الفحص السريري",intro:"بعد فهم القصة والتحقق من الأمان، اختر فحوصات تناسب المشكلة والقيود الفردية للمريض.",question:"ما التصرف الأفضل؟",options:[["exam","اختيار فحوصات مرتبطة بالفرضيات السريرية وبموافقة المريض",true,"ممتاز. اختر فحوصات موجهة وآمنة بناءً على المعلومات."],["random","إجراء كل الاختبارات بلا ترتيب",false,"الفحص العشوائي يرهق المريض ولا يحسن القرار."],["force","إجبار المريض على حركة مؤلمة",false,"الفحص يجب أن يكون آمناً ومناسباً لتحمل المريض."]]},
  {title:"خطة العلاج",intro:"لديك الآن معلومات أولية. ضع خطة مشتركة مع المريض وقابلة للقياس.",question:"أي خطة أفضل؟",options:[["plan","أهداف وظيفية واقعية وتدخل مناسب وتثقيف المريض",true,"صحيح. الخطة تتمحور حول وظيفة المريض واحتياجاته."],["passive","اعتماد جهاز علاجي فقط دون أهداف",false,"الخطة تحتاج أهدافاً واضحة ومشاركة نشطة من المريض."],["same","تطبيق نفس الخطة على كل المرضى",false,"العلاج يجب أن يُفصّل حسب تقييم كل حالة."]]},
  {title:"إعادة التقييم",intro:"انتهت الجلسة الأولى. كيف تعرف إن كانت خطتك مفيدة؟",question:"ما الخطوة الأخيرة؟",options:[["retest","إعادة قياس المؤشرات ومراجعة الأهداف وتعديل الخطة",true,"رائع. إعادة التقييم تربط التدخل بالنتيجة وتوجه الخطوة التالية."],["finish","إنهاء الجلسة دون قياس",false,"لا يمكن معرفة الاستجابة دون إعادة تقييم."],["repeat","تكرار التدخل نفسه مهما كانت الاستجابة",false,"القرار السريري يتغير وفق استجابة المريض."]]}
 ];
@@ -1224,7 +1230,7 @@ sessionBtn.addEventListener("click",()=>{
  if(!management.clinicOpen){status.textContent="أكمل بناء الاستقبال وغرفة التقييم والعلاج وتجهيز المعدات، ثم افتح العيادة.";return;}
  const started=beginPatientSession(management);
  if(!started.ok){status.textContent=started.message;return;}
- activeSessionPatientId=started.patient!.id;sessionCompleted=false;renderManagement();save();
+ const activePatient=started.patient!;activeSessionPatientId=activePatient.id;sessionCompleted=false;el("#patient-brief").innerHTML="<b>"+activePatient.name+" · "+activePatient.caseLabel+"</b><span>"+patientBriefs[activePatient.need]+"</span>";renderManagement();save();
  sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();
  const assessmentRoom=management.rooms.find(r=>r.type==="assessment")!;const patientGoal=patientGoalFor(assessmentRoom,"assessment");sessionPending=moveAvatarTo(patientGoal.x+.65,patientGoal.z-.1);
  if(sessionPending){status.textContent="الأخصائي يتجه إلى المريض. ستبدأ الجلسة بعد الوصول إلى موضع آمن بجانبه.";}
