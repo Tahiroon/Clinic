@@ -100,14 +100,13 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
 }
 // The starter clinic is assembled from lightweight procedural geometry; optional GLB assets load independently.
 const avatar=new pc.Entity("Student avatar");avatar.setPosition(-2.0,0,.55);world.addChild(avatar);
-let avatarAnim:any=null;let avatarClipNames:string[]=[];let playerRig:HumanoidRig|null=null;
+let avatarAnim:any=null;let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
  student:new URL("../assets/characters/Student.glb",import.meta.url).href,
  patient:new URL("../assets/characters/WardPatient.glb",import.meta.url).href,
 };
 type HumanoidRig={entity:pc.Entity;anim:any;clips:string[];idle:string;walk:string};
-const humanoidRigs:HumanoidRig[]=[];
-function loadHumanoid(url:string,parent:pc.Entity,height:number,castShadow:boolean,onReady?:(rig:HumanoidRig)=>void){
+ function loadHumanoid(url:string,parent:pc.Entity,height:number,castShadow:boolean,onReady?:(rig:HumanoidRig)=>void){
  app.assets.loadFromUrl(url,"container",(err,asset)=>{
   if(err||!asset?.resource){console.error("Character asset failed",url,err);status.textContent="تعذر تحميل شخصية؛ بقية العيادة تستمر بالعمل.";return;}
   const model=asset.resource.instantiateRenderEntity({castShadows:castShadow,receiveShadows:false});
@@ -135,8 +134,7 @@ function loadHumanoid(url:string,parent:pc.Entity,height:number,castShadow:boole
   const idle=names.find(n=>/idle|stand|rest/i.test(n))??names[0]??"";
   const walk=names.find(n=>/walk|walking/i.test(n))??names.find(n=>/run|jog/i.test(n))??idle;
   const rig:HumanoidRig={entity:model,anim,clips:names,idle,walk};
-  humanoidRigs.push(rig);
-  if(idle&&anim?.baseLayer){try{anim.baseLayer.play(idle);}catch(error){console.warn("Idle animation could not start",error);}}
+   if(idle&&anim?.baseLayer){try{anim.baseLayer.play(idle);}catch(error){console.warn("Idle animation could not start",error);}}
   if(onReady)onReady(rig);
   console.info("Clinic character ready",url,{height,clips:names,idle,walk});
  });
@@ -149,14 +147,14 @@ function transitionHumanoid(rig:HumanoidRig|null,moving:boolean){
  catch{try{rig.anim.baseLayer.play(desired);}catch{}}
 }
 loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
- avatarAnim=rig.anim;avatarClipNames=rig.clips;playerRig=rig;
+ avatarAnim=rig.anim;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
 const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(1.55,0,1.5);world.addChild(patientNpc);
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false);
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=3, focus=false, wallRotation:0|90=0;
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v3";const entities:pc.Entity[]=[];
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v3"; 
 const starterLayout:Placed[]=[{id:1,kind:"reception",gx:-4,gz:0},{id:2,kind:"treatment",gx:0,gz:0}];
 const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
@@ -217,11 +215,11 @@ function loadClinicAsset(p:Placed){
 
 function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:3,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function load(){const useStarter=()=>{coins=350;xp=0;placed=starterLayout.map(p=>({...p}));nextId=3;for(const p of placed)drawPlaced(p);};try{const s=localStorage.getItem(saveKey);if(!s){useStarter();return;}const v=JSON.parse(s);if(v.v!==3){useStarter();return;}coins=Number.isFinite(v.coins)?Math.max(0,v.coins):350;xp=Number.isFinite(v.xp)?v.xp:0;placed=Array.isArray(v.placed)?v.placed.slice(0,60):[];nextId=Math.max(3,...placed.map((p:Placed)=>p.id+1));coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";for(const p of placed)drawPlaced(p);}catch{useStarter();}}
-function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"||p.kind==="gym"||p.kind==="treatment"){const r=makeRoom(p.kind,p.gx,p.gz,p.id);entities.push(r);return;}
+function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"||p.kind==="gym"||p.kind==="treatment"){const r=makeRoom(p.kind,p.gx,p.gz,p.id); return;}
  const root=new pc.Entity("Placed "+p.kind);
  if(p.kind==="wall")root.setPosition(p.rot===90?p.gx+1.5: x,0,p.rot===90?z:p.gz+1.5);
  else root.setPosition(x,0,z);
- root.setEulerAngles(0,p.rot??0,0);world.addChild(root);entities.push(root);
+ root.setEulerAngles(0,p.rot??0,0);world.addChild(root);
  if(p.kind==="chair"){box("Chair seat",0,.38,0,.6,.15,.6,M.teal,root);box("Chair back",0,.75,-.22,.6,.6,.13,M.blue,root);for(const a of [-.22,.22])for(const b of [-.22,.22])box("Chair leg",a,.16,b,.06,.32,.06,M.dark,root);}
  if(p.kind==="plant"){box("Plant pot",0,.2,0,.38,.4,.38,M.wood2,root);sphere("Plant leaves",0,.72,0,.52,M.green,root);sphere("Plant leaf",.2,.88,.04,.3,M.green,root);}
  if(p.kind==="cabinet"){box("Cabinet body",0,.6,0,.7,1.2,.42,M.wood2,root);box("Cabinet door",0,.6,.22,.62,1.08,.03,M.wood,root);}
@@ -242,12 +240,10 @@ function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:str
  return {x:gx,z:gz,w:size,d:size};
 }
 function rectanglesOverlap(a:{x:number;z:number;w:number;d:number},b:{x:number;z:number;w:number;d:number}){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.z<b.z+b.d&&a.z+a.d>b.z;}
-const starterFootprint={x:99,z:99,w:0,d:0};
-function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string){
+ function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string){
  const a=footprintAt(gx,gz,kind,rot,assetKey);
  if(a.x< -HALF||a.z< -HALF||a.x+a.w>HALF||a.z+a.d>HALF)return true;
- if(rectanglesOverlap(a,starterFootprint))return true;
- const isRoom=(k:BuildKind)=>k==="treatment"||k==="reception"||k==="gym";
+  const isRoom=(k:BuildKind)=>k==="treatment"||k==="reception"||k==="gym";
  return placed.some(p=>{const existingRoom=isRoom(p.kind),candidateRoom=isRoom(kind);if(existingRoom&&!candidateRoom)return false;return rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey));});
 }
 function canAvatarStand(x:number,z:number){
