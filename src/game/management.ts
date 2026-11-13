@@ -100,7 +100,7 @@ function addPatient(s:ManagementState){
   s.patients.push(p);s.arrivals++;event(s,"arrival","وصل "+name+" إلى العيادة: "+c.label+".");
 }
 function availableRoom(s:ManagementState,type:ClinicRoomType){return s.rooms.find(r=>r.open&&r.type===type);}
-function availablePhysio(s:ManagementState){return s.staff.find(m=>m.role==="physiotherapist"&&m.energy>18&&m.status!=="break"&&!s.patients.some(p=>p.assignedStaffId===m.id&&["assessment","treatment"].includes(p.stage)));}
+function availablePhysio(s:ManagementState){const available=s.staff.filter(m=>m.role==="physiotherapist"&&m.energy>18&&m.status!=="break"&&!s.patients.some(p=>p.assignedStaffId===m.id&&["assessment","treatment"].includes(p.stage)));return available.find(m=>m.id!==1)??available[0];}
 export function advanceSimulation(s:ManagementState,realSeconds:number){
   if(s.speed===0||realSeconds<=0)return;
   const gameMinutes=realSeconds*s.speed*2;
