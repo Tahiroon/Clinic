@@ -607,43 +607,6 @@ function getClinicContainer(url:string):Promise<any>{
  }
  return pending;
 }
-function drawAssetFallback(p:Placed,spec:{label:string}){
- const key=p.assetKey??"";
- const size=storeAssetSpecs[key]?.footprint??1;
- const root=new Entity("Fallback prop · "+spec.label);
- root.setPosition(p.gx+size/2,0,p.gz+size/2);world.addChild(root);
- addContactShadow(root,"Fallback equipment shadow",0,0,size*.62,size*.44,.052);
- const bed=(name:string)=>{box(name+" base",0,.3,0,1.8,.2,.82,M.dark,root);box(name+" mattress",0,.47,0,1.76,.18,.78,M.blue,root);box(name+" pillow",0,.59,-.3,.46,.1,.28,M.pale,root);for(const x of [-.72,.72])for(const z of [-.28,.28])box(name+" leg",x,.13,z,.08,.28,.08,M.dark,root);};
- const chair=(name:string)=>{box(name+" seat",0,.48,0,.62,.15,.62,M.teal,root);box(name+" back",0,.82,-.23,.62,.62,.13,M.blue,root);for(const x of [-.23,.23])for(const z of [-.23,.23])box(name+" leg",x,.22,z,.06,.44,.06,M.dark,root);};
- if(key==="pt-treatment-table"||key==="pt-exam-table")bed("Fallback "+spec.label);
- else if(key==="pt-storage-cabinet"||key==="pt-clinical-sink"){
-  box("Fallback cabinet body",0,.55,0,.72,1.1,.52,M.wood2,root);box("Fallback cabinet front",0,.55,.27,.64,.98,.025,M.wood,root);
-  if(key==="pt-clinical-sink"){box("Fallback sink basin",0,1.13,.02,.5,.08,.34,M.pale,root);cylinder("Fallback faucet",0,1.25,-.1,.035,.2,.035,M.dark,root);}
- }else if(key==="pt-patient-chair"||key==="hospital-transport-chair"||key==="pt-wheelchair")chair("Fallback "+spec.label);
- else if(key==="pt-doctor-desk"){
-  box("Fallback desk top",0,.88,0,1.55,.12,.82,M.wood2,root);for(const x of [-.65,.65])box("Fallback desk leg",x,.43,0,.09,.82,.72,M.dark,root);box("Fallback monitor",0,1.18,-.2,.48,.38,.06,M.dark,root);
- }else if(key==="pt-reception-desk"){
-  box("Fallback reception counter",0,.55,0,2.05,1.05,.72,M.wood2,root);box("Fallback reception top",0,1.1,0,2.12,.12,.78,M.wood,root);box("Fallback reception screen",.45,1.35,-.18,.46,.34,.05,M.dark,root);
- }else if(key==="pt-waiting-bench"){
-  box("Fallback waiting bench seat",0,.42,0,1.55,.18,.55,M.teal,root);box("Fallback waiting bench back",0,.78,-.2,1.55,.58,.12,M.blue,root);for(const x of [-.65,.65])box("Fallback bench leg",x,.2,0,.08,.4,.42,M.dark,root);
- }else if(key==="pt-privacy-screen"||key==="pt-privacy-curtain"){
-  for(const x of [-.72,.72])cylinder("Fallback screen post",x,1.05,0,.045,2.1,.045,M.dark,root);
-  box("Fallback privacy curtain",0,1.25,0,1.42,1.55,.055,M.pale,root);box("Fallback curtain rail",0,2.2,0,1.58,.06,.08,M.dark,root);
- }else if(key==="pt-wall-chart"){
-  box("Fallback wall chart",0,1.15,0,.9,1.15,.06,M.pale,root);box("Fallback chart detail",0,1.15,.04,.62,.72,.02,M.teal,root);
- }else if(key==="pt-parallel-bars"){
-  for(const x of [-.7,.7]){for(const z of [-.9,.9])box("Fallback parallel support",x,.55,z,.08,1.1,.08,M.dark,root);box("Fallback parallel rail",x,1.12,0,.08,.08,2.0,M.wood2,root);}
- }else if(key==="pt-band-rack"){
-  box("Fallback band rack base",0,.08,0,.72,.12,.5,M.dark,root);for(const x of [-.3,.3])box("Fallback rack upright",x,.8,0,.06,1.5,.06,M.dark,root);for(let i=0;i<4;i++)box("Fallback resistance band",0,.38+i*.27,.08,.62,.035,.08,i%2?M.teal:M.yellow,root);
- }else if(key==="pt-exercise-ball")sphere("Fallback exercise ball",0,.42,0,.78,M.teal,root);
- else if(key==="pt-exercise-mat")box("Fallback exercise mat",0,.045,0,1.35,.08,1.9,M.blue,root);
- else if(key==="pt-hand-weights"){for(const x of [-.25,.25]){cylinder("Fallback dumbbell handle",x,.2,0,.035,.4,.035,M.dark,root);for(const z of [-.12,.12])box("Fallback dumbbell weight",x,.2,z,.16,.16,.1,M.dark,root);}}
- else if(key==="hospital-crutches"){for(const x of [-.2,.2]){box("Fallback crutch shaft",x,.72,0,.055,1.4,.055,M.wood2,root);box("Fallback crutch top",x,1.4,0,.36,.08,.08,M.pale,root);}}
- else if(key==="hospital-first-aid"){box("Fallback first aid bag",0,.35,0,.62,.62,.35,M.pale,root);box("Fallback medical cross",0,.36,.19,.13,.36,.035,M.teal,root);}
- else if(key==="hospital-oxygen"){cylinder("Fallback oxygen tank",0,.72,0,.34,1.35,.34,M.pale,root);for(const x of [-.3,.3])box("Fallback trolley handle",x,.65,-.2,.05,1.2,.05,M.dark,root);box("Fallback trolley base",0,.08,0,.75,.1,.48,M.dark,root);}
- else if(key==="hospital-stretcher"){bed("Fallback stretcher");for(const x of [-.7,.7])for(const z of [-.3,.3])sphere("Fallback stretcher wheel",x,.08,z,.12,M.dark,root);}
- else if(key==="hospital-walking-frame"){for(const x of [-.3,.3]){box("Fallback walking frame side",x,.58,0,.055,1.15,.055,M.dark,root);box("Fallback walking frame handle",x,1.18,-.12,.08,.07,.35,M.teal,root);}box("Fallback walking frame crossbar",0,.62,0,.62,.055,.055,M.dark,root);}
-}
 let storePreviewRoot:Entity|null=null;
 let storePreviewGeneration=0;
 function clearStorePreview(){
@@ -1448,6 +1411,7 @@ app.on("update",(dt:number)=>{
    if(patientWalkPath.length){const next=patientWalkPath.shift()!;patientStepTarget=new Vec3(next.x,0,next.z);}
    else{patientNpc.setLocalPosition(patientTarget.x,0,patientTarget.z);patientStepTarget=null;patientWalkVelocity=0;transitionHumanoid(patientRig,false);}
   }else{
+   transitionHumanoid(patientRig,true);
    const desiredYaw=Math.atan2(dx,dz)*180/Math.PI,currentYaw=patientNpc.getLocalEulerAngles().y;
    let yawDelta=((desiredYaw-currentYaw+540)%360)-180;const maxTurn=Math.max(1,frameDt*220);
    patientNpc.setLocalEulerAngles(0,currentYaw+Math.max(-maxTurn,Math.min(maxTurn,yawDelta)),0);
