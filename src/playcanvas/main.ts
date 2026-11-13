@@ -873,9 +873,7 @@ function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string
   const fixedOutdoor=[
    {x:-HALF_X,z:-HALF_Z,w:W,d:.18},{x:-HALF_X,z:HALF_Z-.18,w:W,d:.18},
    {x:-HALF_X,z:-HALF_Z,w:.18,d:D},{x:HALF_X-.18,z:-HALF_Z,w:.18,d:D},
-   {x:-.875,z:-HALF_Z,w:1.75,d:11.0},
-   ...outdoorTreePositions.map(([x,z])=>({x:x-.42,z:z-.42,w:.84,d:.84})),
-   ...outdoorShrubPositions.map(([x,z])=>({x:x-.34,z:z-.48,w:.68,d:.96}))
+   {x:-1.25,z:-HALF_Z,w:2.5,d:11.0}
   ];
   if(fixedOutdoor.some(obstacle=>rectanglesOverlap(a,obstacle)))return true;
   return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey,p.width,p.depth)));
@@ -931,14 +929,15 @@ function canAvatarStand(x:number,z:number){
  if(patientNpc.enabled){const patientPosition=patientNpc.getLocalPosition();if(rectanglesOverlap(player,{x:patientPosition.x-.28,z:patientPosition.z-.28,w:.56,d:.56}))return false;}
  // Perimeter hedge and outdoor props are solid; the lawn is not an infinite walkable plane.
  const outdoorBarriers=[
-  {x:-HALF_X,z:-HALF_Z,w:.18,d:D},
-  {x:HALF_X-.18,z:-HALF_Z,w:.18,d:D},
-  {x:-HALF_X,z:-HALF_Z,w:W,d:.18},
-  {x:-HALF_X,z:HALF_Z-.18,w:W,d:.18}
+  {x:-7.34,z:-HALF_Z,w:.42,d:D},
+  {x:6.92,z:-HALF_Z,w:.42,d:D},
+  {x:-HALF_X,z:13.91,w:W,d:.42},
+  {x:-7.2,z:-14.33,w:4.95,d:.42},
+  {x:2.25,z:-14.33,w:4.95,d:.42},
+  {x:-2.52,z:-14.48,w:.60,d:.72},
+  {x:1.92,z:-14.48,w:.60,d:.72}
  ];
  if(outdoorBarriers.some(w=>rectanglesOverlap(player,w)))return false;
- const gardenProps=[...outdoorTreePositions.map(([gx,gz])=>({x:gx-.42,z:gz-.42,w:.84,d:.84})),...outdoorShrubPositions.map(([gx,gz])=>({x:gx-.34,z:gz-.48,w:.68,d:.96}))];
- if(gardenProps.some(w=>rectanglesOverlap(player,w)))return false;
  for(const p of placed){
   const isRoom=isRoomKind(p.kind);
   if(isRoom){
