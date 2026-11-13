@@ -553,7 +553,7 @@ function load(){
   placed=[];const ids=new Set<number>();
   for(const candidate of v.placed.slice(0,60)){
    if(!validSavedItem(candidate)||ids.has(candidate.id))continue;
-   if(occupied(candidate.gx,candidate.gz,candidate.kind,candidate.rot??0,candidate.assetKey))continue;
+   if(occupied(candidate.gx,candidate.gz,candidate.kind,candidate.rot??0,candidate.assetKey,false))continue;
    const item:Placed={id:candidate.id,kind:candidate.kind,gx:candidate.gx,gz:candidate.gz,rot:candidate.rot??0,assetKey:candidate.assetKey};
    placed.push(item);ids.add(item.id);
   }
@@ -597,7 +597,7 @@ function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:str
  return {x:gx+(size-actual)/2,z:gz+(size-actual)/2,w:actual,d:actual};
 }
 function rectanglesOverlap(a:{x:number;z:number;w:number;d:number},b:{x:number;z:number;w:number;d:number}){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.z<b.z+b.d&&a.z+a.d>b.z;}
-function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string){
+function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string,requireRoom=true){
  const a=footprintAt(gx,gz,kind,rot,assetKey);
  if(a.x< -HALF_X||a.z< -HALF_Z||a.x+a.w>HALF_X||a.z+a.d>HALF_Z)return true;
  const candidateRoom=isRoomKind(kind);
@@ -605,13 +605,16 @@ function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string
   // A new room may not cover an existing room, wall, doorway or furnishing.
   return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey)));
  }
- // Every furnishing and partition must belong to a room's usable interior.
- const insideRoom=placed.some(p=>{
-  if(!isRoomKind(p.kind))return false;
-  const left=p.gx+.08,right=p.gx+3.92,front=p.gz+.08,back=p.gz+3.92;
-  return a.x>=left&&a.z>=front&&a.x+a.w<=right&&a.z+a.d<=back;
- });
- if(!insideRoom)return true;
+ // New furnishings and partitions must belong to a room's usable interior.
+ // Loading legacy saves skips this new rule so existing user layouts are preserved.
+ if(requireRoom){
+  const insideRoom=placed.some(p=>{
+   if(!isRoomKind(p.kind))return false;
+   const left=p.gx+.08,right=p.gx+3.92,front=p.gz+.08,back=p.gz+3.92;
+   return a.x>=left&&a.z>=front&&a.x+a.w<=right&&a.z+a.d<=back;
+  });
+  if(!insideRoom)return true;
+ }
  // Furniture may share a room's floor, but never another prop's physical footprint.
  return placed.some(p=>!isRoomKind(p.kind)&&rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey)));
 }
