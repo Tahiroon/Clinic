@@ -60,12 +60,12 @@ Keep the visible economy to three primary resources:
 - Reputation: reflects service quality, patient experience and clinic standards.
 - Research/learning points: unlock educational content and advanced equipment through validated milestones.
 
-Internal dashboard metrics may include care quality, patient satisfaction and financial health. The optional receptionist is a meaningful investment that improves appointment organization; do not make it mandatory.
+The management dashboard tracks care quality, patient satisfaction, staff wellbeing, cleanliness and financial health. Essential roles must be staffed before the clinic opens; later hires improve capacity and resilience.
 
 No energy lockouts, loot boxes, pay-to-win clinical advantage, coercive streaks or rewards for unsafe speed/overtreatment. Taking a break must not punish the player.
 
 ## Patients and movement
-Begin with a small number of visible patients and one active player clinician. The player avatar must navigate around walls, doors and furniture. Use authored animation states and lightweight pathfinding. Nearby characters receive full updates; distant/off-screen activity is simplified or paused. No large crowd simulation in the first release.
+Begin with a small number of visible patients and a compact team. Patients move through reception, waiting, assessment, treatment and discharge; staff move between assigned rooms, breaks and tasks. Use authored animation states, obstacle-aware pathfinding and a finite-state simulation. Nearby characters receive full updates; distant/off-screen activity is simplified or paused.
 
 ## Clinical cases
 Cases are versioned data packages independent of PlayCanvas. Each contains learner level, objectives, fictional patient profile, history, safety logic, assessment choices/findings, acceptable reasoning pathways, goals, interventions, simulated response, reassessment, scoring rubric, references, review date and reviewer history.
@@ -100,11 +100,11 @@ First milestone is read-only clinic visits. No chat, trading, shared editing or 
 Arabic-first, readable UI with English medical terminology where useful, strong contrast, scalable text, large touch targets, non-color-only feedback, reduced motion and low-graphics mode.
 
 ## First playable vertical slice
-- Standard starter plot with small clinic and outdoor green area.
-- Player physiotherapist avatar only; receptionist can follow after core stability.
-- Reception/waiting zone and one treatment room.
-- One patient and a short clinically reviewed encounter.
+- Landscaped starter plot with player-built reception, assessment and treatment rooms.
+- Hireable physiotherapists, receptionists, rehabilitation assistants and cleaners.
+- Live patient arrival-to-discharge simulation with visible queues.
 - Management, build and close clinical camera modes.
+- Pause and 1×/2×/3× time controls, staff needs, patient patience and basic finances.
 - Small object catalog, grid placement, rotation and collision/path checks.
 - One purchase and a basic coin loop.
 - Local save/reload.
@@ -124,4 +124,4 @@ Do not expand content until:
 10. Startup, frame-time distribution, memory, transfer size and touch latency are recorded.
 
 ## Explicit first-release non-goals
-No nurses, employed doctors, cleaners, assistants, large staff roster, massive open world, crowd simulation, photorealism, multiplayer editing, chat, trading, real patient records, real-world clinical decision support or coercive monetization.
+No unrelated acute-hospital departments, surgery, emergency medicine, real patient records, photorealism, multiplayer editing, chat, trading, real-world clinical decision support or coercive monetization.
