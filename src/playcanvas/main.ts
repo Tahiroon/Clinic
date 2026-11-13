@@ -52,7 +52,7 @@ function box(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:numbe
 function sphere(name:string,x:number,y:number,z:number,s:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){const e=new pc.Entity(name);e.addComponent("model",{type:"sphere"});e.setPosition(x,y,z);e.setLocalScale(s,s,s);e.model!.material=m;parent.addChild(e);return e;}
 const camera=new pc.Entity("Portrait isometric camera");camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:10,clearColor:new pc.Color(.55,.7,.72),nearClip:.1,farClip:150});const cameraTarget=new pc.Vec3(0,0,1.45),cameraGoal=new pc.Vec3(0,0,1.45);camera.setPosition(11,15,12.45);camera.lookAt(cameraTarget);app.root.addChild(camera);
 let desiredOrthoHeight=camera.camera!.orthoHeight;
-const light=new pc.Entity("Soft daylight");light.addComponent("light",{type:"directional",intensity:1.65,castShadows:true,shadowResolution:2048,shadowType:pc.SHADOW_PCF3,shadowDistance:55,normalOffsetBias:.035});light.setEulerAngles(48,35,0);app.root.addChild(light);
+const light=new pc.Entity("Soft daylight");light.addComponent("light",{type:"directional",intensity:1.65,castShadows:true,shadowResolution:1024,shadowType:pc.SHADOW_PCF3,shadowDistance:32,normalOffsetBias:.035});light.setEulerAngles(48,35,0);app.root.addChild(light);
 const world=new pc.Entity("Clinic plot");app.root.addChild(world);
 const GRID=1, W=20, D=20, HALF=W/2;
 const floorBase=material(new pc.Color(.34,.52,.37));
@@ -390,34 +390,41 @@ function findWalkPath(sx:number,sz:number,tx:number,tz:number){
  const start={x:cell(sx),z:cell(sz)},goal={x:cell(tx),z:cell(tz)};
  const worldPoint=(x:number,z:number)=>({x:x*step,z:z*step});
  const walkable=(x:number,z:number)=>{const p=worldPoint(x,z);return canAvatarStand(p.x,p.z);};
- // If the tapped point is blocked, find the nearest reachable free cell around it.
- let end=goal;
- if(!walkable(end.x,end.z)){
-  let found:{x:number;z:number}|null=null;
-  for(let radius=1;radius<=5&&!found;radius++)for(let dx=-radius;dx<=radius&&!found;dx++)for(let dz=-radius;dz<=radius&&!found;dz++){
-   if(Math.max(Math.abs(dx),Math.abs(dz))!==radius)continue;
-   const q={x:goal.x+dx,z:goal.z+dz};if(walkable(q.x,q.z))found=q;
-  }
-  if(!found)return null;end=found;
- }
- const open=[{...start,g:0,f:Math.hypot(end.x-start.x,end.z-start.z)}],came=new Map<string,string>(),cost=new Map<string,number>([[key(start.x,start.z),0]]),closed=new Set<string>();
+ const goalIsWalkable=walkable(goal.x,goal.z);
+ const open=[{...start,g:0,f:Math.hypot(goal.x-start.x,goal.z-start.z)}];
+ const came=new Map<string,string>(),cost=new Map<string,number>([[key(start.x,start.z),0]]),closed=new Set<string>();
  const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
- let iterations=0;
- while(open.length&&iterations++<5000){
-  open.sort((a,b)=>a.f-b.f);const cur=open.shift()!,ck=key(cur.x,cur.z);
-  if(ck===key(end.x,end.z)){
-   const path:{x:number;z:number}[]=[];let k=ck;
-   while(k!==key(start.x,start.z)){const [x,z]=k.split(",").map(Number);path.push(worldPoint(x,z));const prev=came.get(k);if(!prev)break;k=prev;}
-   return path.reverse();
+ let best={...start},bestDistance=Math.hypot(goal.x-start.x,goal.z-start.z),iterations=0;
+ const reconstruct=(end:{x:number;z:number})=>{
+  const path:{x:number;z:number}[]=[];let k=key(end.x,end.z);
+  while(k!==key(start.x,start.z)){
+   const [x,z]=k.split(",").map(Number);path.push(worldPoint(x,z));
+   const previous=came.get(k);if(!previous)break;k=previous;
   }
-  if(closed.has(ck))continue;closed.add(ck);
-  for(const [dx,dz] of dirs){const nx=cur.x+dx,nz=cur.z+dz,nk=key(nx,nz);if(closed.has(nk)||!walkable(nx,nz))continue;
-   if(dx!==0&&dz!==0&&(!walkable(cur.x+dx,cur.z)||!walkable(cur.x,cur.z+dz)))continue;
-   const ng=cur.g+(dx&&dz?1.414:1);if(ng>=(cost.get(nk)??Infinity))continue;
-   cost.set(nk,ng);came.set(nk,ck);open.push({x:nx,z:nz,g:ng,f:ng+Math.hypot(end.x-nx,end.z-nz)});
+  return path.reverse();
+ };
+ while(open.length&&iterations++<8000){
+  open.sort((a,b)=>a.f-b.f);
+  const current=open.shift()!,currentKey=key(current.x,current.z);
+  if(closed.has(currentKey))continue;
+  closed.add(currentKey);
+  const distance=Math.hypot(goal.x-current.x,goal.z-current.z);
+  if(distance<bestDistance){best={x:current.x,z:current.z};bestDistance=distance;}
+  if(goalIsWalkable&&current.x===goal.x&&current.z===goal.z)return reconstruct(current);
+  // When the tapped point is blocked, stop at the closest reachable floor cell,
+  // not at an arbitrary free cell that may be on the other side of a wall.
+  if(!goalIsWalkable&&distance<=1.05)return reconstruct(current);
+  for(const [dx,dz] of dirs){
+   const nx=current.x+dx,nz=current.z+dz,nextKey=key(nx,nz);
+   if(closed.has(nextKey)||!walkable(nx,nz))continue;
+   if(dx!==0&&dz!==0&&(!walkable(current.x+dx,current.z)||!walkable(current.x,current.z+dz)))continue;
+   const nextCost=current.g+(dx&&dz?1.414:1);
+   if(nextCost>=(cost.get(nextKey)??Infinity))continue;
+   cost.set(nextKey,nextCost);came.set(nextKey,currentKey);
+   open.push({x:nx,z:nz,g:nextCost,f:nextCost+Math.hypot(goal.x-nx,goal.z-nz)});
   }
  }
- return null;
+ return best.x===start.x&&best.z===start.z?null:reconstruct(best);
 }
 function moveAvatarSafely(dx:number,dz:number){
  const p=avatar.getPosition(),distance=Math.hypot(dx,dz),steps=Math.max(1,Math.ceil(distance/.06));
