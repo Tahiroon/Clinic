@@ -32,9 +32,10 @@ const resize=()=>{
  if(w===lastViewportWidth&&h===lastViewportHeight&&canvas.width>0&&canvas.height>0)return;
  lastViewportWidth=w;lastViewportHeight=h;
  app.resizeCanvas(w,h);
- // Keep the same vertical world scale on phones; only the horizontal visible span adapts.
+ // Portrait is a spatial advantage: frame the full 14×28 m starter property.
+ // Wider screens keep a closer management view instead of stretching the mobile composition.
  const aspect=w/h;
- desiredOrthoHeight=aspect<.48?15.5:aspect<.62?14.8:aspect<.82?14.2:13.8;
+ desiredOrthoHeight=aspect<.9?Math.max(D+3,(W+2)/aspect):aspect<1.2?22:16.5;
  camera.camera!.orthoHeight=desiredOrthoHeight;
 };
 const queueResize=()=>{
@@ -53,7 +54,7 @@ window.visualViewport?.addEventListener("resize",queueResize,{passive:true});
 window.visualViewport?.addEventListener("scroll",queueResize,{passive:true});
 app.scene.ambientLight=new Color(.72,.75,.78);
 function material(c:Color){const m=new StandardMaterial();m.diffuse=c;m.update();return m;}
-const M={ground:material(new Color(.24,.52,.39)),tile:material(new Color(.34,.66,.48)),grid:material(new Color(.12,.62,.72)),room:material(new Color(.86,.91,.88)),wall:material(new Color(.96,.97,.93)),wood:material(new Color(.54,.34,.23)),wood2:material(new Color(.78,.55,.31)),teal:material(new Color(.02,.64,.70)),blue:material(new Color(.10,.34,.66)),pale:material(new Color(.82,.95,.94)),green:material(new Color(.20,.65,.39)),skin:material(new Color(.72,.49,.36)),dark:material(new Color(.08,.15,.23)),white:material(new Color(.98,.98,.92)),yellow:material(new Color(.98,.73,.23))};
+const M={ground:material(new Color(.24,.52,.39)),tile:material(new Color(.34,.66,.48)),grid:material(new Color(.12,.62,.72)),room:material(new Color(.86,.91,.88)),wall:material(new Color(.96,.97,.93)),wallBase:material(new Color(.82,.89,.88)),wallGlass:material(new Color(.64,.83,.84)),wallBlue:material(new Color(.66,.80,.91)),wallFrame:material(new Color(.10,.29,.37)),wallCap:material(new Color(.16,.35,.41)),wallAccent:material(new Color(.10,.68,.72)),wood:material(new Color(.54,.34,.23)),wood2:material(new Color(.78,.55,.31)),teal:material(new Color(.02,.64,.70)),blue:material(new Color(.10,.34,.66)),pale:material(new Color(.82,.95,.94)),green:material(new Color(.20,.65,.39)),skin:material(new Color(.72,.49,.36)),dark:material(new Color(.08,.15,.23)),white:material(new Color(.98,.98,.92)),yellow:material(new Color(.98,.73,.23))};
 type PrimitiveModelType="box"|"capsule"|"cone"|"cylinder"|"plane"|"sphere"|"torus";
 function primitive(name:string,type:PrimitiveModelType,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){
  const e=new Entity(name);e.addComponent("model",{type});parent.addChild(e);e.setLocalPosition(x,y,z);e.setLocalScale(sx,sy,sz);
@@ -97,19 +98,36 @@ box("Clinic buildable foundation",0,.005,0,W,.08,D,material(new Color(.66,.68,.6
 box("Main entrance garden path",0,.018,-8.45,1.75,.045,11.0,pathMat,world);
 box("Outdoor approach path",0,.018,-16.2,2.4,.045,4.5,pathMat,world);
 box("Gait garden connecting path",1.9,.025,-16.15,1.6,.05,.72,pathMat,world);
-box("Path west edging",-.91,.045,-8.45,.055,.06,11.0,pathEdge,world);
-box("Path east edging",.91,.045,-8.45,.055,.06,11.0,pathEdge,world);
+box("Path west raised curb",-.91,.075,-8.45,.13,.15,11.0,pathEdge,world);
+box("Path east raised curb",.91,.075,-8.45,.13,.15,11.0,pathEdge,world);
+for(let i=0;i<10;i++){
+ const z=-13.72+i*1.12;
+ box("Entrance path paving joint",0,.044,z,1.62,.012,.035,pathEdge,world);
+}
+for(const x of [-.62,.62]){
+ for(let i=0;i<6;i++){
+  const z=-13.3+i*1.72;
+  box("Entrance path inset paver",x,.052,z,.38,.025,.48,grassAlt,world);
+ }
+}
 for(const [x,z,sx,sz] of [[0,-13.92,W,.16],[0,13.92,W,.16],[-6.92,0,.16,D],[6.92,0,.16,D]] as [number,number,number,number][]){
  box("Low property boundary",x,.16,z,sx,.32,sz,trim,world);
 }
 for(const [x,z] of outdoorTreePositions){
  cylinder("Outdoor tree trunk",x,.78,z,.18,1.56,.18,M.wood,world);
- const crown=sphere("Outdoor tree crown",x,1.95,z,.76,M.green,world);crown.setLocalScale(.9,1.15,.86);
- const crownTop=sphere("Outdoor tree crown highlight",x+.08,2.48,z+.04,.52,grassAlt,world);crownTop.setLocalScale(.9,1.05,.88);
+ cylinder("Outdoor tree branch",x-.23,1.43,z,.075,.72,.075,M.wood,world).setLocalEulerAngles(0,0,-32);
+ cylinder("Outdoor tree branch",x+.23,1.48,z,.07,.66,.07,M.wood,world).setLocalEulerAngles(0,0,29);
+ const crown=sphere("Outdoor tree crown",x,2.02,z,.72,M.green,world);crown.setLocalScale(1.05,1.12,.96);
+ for(const [dx,dy,dz,r] of [[-.43,1.92,.02,.46],[.40,2.02,.08,.48],[0,2.48,.02,.48]] as [number,number,number,number][]){
+  const cluster=sphere("Layered tree foliage",x+dx,dy,z+dz,r,grassAlt,world);cluster.setLocalScale(1.0,1.08,.92);
+ }
 }
 for(const [x,z] of outdoorShrubPositions){
- box("Outdoor planter",x,.17,z,.56,.34,.78,M.wood2,world);
- const shrub=sphere("Outdoor shrub",x,.62,z,.37,M.green,world);shrub.setLocalScale(1.12,.8,.95);
+ box("Outdoor raised planter",x,.17,z,.72,.34,.88,M.wood2,world);
+ box("Planter dark inset",x,.355,z,.64,.045,.78,M.wood,world);
+ for(const [dx,dz,r] of [[-.2,-.12,.28],[.16,.08,.31],[.02,-.2,.25]] as [number,number,number][]){
+  const shrub=sphere("Layered garden shrub",x+dx,.62,z+dz,r,M.green,world);shrub.setLocalScale(1.18,.82,1.0);
+ }
 }
 const outdoorBenchPositions:[number,number][]=[[-8.15,0],[8.15,0]];
 const outdoorFlowerPositions:[number,number][]=[[-8.25,-9.5],[8.25,-9.5],[-8.25,9.5],[8.25,9.5]];
@@ -220,7 +238,7 @@ const ROOM_SURFACES={
 function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number,gz:number,id:number,width=4,depth=4){
  const root=new Entity("Room "+id+" · "+kind);
  world.addChild(root);root.setLocalPosition(gx+width/2,0,gz+depth/2);
- const halfW=width/2,halfD=depth/2,wallThickness=.15,wallHeight=2.7;
+ const halfW=width/2,halfD=depth/2;
  box("Room floor base",0,.025,0,width,.05,depth,ROOM_SURFACES[kind],root);
  for(let x=0;x<width;x+=2)for(let z=0;z<depth;z+=2){
   const tileWidth=Math.min(2,width-x),tileDepth=Math.min(2,depth-z);
@@ -449,19 +467,30 @@ function loadRoomModule(parent:Entity,file:string,x:number,y:number,z:number,rot
  });
 }
 function addRoomWallRun(parent:Entity,axis:"x"|"z",start:number,length:number,fixed:number,kind:"solid"|"glazed",heightScale=1){
- let cursor=0;
- const rotation=axis==="z"?90:0;
- const place=(file:string,span:number,center:number)=>{
+ // Modular THERASON wall kit: protective lower panel, broad frosted glazing,
+ // structural mullions, continuous top cap and a cyan identity rail.
+ const glass=kind==="glazed"?M.wallBlue:M.wallGlass;
+ const wallHeight=2.7*heightScale,baseHeight=.88*heightScale;
+ const placePanel=(name:string,center:number,span:number,y:number,height:number,thickness:number,mat:StandardMaterial)=>{
   const x=axis==="x"?center:fixed,z=axis==="x"?fixed:center;
-  loadRoomModule(parent,file,x,0,z,rotation,1,1,"wall",heightScale);
+  box(name,x,y,z,axis==="x"?span:thickness,height,axis==="z"?span:thickness,mat,parent);
  };
- const twoMetreFile="partition-wall.glb";
- while(length-cursor>=1.95){place(twoMetreFile,2,start+cursor+1);cursor+=2;}
- if(length-cursor>=.95){place("partition-wall-1m.glb",1,start+cursor+.5);cursor+=1;}
- const remainder=length-cursor;
- if(remainder>.05){
-  const center=start+cursor+remainder/2,x=axis==="x"?center:fixed,z=axis==="x"?fixed:center;
-  box("Short wall infill",x,1.35*heightScale,z,axis==="x"?remainder:.15,2.7*heightScale,axis==="z"?remainder:.15,M.wall,parent);
+ let cursor=0;
+ while(cursor<length-.02){
+  const span=Math.min(2,length-cursor),center=start+cursor+span/2;
+  const glassHeight=Math.max(.18,wallHeight-baseHeight-.34*heightScale);
+  const glassY=baseHeight+glassHeight/2+.06*heightScale;
+  placePanel("Architectural wall lower solid panel",center,span,baseHeight/2,baseHeight,.20,M.wallBase);
+  placePanel("Frosted clinic glazing",center,Math.max(.12,span-.20),glassY,glassHeight,.075,glass);
+  placePanel("Wall base protective skirting",center,span,.13*heightScale,.16*heightScale,.235,M.wallFrame);
+  placePanel("Wall continuous upper cap",center,span,wallHeight-.055*heightScale,.11*heightScale,.25,M.wallCap);
+  placePanel("Wall cyan identity rail",center,span,baseHeight+.035*heightScale,.07*heightScale,.235,M.wallAccent);
+  for(const edge of [-1,1]){
+   const postCenter=center+edge*(span/2-.055);
+   placePanel("Wall structural frame post",postCenter,.11,wallHeight/2,wallHeight,.23,M.wallFrame);
+  }
+  if(span>1.15)placePanel("Glazing centre mullion",center,.055,glassY,glassHeight,.105,M.wallFrame);
+  cursor+=span;
  }
 }
 function loadRoomDoor(parent:Entity,x:number,z:number){
@@ -1086,7 +1115,7 @@ canvas.addEventListener("pointerdown",e=>{
  else if(!roomDrawing){pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraGoal.x,tz:cameraGoal.z};dragged=false;}
  canvas.setPointerCapture(e.pointerId);
 });
-canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(roomDrawing&&activePointers.size===1){const point=screenToGround(e.clientX,e.clientY);if(point){roomDrawEnd={x:Math.floor(point.x),z:Math.floor(point.z)};updateRoomDrawPreview();}return;}if(mode==="build"&&activePointers.size<2)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(8,Math.min(34,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;const halfHeight=desiredOrthoHeight*.5,halfWidth=halfHeight*(canvas.clientWidth/Math.max(1,canvas.clientHeight));const maxPanX=Math.max(0,HALF_X+4-halfWidth*.62),maxPanZ=Math.max(0,HALF_Z+4-halfHeight*.62);cameraGoal.set(Math.max(-maxPanX,Math.min(maxPanX,pointerStart.tx+shiftX)),0,Math.max(-maxPanZ,Math.min(maxPanZ,pointerStart.tz+shiftZ)));}});
+canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(roomDrawing&&activePointers.size===1){const point=screenToGround(e.clientX,e.clientY);if(point){roomDrawEnd={x:Math.floor(point.x),z:Math.floor(point.z)};updateRoomDrawPreview();}return;}if(mode==="build"&&activePointers.size<2)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(8,Math.min(42,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;const halfHeight=desiredOrthoHeight*.5,halfWidth=halfHeight*(canvas.clientWidth/Math.max(1,canvas.clientHeight));const maxPanX=Math.max(0,HALF_X+4-halfWidth*.62),maxPanZ=Math.max(0,HALF_Z+4-halfHeight*.62);cameraGoal.set(Math.max(-maxPanX,Math.min(maxPanX,pointerStart.tx+shiftX)),0,Math.max(-maxPanZ,Math.min(maxPanZ,pointerStart.tz+shiftZ)));}});
 canvas.addEventListener("pointerup",e=>{
  activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;
  if(roomDrawing){
@@ -1223,13 +1252,13 @@ document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEve
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";if(cat==="structure")selectBuild("wall");else selectBuild("treatment");}));
 el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;previewValidity=null;status.textContent="اتجاه العنصر الآن "+(wallRotation===0?"0°":"90°")+". سيتم تطبيقه على القطعة التالية.";});
 viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:(canvas.clientWidth/Math.max(1,canvas.clientHeight)<.48?15.5:14.8);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
-const zoomCamera=(factor:number)=>{desiredOrthoHeight=Math.max(8,Math.min(34,desiredOrthoHeight*factor));focus=false;viewBtn.classList.remove("active");};
+const zoomCamera=(factor:number)=>{desiredOrthoHeight=Math.max(8,Math.min(42,desiredOrthoHeight*factor));focus=false;viewBtn.classList.remove("active");};
 el<HTMLButtonElement>("#camera-zoom-in").addEventListener("click",()=>zoomCamera(.82));
 el<HTMLButtonElement>("#camera-zoom-out").addEventListener("click",()=>zoomCamera(1.22));
 el<HTMLButtonElement>("#camera-reset").addEventListener("click",()=>{
  focus=false;cameraGoal.set(0,0,0);
  const aspect=canvas.clientWidth/Math.max(1,canvas.clientHeight);
- desiredOrthoHeight=aspect<.48?15.5:aspect<.62?14.8:aspect<.82?14.2:13.8;
+ desiredOrthoHeight=aspect<.9?Math.max(D+3,(W+2)/aspect):aspect<1.2?22:16.5;
  viewBtn.classList.remove("active");el("#camera-hint").classList.remove("hide");
 });
 canvas.addEventListener("wheel",event=>{event.preventDefault();zoomCamera(event.deltaY<0?.9:1.11);},{passive:false});
