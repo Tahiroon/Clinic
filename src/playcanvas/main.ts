@@ -854,7 +854,7 @@ function renderMission(){
  card.classList.toggle("mission-done",missionPhase>=6);button.disabled=missionPhase>=6;
  if(missionPhase===0){title.textContent="ابنِ الاستقبال";detail.textContent="ارسم غرفة استقبال واسعة، ثم أضف مكتب الاستقبال ومقاعد الانتظار.";button.textContent="ابدأ البناء";}
  else if(missionPhase===1){title.textContent="أنشئ غرفة التقييم";detail.textContent="ارسم غرفة مخصصة للتاريخ المرضي والفحص الوظيفي.";button.textContent="ابنِ غرفة التقييم";}
- else if(missionPhase===2){title.textContent="أنشئ غرفة العلاج";detail.textContent="جهّز غرفة العلاج الطبيعي بسرير ومساحة حركة كافية.";button.textContent="ابنِ غرفة العلاج";}
+ else if(missionPhase===2){title.textContent="أنشئ صالة التأهيل";detail.textContent="أضف مساحة للتمارين والتأهيل الحركي، مع ممر واضح لحركة المرضى.";button.textContent="ابنِ صالة التأهيل";}
  else if(missionPhase===3){title.textContent="جهّز غرفة التقييم";detail.textContent="ضع سرير الفحص وكرسي المريض داخل غرفة التقييم. غرفة العلاج الأساسية مجهزة بالفعل.";button.textContent="افتح المتجر";}
  else if(missionPhase===4){title.textContent="افتح أبواب العيادة";detail.textContent="الغرف الأساسية جاهزة. افتح العيادة واستقبل أول مريض.";button.textContent="لوحة العيادة";}
  else if(missionPhase===5){title.textContent="طوّر عيادتك";detail.textContent=management.treated<3?"عالج 3 حالات لفتح خيار شراء موظف استقبال.":"أصبح موظف الاستقبال متاحاً للشراء من لوحة العيادة.";button.textContent="عرض المرضى";}
@@ -958,7 +958,7 @@ canvas.addEventListener("pointerup",e=>{
    if(!result.ok){status.textContent=result.message;return;}
    coins=management.balance;coinsLabel.textContent=String(coins);
    const item:Placed={id:nextId++,kind:selected,gx:b.x,gz:b.z,width:b.w,depth:b.d,rot:wallRotation};
-   placed.push(item);drawPlaced(item);createLawnGrass();if(missionPhase===0&&selected==="reception")setMissionPhase(1);else if(missionPhase===1&&selected==="assessment")setMissionPhase(2);else if(missionPhase===2&&selected==="treatment")setMissionPhase(3);save();status.textContent=result.message+" يمكنك إضافة الأجهزة والأثاث من المتجر.";return;
+   placed.push(item);drawPlaced(item);createLawnGrass();if(missionPhase===0&&selected==="reception")setMissionPhase(1);else if(missionPhase===1&&selected==="assessment")setMissionPhase(2);else if(missionPhase===2&&selected==="gym")setMissionPhase(3);save();status.textContent=result.message+" يمكنك إضافة الأجهزة والأثاث من المتجر.";return;
   }
  }
  if(!pointerStart){
@@ -1066,7 +1066,7 @@ sessionBtn.addEventListener("click",()=>{
  if(!started.ok){status.textContent=started.message;return;}
  activeSessionPatientId=started.patient!.id;sessionCompleted=false;renderManagement();save();
  sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();
- const patientPosition=patientNpc.getLocalPosition();sessionPending=moveAvatarTo(patientPosition.x-.72,patientPosition.z-.1);
+ const assessmentRoom=management.rooms.find(r=>r.type==="assessment")!;const patientGoalX=assessmentRoom.x+Math.min(1.35,assessmentRoom.width*.34),patientGoalZ=assessmentRoom.z+Math.min(1.45,assessmentRoom.depth*.36);sessionPending=moveAvatarTo(patientGoalX-.72,patientGoalZ-.1);
  if(sessionPending){status.textContent="الأخصائي يتجه إلى المريض. ستبدأ الجلسة بعد الوصول إلى موضع آمن بجانبه.";}
  else{cancelPatientSession(management,activeSessionPatientId);renderManagement();focus=false;cameraGoal.set(0,0,0);viewBtn.classList.remove("active");status.textContent="لا يوجد مسار آمن إلى المريض. أعد ترتيب الأثاث وحاول مجدداً.";}
 });
@@ -1100,7 +1100,7 @@ function moveAvatarTo(tx:number,tz:number){
 el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
  if(missionPhase===0||missionPhase===1||missionPhase===2){
   managementPanel.hidden=true;buildPanel.hidden=false;updateMode("build");
-  selectBuild(missionPhase===0?"reception":missionPhase===1?"assessment":"treatment");
+  selectBuild(missionPhase===0?"reception":missionPhase===1?"assessment":"gym");
   status.textContent="اسحب بإصبعك على الأرض لرسم مساحة الغرفة، ثم ارفع إصبعك لتأكيد البناء.";
  }else if(missionPhase===3){
   storeBtn.click();status.textContent="اشترِ المعدات الأساسية ثم ضع كل قطعة داخل غرفتها المناسبة.";
