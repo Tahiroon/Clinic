@@ -23,12 +23,17 @@
 10. Room wall rendering and navigation collision must derive from the same wall/door dimensions.
 11. The outside property hedge, trees and planters are collision obstacles; the avatar cannot pass through the plot boundary.
 12. Babylon.js is not a shipped dependency or build entry; PlayCanvas is the only runtime in the game build.
-13. Portrait toolbar remains visible with five large touch controls; build/store panels never cover the selected placement point.
+13. Portrait toolbar remains visible with large touch controls; management and build panels never cover the selected room-drawing area.
+14. The player can drag on the ground to draw rooms of different rectangular sizes; cost, bounds and collision use the same dimensions as the rendered walls and floor.
+15. The management clock pauses and advances at 1×, 2× and 3× without frame-rate-dependent game time.
+16. Patients arrive only when the clinic has a reception; the queue reflects registration, waiting, assessment, treatment and discharge/left states.
+17. Reception staffing, physiotherapist availability, staff energy/breaks, hourly payroll, patient patience, revenue and reputation visibly affect the simulation.
+18. Hiring staff and building rooms updates the same saved management state and wallet; reload must preserve staff, rooms, patients, money and simulation time.
 
-## First-slice acceptance
-1. App opens in usable portrait layout and the building, yard and player remain visible at the initial camera zoom.
+## Management-game acceptance
+1. App opens in usable portrait layout and the property, constructed rooms and active characters remain visible at the initial camera zoom.
 2. Camera angle shows the front and side walls clearly; the long axis of the plot reads vertically on a phone.
-3. Scene shows the standardized starter property without requiring a build step.
+3. Scene shows the landscaped buildable property and a guided first-clinic construction objective.
 4. Loading has recoverable asset errors and never spins indefinitely.
 5. Pan and pinch zoom are stable, bounded and damped rather than snapping.
 6. Long frame stalls do not teleport the avatar.
