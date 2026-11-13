@@ -117,11 +117,7 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
   box("Wall chart",2.3,1.65,2.91,.75,.65,.04,M.pale,root);
   box("Anatomy chart accent",2.3,1.65,2.875,.12,.45,.035,trim,root);
  }else if(kind==="reception"){
-  box("Reception desk",.2,.48,2.35,1.8,.85,.65,M.wood,root);
-  box("Desk top",.2,.94,2.35,1.9,.1,.72,M.wood2,root);
-  box("Desk front accent",.2,.45,2.01,1.4,.6,.03,trim,root);
-  box("Reception monitor base",.2,1.02,2.25,.28,.08,.2,M.dark,root);
-  box("Reception monitor",.2,1.2,2.25,.42,.34,.05,M.dark,root);
+  loadReceptionDesk(root);
   for(const z of [1.2,2.15]){
    box("Waiting chair seat",.5,.38,z,.65,.18,.62,M.teal,root);
    box("Waiting chair back",.5,.75,z+.22,.65,.6,.13,M.blue,root);
@@ -245,7 +241,8 @@ const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:n
 };
 const clinicAssetUrls:Record<string,string>={
  "physical-therapy-room-set.glb":new URL("../assets/clinic-kit/hospital/physical-therapy-room-set.glb",import.meta.url).href,
- "hospital-equipment-set.glb":new URL("../assets/clinic-kit/hospital/hospital-equipment-set.glb",import.meta.url).href
+ "hospital-equipment-set.glb":new URL("../assets/clinic-kit/hospital/hospital-equipment-set.glb",import.meta.url).href,
+ "hospital-reception-desk.glb":new URL("../assets/clinic-kit/hospital/hospital-reception-desk.glb",import.meta.url).href
 };
 const containerCache=new Map<string,Promise<any>>();
 function getClinicContainer(url:string):Promise<any>{
@@ -269,6 +266,30 @@ function drawAssetFallback(p:Placed,spec:{label:string}){
   box("Fallback cabinet",0,.55,0,.62,1.1,.48,M.wood2,root);
   box("Fallback cabinet door",0,.55,.25,.54,.98,.025,M.wood,root);
  }
+}
+function loadReceptionDesk(parent:pc.Entity){
+ const url=new URL("../assets/clinic-kit/hospital/hospital-reception-desk.glb",import.meta.url).href;
+ getClinicContainer(url).then(asset=>{
+  const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
+  parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
+  const meshes=model.findComponents("render").flatMap(r=>r.meshInstances);
+  if(!meshes.length){model.destroy();throw new Error("Reception desk asset has no render meshes");}
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,minZ=Infinity,maxZ=-Infinity;
+  for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
+  const width=maxX-minX,depth=maxZ-minZ,height=maxY-minY;
+  if(!Number.isFinite(width)||width<.05||depth<.05||height<.05){model.destroy();throw new Error("Reception desk asset has invalid dimensions");}
+  const scale=Math.min(1.8/Math.max(width,depth),1.2/height);
+  model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
+  const scaled=model.findComponents("render").flatMap(r=>r.meshInstances);
+  minX=Infinity;maxX=-Infinity;minY=Infinity;minZ=Infinity;maxZ=-Infinity;
+  for(const mesh of scaled){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
+  model.setPosition(parent.getPosition().x+.2-(minX+maxX)/2,-minY,parent.getPosition().z+2.35-(minZ+maxZ)/2);
+ }).catch(error=>{
+  console.warn("Reception desk GLB unavailable; using lightweight fallback",error);
+  box("Reception fallback desk",.2,.48,2.35,1.8,.85,.65,M.wood,parent);
+  box("Reception fallback desk top",.2,.94,2.35,1.9,.1,.72,M.wood2,parent);
+  box("Reception fallback monitor",.2,1.18,2.25,.42,.34,.05,M.dark,parent);
+ });
 }
 function loadClinicAsset(p:Placed){
  const spec=p.assetKey?storeAssetSpecs[p.assetKey]:undefined;
