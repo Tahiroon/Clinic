@@ -55,6 +55,10 @@ The clinic begins on an open 14 m × 28 m property with substantial lawn around 
 
 Expansion is optional and meaningful; it must not block the core clinical loop.
 
+## Outdoor rehabilitation identity
+
+The surrounding property is not decorative filler. The entrance garden, planted edges, benches and lighting establish a welcoming rehabilitation setting. A short outdoor gait-training lane with visible distance markers connects to the entrance approach and remains outside the buildable plot. Later it can support outdoor walking challenges, balance tasks and functional mobility scenarios, but it must not become a prerequisite for opening the starter clinic.
+
 ## Camera and visual direction
 
 - Portrait-first Android; no forced landscape.
