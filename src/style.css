@@ -336,3 +336,97 @@ button{font:inherit;touch-action:manipulation}
 
 .register-patient-button{display:block;margin-top:7px;min-height:30px;padding:5px 9px;border:1px solid #4bd7d2;border-radius:8px;background:linear-gradient(100deg,#087e98,#0e9b9a);color:#fff;font-size:10px;font-weight:850;white-space:nowrap}
 .register-patient-button:active{transform:scale(.98)}
+
+
+/* Management-game presentation pass: clearer HUD hierarchy, brighter controls and tactile build cards. */
+.app-header{
+ background:linear-gradient(180deg,#061a36fa 0%,#0a2c49f0 100%);
+ border-bottom:1px solid #35d1d455;
+ box-shadow:0 4px 18px #03112655;
+}
+.brand-mark{border:1px solid #75eff0;box-shadow:0 3px 16px #08b8d366}
+.brand small{color:#a9dce7}
+.level-chip{background:linear-gradient(110deg,#123b5d,#0e5265);border-color:#55c8d477;color:#e4fbff;font-weight:800}
+.coin-pill{background:linear-gradient(110deg,#58451e,#735421);border-color:#f6d16a;color:#fff0b6;font-weight:900}
+.management-toggle{background:linear-gradient(145deg,#17aabd,#087e9e);border-color:#6de9ed;box-shadow:0 3px 12px #04a6b044}
+.scene-top{
+ background:linear-gradient(100deg,#08294af2,#0c5367e8);
+ border:1px solid #5ddce155;box-shadow:0 5px 18px #06162b44;
+}
+.scene-kicker{color:#9af4eb;font-weight:850}
+.scene-top strong{color:#f6ffff;text-shadow:0 1px 3px #001a30}
+.scene-stats span{background:#092541d9;border:1px solid #75dce522;color:#d9f5fa}
+.mission-card{
+ background:linear-gradient(110deg,#0a2c4df5 0%,#0c5368f0 100%);
+ border:1px solid #64e4e0a8;box-shadow:0 12px 32px #03162a70;
+}
+.mission-number{background:linear-gradient(145deg,#66ece2,#14afc5);box-shadow:0 3px 12px #12d5d455}
+.mission-copy span{color:#a5fff1}
+#start-tour{background:linear-gradient(145deg,#25c7c6,#0786a5);box-shadow:0 3px 12px #05b6c455}
+.scene-status{
+ background:linear-gradient(90deg,#092847f2,#0b4c5eea);
+ border:1px solid #58d7d055;box-shadow:0 5px 18px #03152b55;
+}
+.status-dot{background:#60f0bb;box-shadow:0 0 10px #60f0bb}
+.tool-dock{
+ background:linear-gradient(0deg,#06172f 70%,#0a2c49f0);
+ border-top:1px solid #3abfce55;
+ box-shadow:0 -8px 24px #04132655;
+}
+.tool{
+ background:linear-gradient(145deg,#123b5d,#0b2948);
+ border-color:#34748c;color:#d7f2f7;
+ box-shadow:inset 0 1px #ffffff12;
+}
+.tool-icon{color:#83eceb;text-shadow:0 0 9px #31c8d555}
+.tool.active{
+ background:linear-gradient(145deg,#18aab6,#096a91);
+ border-color:#83f4e8;color:#fff;
+ box-shadow:0 0 15px #0bb8c755,inset 0 1px #ffffff35;
+}
+.build-panel{
+ background:linear-gradient(160deg,#103653 0%,#071e3a 100%);
+ border-top:1px solid #58dce0;
+ box-shadow:0 -15px 38px #020c1dcc;
+}
+.panel-heading h2{color:#f5ffff}
+.small-action{background:#174b68;border-color:#3e9caf;color:#e8fcff}
+.build-tab{background:#092744;border-color:#32627d;color:#b9e1e9;font-weight:800}
+.build-tab.active{background:linear-gradient(110deg,#0b7895,#126c83);border-color:#70e9e5;box-shadow:0 0 10px #0aa9b544}
+.catalog-item{
+ min-height:76px;padding:7px 5px;
+ background:linear-gradient(150deg,#123a59,#0a2948);
+ border-color:#34718b;box-shadow:inset 0 1px #ffffff10;
+ transition:transform .14s,border-color .14s,background .14s;
+}
+.catalog-item:active{transform:scale(.97)}
+.catalog-item.selected{
+ background:linear-gradient(145deg,#12647a,#0d3e60);
+ border-color:#71e9e4;box-shadow:0 0 12px #11c0c044,inset 0 1px #ffffff22;
+}
+.catalog-item b{color:#f5ffff;font-size:11px}
+.catalog-item small{color:#b8e2e8;font-size:10px}
+.catalog-art{width:31px;height:23px;filter:drop-shadow(0 2px 3px #00172a88)}
+.panel-hint{color:#b5dce6;font-size:10px}
+.management-panel{
+ background:linear-gradient(155deg,#0a2d4cfb 0%,#0a4056fa 100%);
+ border-color:#54d8d8;box-shadow:0 18px 60px #020b1ddd;
+}
+.management-stats>div{background:linear-gradient(145deg,#15486a,#0d3455);border-color:#63cbd044}
+.management-stats b{color:#fff}
+.time-controls{background:#0a2a48;border-color:#2c6985}
+.time-controls button.selected{background:linear-gradient(120deg,#0d91a5,#08708f);border-color:#6ae8e2}
+.management-row{background:linear-gradient(100deg,#0c3151,#10405a);border-color:#4bb6c633}
+.register-patient-button{background:linear-gradient(100deg,#0fa89f,#0b7f9a);border-color:#6ce9d4}
+.case-dialog{background:linear-gradient(155deg,#123b59,#08233f);border-color:#57cbd2}
+.case-options button{background:linear-gradient(110deg,#174363,#103553);border-color:#3b7e98}
+.case-options button.chosen{background:linear-gradient(110deg,#12647c,#0b4e70);border-color:#70e8e1}
+.case-done{background:linear-gradient(100deg,#0aa69e,#0b7798);border-color:#70e8dc}
+@media(max-width:380px){
+ .scene-top{left:6px;right:6px;padding-inline:7px}
+ .scene-stats{gap:3px}
+ .scene-stats span{font-size:9px;padding:4px 5px}
+ .mission-card{border-radius:13px}
+ .catalog{gap:5px}
+ .catalog-item{min-height:72px}
+}
