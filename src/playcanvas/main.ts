@@ -832,8 +832,8 @@ app.on("update",(dt:number)=>{
   let yawDelta=((desiredYaw-currentYaw+540)%360)-180;
   const maxTurn=Math.max(1,frameDt*240);
   avatar.setLocalEulerAngles(0,currentYaw+Math.max(-maxTurn,Math.min(maxTurn,yawDelta)),0);
-  const desiredSpeed=1.42;
-   walkVelocity=Math.min(desiredSpeed,walkVelocity+frameDt*3.8);
+  const desiredSpeed=Math.min(1.42,Math.max(.28,d*1.8));
+   walkVelocity+=(desiredSpeed-walkVelocity)*(1-Math.exp(-frameDt*4.2));
    if(playerRig?.anim)playerRig.anim.speed=Math.max(.72,Math.min(1.12,walkVelocity/desiredSpeed));
    const step=Math.min(d,frameDt*walkVelocity),moved=moveAvatarSafely(dx/d*step,dz/d*step);
   if(!moved){
