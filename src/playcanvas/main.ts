@@ -588,6 +588,7 @@ function drawAssetFallback(p:Placed,spec:{label:string}){
  const size=storeAssetSpecs[key]?.footprint??1;
  const root=new Entity("Fallback prop · "+spec.label);
  root.setPosition(p.gx+size/2,0,p.gz+size/2);world.addChild(root);
+ addContactShadow(root,"Fallback equipment shadow",0,0,size*.62,size*.44,.052);
  const bed=(name:string)=>{box(name+" base",0,.3,0,1.8,.2,.82,M.dark,root);box(name+" mattress",0,.47,0,1.76,.18,.78,M.blue,root);box(name+" pillow",0,.59,-.3,.46,.1,.28,M.pale,root);for(const x of [-.72,.72])for(const z of [-.28,.28])box(name+" leg",x,.13,z,.08,.28,.08,M.dark,root);};
  const chair=(name:string)=>{box(name+" seat",0,.48,0,.62,.15,.62,M.teal,root);box(name+" back",0,.82,-.23,.62,.62,.13,M.blue,root);for(const x of [-.23,.23])for(const z of [-.23,.23])box(name+" leg",x,.22,z,.06,.44,.06,M.dark,root);};
  if(key==="pt-treatment-table"||key==="pt-exam-table")bed("Fallback "+spec.label);
@@ -769,7 +770,9 @@ function loadClinicAsset(p:Placed){
   if(!chosen){container.destroy();throw new Error("Missing model node "+spec.node);}
   if(spec.node!=="*"){const sourceParent=chosen.parent as Entity|null;if(sourceParent)sourceParent.removeChild(chosen);container.destroy();}
   const size=spec.footprint,holder=new Entity("3D asset · "+spec.label);
-  world.addChild(holder);holder.setLocalPosition(p.gx+size/2,0,p.gz+size/2);holder.addChild(chosen);
+  world.addChild(holder);holder.setLocalPosition(p.gx+size/2,0,p.gz+size/2);
+  addContactShadow(holder,"Clinical equipment contact shadow",0,0,size*.62,size*.44,.052);
+  holder.addChild(chosen);
   chosen.setLocalPosition(0,0,0);chosen.setLocalEulerAngles(0,p.rot??0,0);holder.syncHierarchy();
   const before=renderBounds(chosen);
   if(!before||before.width<.01||before.depth<.01||before.height<.01)throw new Error("Invalid model bounds for "+spec.node);
@@ -823,6 +826,7 @@ function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}co
  world.addChild(root);
  if(p.kind==="wall")root.setLocalPosition(p.rot===90?p.gx+1.5:x,0,p.rot===90?z:p.gz+1.5);
  else root.setLocalPosition(x,0,z);
+ if(p.kind!=="wall")addContactShadow(root,"Placed furnishing contact shadow",0,0,.42,.34,.052);
  root.setLocalEulerAngles(0,p.rot??0,0);
  if(p.kind==="chair"){box("Chair seat",0,.38,0,.6,.15,.6,M.teal,root);box("Chair back",0,.75,-.22,.6,.6,.13,M.blue,root);for(const a of [-.22,.22])for(const b of [-.22,.22])box("Chair leg",a,.16,b,.06,.32,.06,M.dark,root);}
  if(p.kind==="plant"){box("Plant pot",0,.2,0,.38,.4,.38,M.wood2,root);sphere("Plant leaves",0,.72,0,.52,M.green,root);sphere("Plant leaf",.2,.88,.04,.3,M.green,root);}
