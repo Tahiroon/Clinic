@@ -147,9 +147,31 @@ for(const x of [-.62,.62]){
   box("Entrance path inset paver",x,.052,z,.38,.025,.48,grassAlt,world);
  }
 }
-for(const [x,z,sx,sz] of [[0,-13.92,W,.16],[0,13.92,W,.16],[-6.92,0,.16,D],[6.92,0,.16,D]] as [number,number,number,number][]){
- box("Low property boundary",x,.16,z,sx,.32,sz,trim,world);
+// A low stone garden edge defines the property without turning it into a fenced box.
+const propertyEdges:[number,number,number,number][]=[
+ [-4.35,-13.92,5.3,.18],[4.35,-13.92,5.3,.18],[0,13.92,W,.18],
+ [-6.92,0,.18,D],[6.92,0,.18,D]
+];
+for(const [x,z,sx,sz] of propertyEdges){
+ box("Property edge stone footing",x,.075,z,sx,.15,sz,M.wallFrame,world);
+ box("Low property boundary",x,.19,z,sx,.20,sz,trim,world);
+ box("Property edge coping",x,.305,z,sx+.10,.07,sz+.10,M.wallCap,world);
 }
+// The front gate aligns with the approach path; its piers are deliberately low and welcoming.
+for(const x of [-1.62,1.62]){
+ box("Garden entrance gate footing",x,.16,-13.92,.66,.32,.72,M.wallFrame,world);
+ box("Garden entrance gate pier",x,.78,-13.92,.43,1.24,.48,M.wall,world);
+ box("Garden entrance pier inset",x,.80,-14.17,.24,.78,.025,M.wallRecess,world);
+ box("Garden entrance pier cap",x,1.43,-13.92,.62,.12,.66,M.wallCap,world);
+ box("Garden entrance pier identity tile",x,.88,-14.19,.13,.26,.035,M.wallAccent,world);
+}
+// A wider paved arrival court gives the entrance a deliberate destination, not just a long strip.
+box("Clinic arrival court stone border",0,.035,-4.25,4.65,.07,2.55,pathEdge,world);
+box("Clinic arrival court paving",0,.075,-4.25,4.42,.035,2.34,pathMat,world);
+for(const x of [-1.42,0,1.42])box("Arrival court paving joint",x,.096,-4.25,.025,.012,2.12,pathEdge,world);
+for(const z of [-4.92,-4.25,-3.58])box("Arrival court cross joint",0,.096,z,4.20,.012,.022,pathEdge,world);
+for(const x of [-2.05,2.05])box("Arrival court inset stone",x,.105,-4.25,.22,.025,1.42,M.wallCap,world);
+addContactShadow(world,"Arrival court soft grounding",0,-4.25,2.7,1.55,.052);
 for(const [x,z] of outdoorTreePositions){
  cylinder("Outdoor tree trunk",x,.78,z,.18,1.56,.18,M.wood,world);
  cylinder("Outdoor tree branch",x-.23,1.43,z,.075,.72,.075,M.wood,world).setLocalEulerAngles(0,0,-32);
