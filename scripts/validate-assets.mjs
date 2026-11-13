@@ -89,39 +89,24 @@ try {
     if (!verifiedAssets.has(path)) throw new Error("Registered GLB URL has no verified bundled asset: " + file + " -> " + path);
   }
   console.log("✓ Every visible 3D store item maps to an existing GLB and verified model node");
-  const lawn = source.slice(source.indexOf("function createLawnGrass"), source.indexOf("createLawnGrass();"));
-  if (!lawn || /model\.graph\s*=\s*entity/.test(lawn)) {
-    throw new Error("The lawn model graph must never reference its owning entity");
+  if (/function createLawnGrass|lawnGrassMaterial|tuftBudget|Layered landscape turf island/.test(source)) {
+    throw new Error("The artificial grass-blade mesh must be removed from the outdoor world");
   }
-  if (!/model\.graph\s*=\s*grassGraph/.test(lawn) ||
-      !/new (?:pc\\.)?MeshInstance\(mesh,\s*lawnGrassMaterial,\s*grassGraph\)/.test(lawn)) {
-    throw new Error("The lawn mesh and Model must share a separate GraphNode root");
+  for (const required of [
+    "District terrain · continuous landscape","District access road","District side road",
+    "Clinic buildable foundation","West clinic boundary","East clinic boundary","Rear clinic boundary",
+    "Front boundary west wing","Front boundary east wing","Clinic entrance gate lintel",
+    "Masonry boundary pier","makeDistrictTree","makeDistrictBuilding","Outdoor physiotherapy gait lane"
+  ]) {
+    if (!source.includes(required)) throw new Error("The rebuilt district world is missing " + required);
   }
-  if (!/const GRID=1, W=14, D=28, HALF_X=W\/2, HALF_Z=D\/2/.test(source)) {
-    throw new Error("Starter property must remain 14 m × 28 m");
+  if (!/Math\.min\(42,pinchHeight/.test(source) || !/Math\.max\(D\+8,\(W\+8\)\/aspect\)/.test(source) ||
+      !/HALF_X\+19-halfWidth/.test(source) || !/HALF_Z\+27-halfHeight/.test(source)) {
+    throw new Error("Portrait camera must frame the clinic and allow exploration into the wider district");
   }
-  if (!/const starterLayout:Placed\[\]=\[\]/.test(source) || !/missionPhase===1&&hasAssetInRoom\("pt-treatment-table","treatment"\)/.test(source) || !/missionPhase===3&&hasAssetInRoom\("pt-reception-desk","reception"\)/.test(source) || !/missionPhase===5&&hasAssetInRoom\("pt-exam-table","assessment"\)/.test(source)) {
-    throw new Error("The new clinic campaign must start on an empty buildable plot");
-  }
-  const managementSource = await readFile(resolve(root, "src/game/management.ts"), "utf8");
-  if (!/reception:\{label:"الاستقبال",cost:420,width:5,depth:5/.test(managementSource) || !/const blueprint=ROOM_BLUEPRINTS\[roomType\],minWidth=blueprint\?\.width\?\?4,minDepth=blueprint\?\.depth\?\?4/.test(source)) {
-    throw new Error("Touch room drawing must respect each room type minimum size");
-  }
-  if (!/patients:\[\],rooms:\[\]/.test(managementSource)) {
-    throw new Error("Management state must not create prebuilt rooms on a new account");
-  }
-  if (!/Surrounding green landscape/.test(source) || !/Clinic buildable foundation/.test(source) || !/Main entrance garden path/.test(source) || !/outdoorTreePositions/.test(source) || !/setClinicOpen\(management/.test(source)) {
-    throw new Error("The open green property, entrance path and outdoor landscaping must exist");
-  }
-  console.log("✓ PlayCanvas model graph has no owner self-reference");
-  if (!/insideBuildablePlot=x>-HALF_X/.test(source) || !/if\(isRoomKind\(item\.kind\)\)createLawnGrass\(\)/.test(source)) {
-    throw new Error("Outdoor grass must be masked and regenerated when new rooms are built");
-  }
-  if (!/Math\.min\(42,pinchHeight/.test(source) || !/Math\.max\(D\+3,\(W\+2\)\/aspect\)/.test(source)) {
-    throw new Error("Portrait camera must frame the full vertical property and retain exploration zoom");
-  }
-  console.log("✓ Main campaign starts with one 4×4 m treatment room on a 14×28 m green property");
-  console.log("✓ Grass stays outside every player-built room"); 
+  console.log("✓ Clinic plot is distinct from a larger district world with roads, buildings and sculpted landscape");
+  console.log("✓ Clinic property has a continuous 3 m masonry perimeter and a dedicated entrance gate");
+  console.log("✓ Artificial grass blades are removed; outdoor landscape uses broad terrain and composed planting");
   const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.z < b.z + b.d && a.z + a.d > b.z;
   const treePositions = [[-9.1,-16.1],[9.1,-16.1],[-9.1,16.1],[9.1,16.1]];
   const shrubPositions = [[-8.8,-7.5],[8.8,-4.5],[-8.8,5.2],[8.8,8.0]];
@@ -192,8 +177,8 @@ try {
       !/Wall protective skirting/.test(source) || !/Wall top coping/.test(source)) {
     throw new Error("Clinic rooms must use the restrained recessed-panel wall system");
   }
-  if (!/Starter clinic glazed entrance left leaf/.test(source) ||
-      !/Starter clinic roof fascia/.test(source) || !/THERASON sign shadow backing/.test(source)) {
+  if (!/Clinic glazed entrance left leaf/.test(source) ||
+      !/Clinic terracotta roof left slope/.test(source) || !/THERASON sign shadow backing/.test(source)) {
     throw new Error("Starter clinic pavilion facade must include its layered entrance and roof identity");
   }
   if (!/SHADOW_PCSS_32F/.test(source) || !/shadowResolution=2048/.test(source) ||
@@ -212,7 +197,7 @@ try {
   if (!/id="store-panel"/.test(html) || !/data-store-category/.test(html) || !/id="store-grid"/.test(html) || !/id="store-search"/.test(html) || (html.match(/data-store-category=/g)||[]).length < 8 || !/function renderStoreCatalog\(\)/.test(source) || storeSpecs.length < 30) {
     throw new Error("The data-driven categorized real-asset shop, search or expanded inventory is incomplete");
   }
-  console.log("✓ Restrained recessed-panel architecture and layered starter-clinic pavilion are wired");
+  console.log("✓ Restrained recessed-panel rooms and warm plaster/stone/timber clinic architecture are wired");
   console.log("✓ High-end PCSS shadows and low-end contact-shadow fallback are wired");
   console.log("✓ Dedicated mobile equipment store contains categorized, priced clinical assets");
   if (!/function showStorePreview\(key:string\)/.test(source) ||
@@ -226,20 +211,17 @@ try {
       !/storePreviewRoot\.destroy\(\)/.test(source)) {
     throw new Error("Store preview lifecycle must cancel stale loads and release preview entities");
   }
-  if (!/\[-9\.1,-7\.2\],\[9\.1,-7\.2\],\[-9\.1,7\.2\],\[9\.1,7\.2\]/.test(source) ||
-      !/\[-8\.8,-12\.0\],\[8\.8,-12\.0\]/.test(source)) {
-    throw new Error("The outdoor clinic landscape needs the expanded tree and garden planting layout");
-  }
   console.log("✓ Store preview uses the same verified GLB model as placement and cleans up safely");
-  console.log("✓ Outdoor landscaping extends around the buildable clinic plot");
-  const outdoorSetup=source.slice(0,source.indexOf("const lawnGrassMaterial"));
-  for (const prop of ["Garden bench seat","Outdoor flower bed","Garden lamp globe"]) {
-    if (!outdoorSetup.includes(prop)) throw new Error("Outdoor environment is missing " + prop);
+  if (!/const gaitLaneX=4\.2,gaitLaneZ=-17\.8/.test(source) ||
+      !/Outdoor physiotherapy gait lane/.test(source) || !/Gait lane walking surface/.test(source)) {
+    throw new Error("The outdoor gait-training lane must be a real part of the district landscape");
   }
-  if (/arrivalMetal|warmGlass/.test(outdoorSetup)) {
-    throw new Error("Outdoor garden props must not reference materials before their initialization");
+  if (!/Clinic entrance gate lintel/.test(source) || !/Clinic arrival court paving/.test(source) ||
+      !/West clinic boundary/.test(source) || !/East clinic boundary/.test(source) ||
+      !/Rear clinic boundary/.test(source) || !/Main gate masonry pier/.test(source)) {
+    throw new Error("The clinic must be enclosed by substantial masonry walls with a readable public gate");
   }
-  console.log("✓ Outdoor benches, flower beds and garden lamps are initialized safely");
+  console.log("✓ District arrival road, clinic promenade, full masonry enclosure and gate are present");
   if (!/highDetailDevice=deviceMemory>=4&&cpuCores>=6/.test(source) ||
       !/maxPixelRatio=highDetailDevice\?Math\.min\(window\.devicePixelRatio\|\|1,1\.25\):Math\.min\(window\.devicePixelRatio\|\|1,\.9\)/.test(source)) {
     throw new Error("Adaptive rendering quality is missing for high-end and low-end devices");
