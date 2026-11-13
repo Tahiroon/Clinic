@@ -337,8 +337,9 @@ loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
 });
 const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.25,0,1.35);patientNpc.enabled=false;
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
-let patientFallbackRig:FallbackRig|null=patientFallback;
-loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>{patientFallback.entity.destroy();patientFallbackRig=null;});
+let patientFallbackRig:FallbackRig|null=patientFallback,patientRig:HumanoidRig|null=null;
+let patientVisualId=0,patientVisualStage="",patientTarget:pc.Vec3|null=null,patientWalkPath:{x:number;z:number}[]=[];
+loadHumanoid(characterAssets.patient,patientNpc,1.62,false,rig=>{patientFallback.entity.destroy();patientFallbackRig=null;patientRig=rig;});
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=3200, xp=0, nextId=1, focus=false, wallRotation:0|90=0;
 let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v3")||0);return Math.max(0,Math.min(5,saved));}catch{return 0;}})();
@@ -865,6 +866,21 @@ function renderManagement(){
  el("#staff-list").innerHTML=management.staff.map(member=>'<div class="management-row"><div><strong>'+member.name+' · '+getRoleLabel(member.role)+'</strong><small>'+staffStatus[member.status]+' · مهارة '+member.skill+' · معنويات '+Math.round(member.morale)+'</small></div><div><small>طاقة '+Math.round(member.energy)+'%</small><div class="meter"><i style="width:'+Math.round(member.energy)+'%"></i></div></div></div>').join("");
  const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"التسجيل",waiting:"ينتظر",assessment:"التقييم",treatment:"جلسة علاج"};
  const queue=getPatientQueue(management);
+ const visiblePatient=queue[0];
+ if(!visiblePatient){patientNpc.enabled=false;patientVisualId=0;patientVisualStage="";patientTarget=null;patientWalkPath=[];}
+ else{
+  patientNpc.enabled=true;
+  if(patientVisualId!==visiblePatient.id||patientVisualStage!==visiblePatient.stage){
+   patientVisualId=visiblePatient.id;patientVisualStage=visiblePatient.stage;
+   const roomType=visiblePatient.stage==="reception"||visiblePatient.stage==="waiting"?"reception":visiblePatient.stage==="assessment"?"assessment":"treatment";
+   const room=management.rooms.find(r=>r.type===roomType)??management.rooms.find(r=>r.type==="treatment");
+   const goal=room?new pc.Vec3(room.x+Math.min(1.35,room.width*.34),0,room.z+Math.min(1.45,room.depth*.36)):new pc.Vec3(0,0,-4.55);
+   const current=patientNpc.getLocalPosition();patientNpc.enabled=false;
+   if(canWalkSegment(current.x,current.z,goal.x,goal.z)){patientWalkPath=[];patientTarget=goal;}
+   else{const route=findWalkPath(current.x,current.z,goal.x,goal.z);patientWalkPath=route?simplifyWalkRoute(route,current.x,current.z):[];patientTarget=goal;}
+   patientNpc.enabled=true;
+  }
+ }
  el("#patient-queue").innerHTML=queue.length?queue.map(patient=>'<div class="management-row"><div><strong>'+patient.name+' · '+patient.caseLabel+'</strong><small>'+stageLabels[patient.stage]+' · انتظار '+Math.round(patient.waitMinutes)+' دقيقة</small></div><div><small>الصبر '+Math.round(patient.patience)+'%</small><div class="meter"><i style="width:'+Math.round(patient.patience)+'%"></i></div></div></div>').join(""):'<p class="empty-management">لا توجد حالات نشطة حالياً. ابنِ الاستقبال ووظّف موظف استقبال وغرفة تقييم وعلاج.</p>';
  el("#clinic-events").innerHTML=management.events.slice(0,6).map(item=>'<div class="management-event">'+item.message+'</div>').join("");
  document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>button.classList.toggle("selected",Number(button.dataset.speed)===management.speed));
@@ -1075,7 +1091,25 @@ app.on("update",(dt:number)=>{
  if(managementUiTimer>=.45){managementUiTimer=0;renderManagement();}
  if(managementSaveTimer>=8){managementSaveTimer=0;save();}
  playerFallbackRig?.update(frameDt,!!target);
- patientFallbackRig?.update(frameDt,false);
+ patientFallbackRig?.update(frameDt,!!patientTarget||patientWalkPath.length>0);
+ if(patientNpc.enabled&&patientTarget){
+  const p=patientNpc.getLocalPosition(),waypoint=patientWalkPath.length?patientWalkPath[0]:{x:patientTarget.x,z:patientTarget.z};
+  const dx=waypoint.x-p.x,dz=waypoint.z-p.z,distance=Math.hypot(dx,dz);
+  if(distance<.12){
+   if(patientWalkPath.length)patientWalkPath.shift();
+   else{patientTarget=null;transitionHumanoid(patientRig,false);}
+  }else{
+   const yaw=Math.atan2(dx,dz)*180/Math.PI,currentYaw=patientNpc.getLocalEulerAngles().y;
+   const yawDelta=((yaw-currentYaw+540)%360)-180;
+   patientNpc.setLocalEulerAngles(0,currentYaw+Math.max(-frameDt*220,Math.min(frameDt*220,yawDelta)),0);
+   const step=Math.min(distance,frameDt*.88);
+   const wasEnabled=patientNpc.enabled;patientNpc.enabled=false;
+   const moveDistance=Math.hypot(dx, dz),parts=Math.max(1,Math.ceil(step/.05));let px=p.x,pz=p.z;
+   for(let i=1;i<=parts;i++){const nx=p.x+dx/moveDistance*step*i/parts,nz=p.z+dz/moveDistance*step*i/parts;if(canAvatarStand(nx,nz)){px=nx;pz=nz;}else break;}
+   patientNpc.setLocalPosition(px,0,pz);patientNpc.enabled=wasEnabled;
+   transitionHumanoid(patientRig,true);
+  }
+ }
  // Smooth camera follow/pan/zoom instead of snapping the camera on every touch event.
  const cameraAlpha=1-Math.exp(-frameDt*11);
  cameraTarget.x+=(cameraGoal.x-cameraTarget.x)*cameraAlpha;
