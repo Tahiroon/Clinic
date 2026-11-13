@@ -97,7 +97,10 @@ try {
     throw new Error("The new clinic campaign must start on an empty buildable plot");
   }
   const managementSource = await readFile(resolve(root, "src/game/management.ts"), "utf8");
-  if (!/reception:\{label:"الاستقبال",cost:420,width:5,depth:5/.test(managementSource) || !/const blueprint=ROOM_BLUEPRINTS\[roomType\],minWidth=blueprint\?\.width\?\?4,minDepth=blueprint\?\.depth\?\?4/.test(source)) {\n    throw new Error("Touch room drawing must respect each room type minimum size");\n  }\n  if (!/patients:\[\],rooms:\[\]/.test(managementSource)) {
+  if (!/reception:\{label:"الاستقبال",cost:420,width:5,depth:5/.test(managementSource) || !/const blueprint=ROOM_BLUEPRINTS\[roomType\],minWidth=blueprint\?\.width\?\?4,minDepth=blueprint\?\.depth\?\?4/.test(source)) {
+    throw new Error("Touch room drawing must respect each room type minimum size");
+  }
+  if (!/patients:\[\],rooms:\[\]/.test(managementSource)) {
     throw new Error("Management state must not create prebuilt rooms on a new account");
   }
   if (!/Surrounding green landscape/.test(source) || !/Clinic buildable foundation/.test(source) || !/Main entrance garden path/.test(source) || !/outdoorTreePositions/.test(source) || !/setClinicOpen\(management/.test(source)) {
