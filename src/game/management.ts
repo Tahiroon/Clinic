@@ -122,4 +122,4 @@ export function formatGameTime(s:ManagementState){
  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
 }
 export function getActivePatientCount(s:ManagementState){return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).length;}
-export function getPatientQueue(s:ManagementState){return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).sort((a,b)=>a.waitMinutes-b.waitMinutes);}
+export function getPatientQueue(s:ManagementState){return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).sort((a,b)=>b.waitMinutes-a.waitMinutes);}
