@@ -867,6 +867,16 @@ function moveAvatarSafely(dx:number,dz:number){
  return Math.hypot(x-p.x,z-p.z)>.001;
 }
 function updateMode(next:"move"|"build"){mode=next;buildGrid.enabled=mode==="build";placementPreview.enabled=mode==="build";previewValidity=null;if(next==="build"){destination=null;target=null;walkPath=[];setLocomotion(false);tapMarker.enabled=false;}moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"الشبكة ظاهرة الآن: المعاينة الخضراء صالحة، والحمراء غير صالحة. المس لتأكيد المكان.";}
+function hasAssetInRoom(assetKey:string,roomType:ClinicRoomType){
+ const room=management.rooms.find(r=>r.type===roomType);
+ return !!room&&placed.some(p=>p.kind==="asset"&&p.assetKey===assetKey&&(()=>{
+  const b=footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey);
+  return b.x>=room.x+.08&&b.z>=room.z+.08&&b.x+b.w<=room.x+room.width-.08&&b.z+b.d<=room.z+room.depth-.08;
+ })());
+}
+function updateMissionEquipment(){
+ if(missionPhase===4&&hasAssetInRoom("pt-treatment-table","treatment")&&hasAssetInRoom("pt-storage-cabinet","treatment")&&hasAssetInRoom("pt-exam-table","assessment"))setMissionPhase(5);
+}
 function renderMission(){
  const card=el<HTMLElement>("#mission-card"),title=el<HTMLElement>("#mission-title"),detail=el<HTMLElement>("#mission-detail"),button=el<HTMLButtonElement>("#start-tour");
  card.classList.toggle("mission-done",missionPhase>=6);
@@ -1006,7 +1016,7 @@ canvas.addEventListener("pointerup",e=>{
   }
   coinsLabel.textContent=String(coins);
   const item:Placed={id:nextId++,kind:selected,gx,gz,rot:wallRotation,assetKey:selected==="asset"?selectedAssetKey??undefined:undefined};
-  placed.push(item);drawPlaced(item);if(isRoomKind(item.kind))createLawnGrass();save();updatePlacementPreview(e.clientX,e.clientY);status.textContent=isRoomKind(item.kind)?"تم بناء الغرفة. جهّزها بالمعدات والموظفين المناسبين.":"تمت إضافة العنصر إلى العيادة.";return;
+  placed.push(item);drawPlaced(item);if(isRoomKind(item.kind))createLawnGrass();else if(item.kind==="asset")updateMissionEquipment();save();updatePlacementPreview(e.clientX,e.clientY);status.textContent=isRoomKind(item.kind)?"تم بناء الغرفة. جهّزها بالمعدات والموظفين المناسبين.":"تمت إضافة العنصر إلى العيادة.";return;
  }
  const start=avatar.getLocalPosition().clone(),tx=ground.x,tz=ground.z;
  destination=new pc.Vec3(tx,0,tz);
@@ -1047,8 +1057,7 @@ document.querySelectorAll<HTMLButtonElement>("[data-hire]").forEach(button=>butt
 }));
 el<HTMLButtonElement>("#clinic-open-toggle").addEventListener("click",()=>{
  if(!management.clinicOpen){
-  const inRoom=(assetKey:string,roomType:ClinicRoomType)=>{const room=management.rooms.find(r=>r.type===roomType);return !!room&&placed.some(p=>p.kind==="asset"&&p.assetKey===assetKey&&(()=>{const b=footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey);return b.x>=room.x+.08&&b.z>=room.z+.08&&b.x+b.w<=room.x+room.width-.08&&b.z+b.d<=room.z+room.depth-.08;})());};
-  const missing:string[]=[];if(!inRoom("pt-treatment-table","treatment"))missing.push("سرير العلاج");if(!inRoom("pt-storage-cabinet","treatment"))missing.push("خزانة الأدوات");if(!inRoom("pt-exam-table","assessment"))missing.push("سرير الفحص");
+  const missing:string[]=[];if(!hasAssetInRoom("pt-treatment-table","treatment"))missing.push("سرير العلاج");if(!hasAssetInRoom("pt-storage-cabinet","treatment"))missing.push("خزانة الأدوات");if(!hasAssetInRoom("pt-exam-table","assessment"))missing.push("سرير الفحص");
   if(missing.length){status.textContent="لا يمكن فتح العيادة بعد. جهّز: "+missing.join("، ")+" داخل الغرف المناسبة.";return;}
  }
  const result=setClinicOpen(management,!management.clinicOpen);
