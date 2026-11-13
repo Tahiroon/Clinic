@@ -945,7 +945,7 @@ function moveAvatarTo(tx:number,tz:number){
 el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
  if(missionPhase===0){
   updateMode("move");
-  const started=moveAvatarTo(.35,1.05);
+  const started=moveAvatarTo(.35,.65);
   if(!started){status.textContent="لم أجد ممراً واضحاً إلى غرفة العلاج. جرّب نقطة أخرى أو أعد المحاولة.";return;}
   setMissionPhase(1);
   status.textContent="الأخصائي في طريقه إلى غرفة العلاج.";
