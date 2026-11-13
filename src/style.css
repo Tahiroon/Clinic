@@ -495,3 +495,11 @@ button{font:inherit;touch-action:manipulation}
  .store-item-copy small{font-size:8px}
  .store-category{font-size:9px}
 }
+
+
+.art-firstaid:before{left:12px;top:9px;width:28px;height:31px;border-radius:5px;background:#dce7e4;border:2px solid #9fb7b8}
+.art-firstaid:after{left:24px;top:15px;width:5px;height:19px;background:#188b99;box-shadow:0 7px 0 0 #188b99}
+.art-oxygen:before{left:17px;top:8px;width:19px;height:32px;border-radius:7px;background:linear-gradient(90deg,#dce7e4,#9db9bf);border:2px solid #8ca9b2}
+.art-oxygen:after{left:13px;top:36px;width:28px;height:4px;background:#536e7c;box-shadow:5px 5px 0 -1px #d1c39b,18px 5px 0 -1px #d1c39b}
+.art-stretcher:before{left:8px;top:17px;width:36px;height:10px;border-radius:3px;background:#d9e5e2;border:2px solid #91aeb5}
+.art-stretcher:after{left:13px;top:28px;width:4px;height:13px;background:#c4d0cc;box-shadow:22px 0 #c4d0cc,0 12px 0 -1px #d5bd8c,22px 12px 0 -1px #d5bd8c}
