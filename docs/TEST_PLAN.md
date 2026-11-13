@@ -20,7 +20,7 @@
 6. Grass remains on unbuilt outdoor land; room flooring appears only inside built rooms.
 7. The player builds reception, assessment and exercise rooms as progression requires.
 8. Licensed GLB physiotherapy and reception assets load independently with fallbacks.
-9. Patients arrive after clinic opening, queue, wait, begin a player-led session and leave after completion.
+9. Patients arrive after clinic opening; without a receptionist the player registers them manually, while the purchased receptionist handles registration automatically. Patients then wait, move to assessment, complete a player-led session and leave.
 10. Patient patience, reputation, session income and XP update consistently.
 11. The receptionist upgrade costs one-time coins, unlocks after three completed sessions and persists after reload.
 12. Pause and 1×/2×/3× controls advance simulation time deterministically.
