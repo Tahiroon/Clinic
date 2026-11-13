@@ -202,6 +202,11 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
  }
  box("Front plinth left",-.3,.18,-1,1.4,.24,.2,trim,root);
  box("Front plinth right",2.3,.18,-1,1.4,.24,.2,trim,root);
+ // A layered entrance portal gives the open-cutaway room a readable, built doorway.
+ box("Entrance portal left pier",.20,1.10,-1.105,.12,2.20,.14,trim,root);
+ box("Entrance portal right pier",1.80,1.10,-1.105,.12,2.20,.14,trim,root);
+ box("Entrance portal header",1,2.22,-1.105,1.72,.12,.14,M.white,root);
+ box("Door threshold",1,.075,-1.105,1.24,.07,.22,metal,root);
  if(id===1){
   box("Shared plinth left",-.3,.18,3,1.4,.24,.2,trim,root);
   box("Shared plinth right",2.3,.18,3,1.4,.24,.2,trim,root);
@@ -246,17 +251,17 @@ type HumanoidRig={entity:pc.Entity;anim:any;clips:string[];idle:string;walk:stri
 function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
  const root=new pc.Entity("Visible fallback "+kind);parent.addChild(root);
  const shirt=kind==="student"?M.white:M.pale,trousers=kind==="student"?M.blue:M.teal;
- box("Humanoid torso",0,1.02,0,.43,.66,.25,shirt,root);
- box("Humanoid neck",0,1.39,0,.14,.13,.14,M.skin,root);
- sphere("Humanoid head",0,1.59,0,.43,M.skin,root);
- sphere("Humanoid hair",0,1.77,-.035,.34,M.dark,root);
+ box("Humanoid torso",0,1.02,0,.38,.62,.23,shirt,root);
+ box("Humanoid neck",0,1.39,0,.105,.13,.11,M.skin,root);
+ sphere("Humanoid head",0,1.56,0,.145,M.skin,root);
+ sphere("Humanoid hair",0,1.675,-.025,.145,M.dark,root);
  for(const x of [-.13,.13]){
-  box("Humanoid leg",x,.43,0,.17,.72,.19,trousers,root);
-  box("Humanoid shoe",x,.075,.07,.2,.13,.34,M.dark,root);
+  box("Humanoid leg",x,.43,0,.145,.72,.16,trousers,root);
+  box("Humanoid shoe",x,.075,.07,.18,.13,.28,M.dark,root);
  }
  for(const x of [-.29,.29]){
-  box("Humanoid arm",x,1.02,0,.14,.62,.16,shirt,root);
-  sphere("Humanoid hand",x,.68,.015,.15,M.skin,root);
+  box("Humanoid arm",x,1.02,0,.12,.58,.14,shirt,root);
+  sphere("Humanoid hand",x,.70,.015,.085,M.skin,root);
  }
  if(kind==="student"){
   box("Physiotherapist ID badge",.12,1.18,-.132,.1,.13,.025,trim,root);
