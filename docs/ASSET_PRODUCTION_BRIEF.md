@@ -11,12 +11,13 @@
 - Avoid toy-like miniature people, excessive gloss, clutter, oversized empty hospital halls and oversized yard areas.
 - Roofless/cutaway rooms should be readable from the camera: consistent wall height, visible door clearance, distinct floor materials and believable furniture scale.
 
-## Fixed starter-world dimensions
-- Starter property: approximately 6.5 m wide × 14 m deep, composed for portrait viewing; the plot is finite and surrounded by lawn/path/low edging.
-- Starter building: two adjoining 4 m × 4 m rooms aligned along the depth axis: reception at the entrance, treatment room directly behind it.
-- Both rooms share a 1.2 m internal doorway; each has a clear front entrance opening.
-- Outdoor area includes a short entrance walk, low perimeter hedge, a few trees and planters. All landscaping stays outside the building shell and outside the central walkway.
-- Later expansion purchases adjacent land parcels; do not make the first property infinite or warehouse-sized.
+## Starter-world dimensions
+- Starter property: approximately 14 m wide × 28 m deep, composed for portrait viewing, with a continuous outdoor lawn and a clear entrance path.
+- Starter building: one 4 m × 4 m treatment room only; do not prebuild a reception/waiting wing.
+- The treatment room has a clear front entrance opening and enough approach clearance for the patient and player avatar.
+- All unbuilt property is outdoor grass. Trees and shrubs stay near the outer landscape edges, outside the building and away from the entrance route.
+- Room flooring is limited to constructed rooms; never tile or pave the full property.
+- Players add rooms and facilities inside the initial property, then later unlock adjacent land parcels. The first property must feel spacious and expandable, not like a completed clinic or an empty warehouse.
 - Human character height target: 1.65–1.80 m.
 - Room wall height target: approximately 2.2 m.
 - Door clear width target: at least 1.0 m.
