@@ -348,7 +348,7 @@ let patientFallbackRig:FallbackRig|null=patientFallback;
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>{patientFallback.entity.destroy();patientFallbackRig=null;});
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=4, focus=false, wallRotation:0|90=0;
-let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v1")||0);return saved===1?0:Math.max(0,Math.min(4,saved));}catch{return 0;}})();
+let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v2")||0);return saved===1?0:Math.max(0,Math.min(4,saved));}catch{return 0;}})();
 
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v9";
 const TRIAL_ACCOUNT_COINS=350; 
@@ -853,7 +853,7 @@ function renderMission(){
 }
 function setMissionPhase(next:number){
  missionPhase=next;
- try{localStorage.setItem("therason-clinic-mission-v1",String(next===1?0:next));}catch{}
+ try{localStorage.setItem("therason-clinic-mission-v2",String(next===1?0:next));}catch{}
  renderMission();
 }
 
