@@ -141,10 +141,10 @@ const terrainIslands:[number,number,number,number,StandardMaterial][]=[
 for(const [x,z,rx,rz,mat] of terrainIslands){const patch=sphere("Soft terrain colour variation",x,-.085,z,1,mat,district);patch.setLocalScale(rx,.018,rz);}
 box("District access road",0,-.025,-21.0,42,.10,5.8,worldRoad,district);
 box("Road north verge",0,.025,-17.85,42,.12,.34,worldStone,district);
-box("Road south verge",0,.025,-24.15,58,.12,.34,worldStone,district);
+box("Road south verge",0,.025,-24.15,42,.12,.34,worldStone,district);
 box("District side road",17,-.02,4.0,5.0,.10,34,worldRoad,district);
 box("Side road west curb",14.35,.035,4.0,.30,.14,34,worldStone,district);
-box("Side road east curb",19.65,.035,4.0,.30,.14,48,worldStone,district);
+box("Side road east curb",19.65,.035,4.0,.30,.14,34,worldStone,district);
 for(let x=-19;x<=19;x+=5.5)box("Road centre dash",x,.034,-21,2.4,.018,.10,worldRoadLine,district);
 box("Clinic approach promenade",0,.025,-17.55,4.2,.10,6.7,pathMat,district);
 box("Approach promenade left curb",-2.18,.10,-17.55,.16,.20,6.7,pathEdge,district);
@@ -185,46 +185,44 @@ box("Clinic entrance identity plaque",0,3.50,-14.50,2.75,.46,.08,wallAccentMat,w
 box("Clinic entrance plaque inset",0,3.50,-14.55,2.40,.25,.025,M.white,world);
 function makeDistrictTree(x:number,z:number,scale:number,variant:number){
  const trunkMat=material(new Color(.37,.25,.17));
- cylinder("District tree trunk",x,.88*scale,z,.22*scale,1.76*scale,.22*scale,trunkMat,world);
- cylinder("District tree branch",x-.22*scale,1.48*scale,z,.09*scale,.88*scale,.09*scale,trunkMat,world).setLocalEulerAngles(0,0,-28);
- cylinder("District tree branch",x+.22*scale,1.52*scale,z,.08*scale,.82*scale,.08*scale,trunkMat,world).setLocalEulerAngles(0,0,27);
+ cylinder("District tree trunk",x,.88*scale,z,.22*scale,1.76*scale,.22*scale,trunkMat,district);
+ cylinder("District tree branch",x-.22*scale,1.48*scale,z,.09*scale,.88*scale,.09*scale,trunkMat,district).setLocalEulerAngles(0,0,-28);
+ cylinder("District tree branch",x+.22*scale,1.52*scale,z,.08*scale,.82*scale,.08*scale,trunkMat,district).setLocalEulerAngles(0,0,27);
  const crownMat=variant===0?worldTreeA:variant===1?worldTreeB:worldTreeC;
- const crown=sphere("Rounded sculpted tree crown",x,2.35*scale,z,.90*scale,crownMat,world);crown.setLocalScale(1.18,.92,1.05);
+ const crown=sphere("Rounded sculpted tree crown",x,2.35*scale,z,.90*scale,crownMat,district);crown.setLocalScale(1.18,.92,1.05);
  for(const [dx,dy,dz,r,mat] of [[-.55,2.20,.10,.58,worldTreeB],[.50,2.32,-.08,.60,crownMat],[.02,2.92,.02,.57,worldTreeA]] as [number,number,number,number,StandardMaterial][]){
-  const cluster=sphere("Layered tree canopy",x+dx*scale,dy*scale,z+dz*scale,r*scale,mat,world);cluster.setLocalScale(1.08,.95,.98);
+  const cluster=sphere("Layered tree canopy",x+dx*scale,dy*scale,z+dz*scale,r*scale,mat,district);cluster.setLocalScale(1.08,.95,.98);
  }
 }
 const districtTrees:[number,number,number,number][]=[
- [-22,-28,1.25,0],[-13,-29,.92,1],[7,-29,1.10,2],[23,-25,1.35,1],
- [-24,-8,1.22,2],[24,1,1.25,0],[-22,19,1.35,1],[21,26,1.18,2],[-8,31,.98,0],[9,32,1.20,1]
+ [-20,-25,1.08,0],[18,-25,1.12,1],[-21,5,1.08,2],[21,16,1.12,0],[-9,29,.98,1],[10,29,1.04,2]
 ];
 for(const [x,z,scale,variant] of districtTrees)makeDistrictTree(x,z,scale,variant);
 function makePlantingBed(x:number,z:number,w:number,d:number){
  const soil=material(new Color(.34,.27,.19));
- const bed=box("Irregular planted landscape bed",x,.025,z,w,.10,d,soil,world);
+ const bed=box("Irregular planted landscape bed",x,.025,z,w,.10,d,soil,district);
  bed.setLocalEulerAngles(0,(x*13+z*7)%17-8,0);
  for(const [dx,dz,r,mat] of [[-.28,-.16,.34,worldTreeA],[.12,.10,.38,worldTreeB],[.36,-.12,.29,worldTreeC],[-.08,.25,.27,worldTreeB]] as [number,number,number,StandardMaterial][]){
-  const shrub=sphere("Rounded low landscape shrub",x+dx*w,.34,z+dz*d,r,mat,world);shrub.setLocalScale(1.25,.78,1.0);
+  const shrub=sphere("Rounded low landscape shrub",x+dx*w,.34,z+dz*d,r,mat,district);shrub.setLocalScale(1.25,.78,1.0);
  }
 }
-for(const [x,z,w,d] of [[-19,-18,3.2,2.0],[18,-15,3.6,2.2],[-19,10,3.0,2.3],[22,19,3.2,2.1],[-4,30,4.0,2.2]] as [number,number,number,number][])makePlantingBed(x,z,w,d);
+for(const [x,z,w,d] of [[-18,-17,3.0,1.8],[18,-12,3.0,1.8],[-3,29,3.4,1.9]] as [number,number,number,number][])makePlantingBed(x,z,w,d);
 function makeDistrictBuilding(name:string,x:number,z:number,w:number,d:number,height:number,wallMat:StandardMaterial,roofMat:StandardMaterial){
- box(name+" · stone foundation",x,.16,z,w+.30,.32,d+.30,worldStone,world);
- box(name+" · plaster walls",x,height/2+.22,z,w,height,d,wallMat,world);
- box(name+" · pitched roof",x,height+.40,z,w+1.0,.52,d+1.0,roofMat,world);
+ box(name+" · stone foundation",x,.16,z,w+.30,.32,d+.30,worldStone,district);
+ box(name+" · plaster walls",x,height/2+.22,z,w,height,d,wallMat,district);
+ box(name+" · pitched roof",x,height+.40,z,w+1.0,.52,d+1.0,roofMat,district);
  for(const wx of [-.30,.30]){
-  box(name+" · window recess",x+wx*w,height*.60+.22,z-d/2-.025,.78,.92,.06,wallBaseMat,world);
-  box(name+" · window glass",x+wx*w,height*.60+.22,z-d/2-.07,.60,.70,.035,worldWindow,world);
-  box(name+" · window sill",x+wx*w,height*.60-.25,z-d/2-.10,.88,.10,.16,wallCapMat,world);
+  box(name+" · window recess",x+wx*w,height*.60+.22,z-d/2-.025,.78,.92,.06,wallBaseMat,district);
+  box(name+" · window glass",x+wx*w,height*.60+.22,z-d/2-.07,.60,.70,.035,worldWindow,district);
+  box(name+" · window sill",x+wx*w,height*.60-.25,z-d/2-.10,.88,.10,.16,wallCapMat,district);
  }
 }
-makeDistrictBuilding("West neighbourhood clinic",-18,2,6.8,5.2,3.8,worldPlaster,worldRoof);
-makeDistrictBuilding("East neighbourhood house",22,11,6.2,5.4,3.5,worldPlaster,worldRoof);
-makeDistrictBuilding("Distant community building",1,29,8.0,5.8,4.2,worldStone,worldRoof);
-for(const [x,z] of [[-4.5,-18.0],[4.5,-18.0],[-20,-3],[20,-5]] as [number,number][]){
- cylinder("District lamp base",x,.12,z,.20,.24,.20,M.dark,world);
- cylinder("District lamp post",x,1.28,z,.065,2.3,.065,M.dark,world);
- sphere("District lamp diffuser",x,2.48,z,.20,worldWarmGlass,world);
+makeDistrictBuilding("West neighbourhood clinic",-18,2,6.2,4.8,3.5,worldPlaster,worldRoof);
+makeDistrictBuilding("East neighbourhood house",22,11,5.8,5.0,3.3,worldStone,worldRoof);
+for(const [x,z] of [[-4.5,-18.0],[4.5,-18.0],[20,-5]] as [number,number][]){
+ cylinder("District lamp base",x,.12,z,.20,.24,.20,M.dark,district);
+ cylinder("District lamp post",x,1.28,z,.065,2.3,.065,M.dark,district);
+ sphere("District lamp diffuser",x,2.48,z,.20,worldWarmGlass,district);
 }
 const gaitLaneX=4.2,gaitLaneZ=-17.8;
 box("Outdoor physiotherapy gait lane",gaitLaneX,.055,gaitLaneZ,1.55,.08,4.5,pathEdge,district);
@@ -1199,7 +1197,7 @@ canvas.addEventListener("pointerdown",e=>{
  else if(!roomDrawing){pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraGoal.x,tz:cameraGoal.z};dragged=false;}
  canvas.setPointerCapture(e.pointerId);
 });
-canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(roomDrawing&&activePointers.size===1){const point=screenToGround(e.clientX,e.clientY);if(point){roomDrawEnd={x:Math.floor(point.x),z:Math.floor(point.z)};updateRoomDrawPreview();}return;}if(mode==="build"&&activePointers.size<2)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(8,Math.min(42,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;const halfHeight=desiredOrthoHeight*.5,halfWidth=halfHeight*(canvas.clientWidth/Math.max(1,canvas.clientHeight));const maxPanX=Math.max(0,HALF_X+19-halfWidth*.62),maxPanZ=Math.max(0,HALF_Z+27-halfHeight*.62);cameraGoal.set(Math.max(-maxPanX,Math.min(maxPanX,pointerStart.tx+shiftX)),0,Math.max(-maxPanZ,Math.min(maxPanZ,pointerStart.tz+shiftZ)));}});
+canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(roomDrawing&&activePointers.size===1){const point=screenToGround(e.clientX,e.clientY);if(point){roomDrawEnd={x:Math.floor(point.x),z:Math.floor(point.z)};updateRoomDrawPreview();}return;}if(mode==="build"&&activePointers.size<2)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(8,Math.min(42,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;const halfHeight=desiredOrthoHeight*.5,halfWidth=halfHeight*(canvas.clientWidth/Math.max(1,canvas.clientHeight));const maxPanX=Math.max(0,HALF_X+10-halfWidth*.62),maxPanZ=Math.max(0,HALF_Z+14-halfHeight*.62);cameraGoal.set(Math.max(-maxPanX,Math.min(maxPanX,pointerStart.tx+shiftX)),0,Math.max(-maxPanZ,Math.min(maxPanZ,pointerStart.tz+shiftZ)));}});
 canvas.addEventListener("pointerup",e=>{
  activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;
  if(roomDrawing){
