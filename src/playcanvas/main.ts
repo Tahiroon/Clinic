@@ -366,8 +366,8 @@ for(let i=0;i<2;i++){
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=3200, xp=0, nextId=1, focus=false, wallRotation:0|90=0;
 let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v3")||0);return Math.max(0,Math.min(6,saved));}catch{return 0;}})();
 
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v11";
-const managementSaveKey="therason-clinic-management-v3";
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v12";
+const managementSaveKey="therason-clinic-management-v4";
 const TRIAL_ACCOUNT_COINS=3200; 
 const starterLayout:Placed[]=[{id:1,kind:"treatment",gx:-2,gz:-2,width:4,depth:4}];
 const costs:Record<BuildKind,number>={treatment:720,reception:420,assessment:620,gym:980,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
@@ -570,7 +570,7 @@ function loadClinicAsset(p:Placed){
  });
 }
 
-function save(){try{management.balance=coins;management.experience=xp;localStorage.setItem(saveKey,JSON.stringify({v:11,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
+function save(){try{management.balance=coins;management.experience=xp;localStorage.setItem(saveKey,JSON.stringify({v:12,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function validSavedItem(value:any):value is Placed{
  if(!value||typeof value!=="object")return false;
  const kinds:BuildKind[]=["treatment","reception","assessment","gym","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
@@ -586,8 +586,8 @@ function load(){
  const useStarter=()=>{management=createInitialManagementState();coins=management.balance;xp=0;placed=starterLayout.map(p=>({...p}));nextId=2;for(const p of placed)drawPlaced(p);};
  try{
   const raw=localStorage.getItem(saveKey);if(!raw){useStarter();return;}
-  const v=JSON.parse(raw);if(v.v!==11||!Array.isArray(v.placed)){useStarter();return;}
-  try{const savedManagement=JSON.parse(localStorage.getItem(managementSaveKey)||"null");if(savedManagement?.version===2&&Array.isArray(savedManagement.patients)&&Array.isArray(savedManagement.rooms))management=savedManagement;else management=createInitialManagementState();}catch{management=createInitialManagementState();}
+  const v=JSON.parse(raw);if(v.v!==12||!Array.isArray(v.placed)){useStarter();return;}
+  try{const savedManagement=JSON.parse(localStorage.getItem(managementSaveKey)||"null");if(savedManagement?.version===3&&Array.isArray(savedManagement.patients)&&Array.isArray(savedManagement.rooms))management=savedManagement;else management=createInitialManagementState();}catch{management=createInitialManagementState();}
   coins=Math.max(0,Number.isFinite(management.balance)?Math.min(10000000,management.balance):TRIAL_ACCOUNT_COINS);management.balance=coins;
   xp=Number.isFinite(management.experience)?Math.max(0,Math.min(1000000000,management.experience)):0;
   placed=[];const ids=new Set<number>();
@@ -603,7 +603,7 @@ function load(){
   for(const p of placed)drawPlaced(p);
  }catch{useStarter();}
 }
-function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"exercise":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"exercise",p.gx,p.gz,p.id,p.width??4,p.depth??4); return;}
+function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"exercise":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"exercise",p.gx,p.gz,p.id,p.width??4,p.depth??4);if(p.kind==="treatment"&&p.id===1){loadClinicAsset({id:90001,kind:"asset",gx:-2,gz:-2,assetKey:"pt-treatment-table"});loadClinicAsset({id:90002,kind:"asset",gx:1,gz:1,assetKey:"pt-storage-cabinet"});}return;}
  const root=new pc.Entity("Placed "+p.kind);
  world.addChild(root);
  if(p.kind==="wall")root.setLocalPosition(p.rot===90?p.gx+1.5:x,0,p.rot===90?z:p.gz+1.5);
@@ -842,7 +842,7 @@ function hasAssetInRoom(assetKey:string,roomType:ClinicRoomType){
  })());
 }
 function updateMissionEquipment(){
- if(missionPhase===3&&hasAssetInRoom("pt-treatment-table","treatment")&&hasAssetInRoom("pt-storage-cabinet","treatment")&&hasAssetInRoom("pt-exam-table","assessment"))setMissionPhase(4);
+ if(missionPhase===3&&hasAssetInRoom("pt-exam-table","assessment")&&hasAssetInRoom("pt-patient-chair","assessment"))setMissionPhase(4);
 }
 function renderMission(){
  const card=el<HTMLElement>("#mission-card"),title=el<HTMLElement>("#mission-title"),detail=el<HTMLElement>("#mission-detail"),button=el<HTMLButtonElement>("#start-tour");
