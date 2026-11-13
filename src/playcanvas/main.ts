@@ -264,7 +264,8 @@ function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string
  const a=footprintAt(gx,gz,kind,rot,assetKey);
  if(a.x< -HALF||a.z< -HALF||a.x+a.w>HALF||a.z+a.d>HALF)return true;
  if(rectanglesOverlap(a,starterFootprint))return true;
- const isRoom=(k:BuildKind)=>k==="treatment"||k==="reception"||k==="gym";\n return placed.some(p=>{const existingRoom=isRoom(p.kind),candidateRoom=isRoom(kind);if(existingRoom&&!candidateRoom)return false;return rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey));});
+ const isRoom=(k:BuildKind)=>k==="treatment"||k==="reception"||k==="gym";
+ return placed.some(p=>{const existingRoom=isRoom(p.kind),candidateRoom=isRoom(kind);if(existingRoom&&!candidateRoom)return false;return rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey));});
 }
 function canAvatarStand(x:number,z:number){
  const r=.28;
