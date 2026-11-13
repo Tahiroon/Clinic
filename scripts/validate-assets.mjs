@@ -192,6 +192,14 @@ try {
   }
   console.log("✓ Store preview uses the same verified GLB model as placement and cleans up safely");
   console.log("✓ Outdoor landscaping extends around the buildable clinic plot");
+  const outdoorSetup=source.slice(0,source.indexOf("const lawnGrassMaterial"));
+  for (const prop of ["Garden bench seat","Outdoor flower bed","Garden lamp globe"]) {
+    if (!outdoorSetup.includes(prop)) throw new Error("Outdoor environment is missing " + prop);
+  }
+  if (/arrivalMetal|warmGlass/.test(outdoorSetup)) {
+    throw new Error("Outdoor garden props must not reference materials before their initialization");
+  }
+  console.log("✓ Outdoor benches, flower beds and garden lamps are initialized safely");
   if (!/highDetailDevice=deviceMemory>=4&&cpuCores>=6/.test(source) ||
       !/maxPixelRatio=highDetailDevice\?Math\.min\(window\.devicePixelRatio\|\|1,1\.25\):1\.0/.test(source)) {
     throw new Error("Adaptive rendering quality is missing for high-end and low-end devices");
