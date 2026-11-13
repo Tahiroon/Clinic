@@ -72,7 +72,7 @@ export function hireReceptionist(s:ManagementState):{ok:boolean;message:string}{
 }
 function addPatient(s:ManagementState){
  const c=CASES[s.arrivals%CASES.length],name=NAMES[s.arrivals%NAMES.length];
- s.patients.push({id:s.nextPatientId++,name,caseLabel:c.label,need:c.need,stage:s.receptionistOwned?"reception":"waiting",patience:100,mood:78,waitMinutes:0,satisfaction:0});
+ s.patients.push({id:s.nextPatientId++,name,caseLabel:c.label,need:c.need,stage:"reception",patience:100,mood:78,waitMinutes:0,satisfaction:0});
  s.arrivals++;event(s,"arrival","وصل "+name+" إلى العيادة: "+c.label+".");
 }
 export function advanceSimulation(s:ManagementState,realSeconds:number){
@@ -89,7 +89,8 @@ export function advanceSimulation(s:ManagementState,realSeconds:number){
    if(p.stage==="discharged"||p.stage==="left")continue;
    p.waitMinutes+=step;
    if(p.stage==="reception"){
-    if(p.waitMinutes>=(s.receptionistOwned?1:2)){p.stage="waiting";p.waitMinutes=0;}
+    if(s.receptionistOwned&&p.waitMinutes>=1){p.stage="waiting";p.waitMinutes=0;}
+    else if(!s.receptionistOwned){p.patience=Math.max(0,p.patience-step*.22);if(p.patience<=0){p.stage="left";s.reputation=Math.max(0,s.reputation-1.2);event(s,"warning",p.name+" غادر قبل تسجيله.");}}
    }else if(p.stage==="waiting"){
     p.patience=Math.max(0,p.patience-step*(s.receptionistOwned?.16:.28));
     p.mood=Math.max(0,p.mood-step*.08);
@@ -97,6 +98,13 @@ export function advanceSimulation(s:ManagementState,realSeconds:number){
    }
   }
  }
+}
+export function registerPatient(s:ManagementState,patientId:number):{ok:boolean;message:string}{
+ if(s.receptionistOwned)return {ok:false,message:"موظف الاستقبال يتولى تسجيل المرضى تلقائياً."};
+ const patient=s.patients.find(p=>p.id===patientId&&p.stage==="reception");
+ if(!patient)return {ok:false,message:"هذا المريض غير موجود في قائمة التسجيل."};
+ patient.stage="waiting";patient.waitMinutes=0;event(s,"arrival","تم تسجيل "+patient.name+" وأصبح جاهزاً لانتظار الأخصائي.");
+ return {ok:true,message:"تم تسجيل "+patient.name+". أصبح جاهزاً للجلسة."};
 }
 export function beginPatientSession(s:ManagementState):{ok:boolean;message:string;patient?:ClinicPatient}{
  const patient=getPatientQueue(s).find(p=>p.stage==="waiting");
