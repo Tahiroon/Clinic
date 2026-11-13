@@ -26,7 +26,9 @@ const required = [
   ["src/assets/clinic-kit/hospital/hospital-gift-shop-set.glb", [], []],
   ["src/assets/clinic-kit/hospital/hospital-bed-bay.glb", [], []],
   ["src/assets/clinic-kit/hospital/hospital-lab-set.glb", [], []],
-  ["src/assets/clinic-kit/hospital/x-ray-room-set.glb", [], []]
+  ["src/assets/clinic-kit/hospital/x-ray-room-set.glb", [], []],
+  ["src/assets/clinic-kit/hospital/pharmacy-counter.glb", [], []],
+  ["src/assets/clinic-kit/hospital/baby-ward-set.glb", [], []]
 ];
 
 let failed = false;
