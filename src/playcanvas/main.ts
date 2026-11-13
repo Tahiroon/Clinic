@@ -238,37 +238,48 @@ for(const x of [-1.12,1.12]){
  cylinder("Entrance path light stem",x,.52,-3.75,.065,.78,.065,arrivalMetal,world);
  sphere("Entrance path light diffuser",x,.98,-3.75,.14,warmGlass,world);
 }
-// Compact starter-clinic pavilion: a calm, recognisable building rather than a floating sign.
-box("Starter clinic stone plinth",0,.13,-2.38,6.0,.26,1.42,M.wallFrame,world);
-box("Starter clinic warm facade left wing",-2.12,1.42,-2.22,1.72,2.58,.28,M.wallBase,world);
-box("Starter clinic warm facade right wing",2.12,1.42,-2.22,1.72,2.58,.28,M.wallBase,world);
+// A warm, low-rise neighbourhood clinic: plaster, stone, timber and a modest terracotta roof.
+const clinicPlaster=material(new Color(.79,.73,.63));
+const clinicStone=material(new Color(.58,.52,.43));
+const clinicTerracotta=material(new Color(.49,.25,.18));
+const clinicTimber=material(new Color(.34,.23,.16));
+box("Starter clinic stone plinth",0,.13,-2.38,6.0,.26,1.42,clinicStone,world);
+box("Starter clinic warm plaster left wing",-2.12,1.42,-2.22,1.72,2.58,.28,clinicPlaster,world);
+box("Starter clinic warm plaster right wing",2.12,1.42,-2.22,1.72,2.58,.28,clinicPlaster,world);
 for(const x of [-2.12,2.12]){
- box("Starter clinic recessed window reveal",x,1.66,-2.385,1.30,1.52,.035,M.wallRecess,world);
- box("Starter clinic front window glass",x,1.66,-2.415,1.18,1.39,.035,M.wallBlue,world);
- box("Starter clinic window sill",x,.86,-2.46,1.42,.10,.16,M.wallCap,world);
- box("Starter clinic window lintel",x,2.45,-2.46,1.42,.10,.16,M.wallCap,world);
- box("Starter clinic window mullion",x,1.66,-2.46,.055,1.48,.10,arrivalMetal,world);
+ box("Clinic window deep stone reveal",x,1.66,-2.385,1.30,1.52,.055,clinicStone,world);
+ box("Clinic window shaded glass",x,1.66,-2.425,1.12,1.30,.035,M.wallBlue,world);
+ box("Clinic timber window sill",x,.86,-2.48,1.42,.12,.18,clinicTimber,world);
+ box("Clinic timber window lintel",x,2.45,-2.48,1.42,.12,.18,clinicTimber,world);
+ box("Clinic timber window mullion",x,1.66,-2.49,.075,1.42,.10,clinicTimber,world);
 }
 for(const x of [-1.18,1.18]){
- box("Starter clinic entrance portal pier",x,1.42,-2.42,.22,2.72,.46,M.wall,world);
- box("Starter clinic portal shadow reveal",x,1.42,-2.67,.045,2.55,.045,M.wallRecess,world);
+ box("Clinic entrance stone portal pier",x,1.42,-2.42,.28,2.72,.50,clinicStone,world);
+ box("Clinic portal shadow reveal",x,1.42,-2.69,.045,2.55,.045,M.wallRecess,world);
 }
-box("Starter clinic glazed entrance left leaf",-.47,1.18,-2.37,.78,2.20,.075,M.wallBlue,world);
-box("Starter clinic glazed entrance right leaf",.47,1.18,-2.37,.78,2.20,.075,M.wallBlue,world);
-box("Starter clinic entrance centre mullion",0,1.18,-2.43,.055,2.22,.11,arrivalMetal,world);
-box("Starter clinic entrance handle left",-.10,1.10,-2.50,.035,.34,.035,M.wallFrame,world);
-box("Starter clinic entrance handle right",.10,1.10,-2.50,.035,.34,.035,M.wallFrame,world);
-box("Starter clinic facade lintel",0,2.82,-2.36,2.62,.24,.48,M.wall,world);
-box("Starter clinic roof fascia",0,3.02,-2.26,6.12,.22,1.52,arrivalMetal,world);
-box("Starter clinic roof top",0,3.15,-2.26,6.20,.10,1.58,M.wall,world);
-box("THERASON sign shadow backing",0,2.88,-3.045,2.68,.48,.16,M.wallFrame,world);
+box("Clinic entrance timber left frame",-.48,1.18,-2.43,.82,2.20,.14,clinicTimber,world);
+box("Clinic entrance timber right frame",.48,1.18,-2.43,.82,2.20,.14,clinicTimber,world);
+box("Clinic glazed entrance left leaf",-.47,1.18,-2.515,.66,2.02,.035,M.wallBlue,world);
+box("Clinic glazed entrance right leaf",.47,1.18,-2.515,.66,2.02,.035,M.wallBlue,world);
+box("Clinic entrance centre timber mullion",0,1.18,-2.54,.075,2.12,.11,clinicTimber,world);
+box("Clinic entrance handle left",-.10,1.10,-2.60,.035,.34,.035,M.wallFrame,world);
+box("Clinic entrance handle right",.10,1.10,-2.60,.035,.34,.035,M.wallFrame,world);
+box("Clinic facade stone lintel",0,2.82,-2.36,2.62,.24,.48,clinicStone,world);
+box("Clinic front eaves beam",0,3.02,-2.26,6.35,.22,2.02,clinicTimber,world);
+const clinicRoofLeft=box("Clinic terracotta roof left slope",-1.55,3.48,-2.26,3.35,.20,2.15,clinicTerracotta,world);
+clinicRoofLeft.setLocalEulerAngles(0,0,19);
+const clinicRoofRight=box("Clinic terracotta roof right slope",1.55,3.48,-2.26,3.35,.20,2.15,clinicTerracotta,world);
+clinicRoofRight.setLocalEulerAngles(0,0,-19);
+box("Clinic roof ridge cap",0,4.02,-2.26,.28,.22,2.22,clinicTerracotta,world);
+box("Clinic roof front fascia",0,3.12,-3.36,6.42,.20,.16,clinicTimber,world);
+box("THERASON sign shadow backing",0,2.88,-3.045,2.68,.48,.16,clinicTimber,world);
 box("THERASON entrance sign",0,2.88,-3.14,2.42,.34,.055,trim,world);
 box("THERASON sign inset",0,2.88,-3.18,2.16,.22,.025,M.white,world);
 box("THERASON sign identity mark",-.88,2.88,-3.20,.08,.18,.035,M.wallAccent,world);
-box("Entrance canopy",0,2.30,-2.86,3.45,.16,1.10,roofAccent,world);
-box("Entrance canopy underside",0,2.205,-2.86,3.12,.035,.88,M.wallCap,world);
-for(const x of [-1.48,1.48])box("Entrance canopy bracket",x,2.06,-2.66,.10,.34,.32,M.wallFrame,world);
-addContactShadow(world,"Starter clinic pavilion shadow",0,-3.45,2.9,.72,.052);
+box("Traditional clinic entrance canopy",0,2.30,-2.86,3.45,.16,1.10,clinicTerracotta,world);
+box("Entrance canopy underside",0,2.205,-2.86,3.12,.035,.88,clinicStone,world);
+for(const x of [-1.48,1.48])box("Timber entrance canopy bracket",x,2.06,-2.66,.10,.34,.32,clinicTimber,world);
+addContactShadow(world,"Starter clinic building shadow",0,-3.45,3.2,.92,.052);
 const roomRoot=new Entity("Player-built clinic rooms");world.addChild(roomRoot);
 const buildGrid=new Entity("Expandable property construction grid");world.addChild(buildGrid);
 const gridMaterial=material(new Color(.20,.57,.65));
