@@ -171,6 +171,8 @@ try {
   }
   const drawPlacedSource=source.slice(source.indexOf("function drawPlaced(p:Placed)"),source.indexOf("\nfunction footprint("));
   if (/loadClinicAsset\(\{id:p\.id\*1000/.test(drawPlacedSource)) throw new Error("Rooms must be empty until the player buys and places equipment");
+  const roomBuilderSource=source.slice(source.indexOf("function makeRoom"),source.indexOf("// The starter clinic"));
+  if (/loadReceptionDesk\(root\)|loadWaitingSeats\(root\)/.test(roomBuilderSource)) throw new Error("Reception must be furnished by the player through the equipment store");
   if (!/id="store-panel"/.test(html) || !/data-store-category/.test(html) || (html.match(/class="store-item"/g)||[]).length < 16) {
     throw new Error("The dedicated categorized equipment shop is incomplete");
   }
