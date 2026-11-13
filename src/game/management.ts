@@ -30,8 +30,8 @@ const CASES=[
 const NAMES=["مريم","أحمد","سارة","محمد","آمنة","يوسف","هدى","عمر","سلمى","خالد","إسراء","مصطفى"];
 export function createInitialManagementState():ManagementState{
  return {version:3,day:1,minuteOfDay:8*60,speed:1,clinicOpen:false,balance:3200,reputation:50,experience:0,treated:0,arrivals:0,receptionistOwned:false,
- patients:[],rooms:[{id:1,type:"treatment",x:-2,z:-2,width:4,depth:4,prestige:1,open:true,capacity:1}],events:[{id:1,minute:480,kind:"milestone",message:"غرفة العلاج الأولى جاهزة. ابنِ الاستقبال وغرفة التقييم ووسّع عيادتك."}],
- nextPatientId:1,nextRoomId:2,nextEventId:2,arrivalAccumulator:0};
+ patients:[],rooms:[],events:[{id:1,minute:480,kind:"milestone",message:"أرض العيادة جاهزة. ابنِ أول غرفة علاج طبيعي، ثم اشترِ الأجهزة وضعها بنفسك."}],
+ nextPatientId:1,nextRoomId:1,nextEventId:2,arrivalAccumulator:0};
 }
 function event(s:ManagementState,kind:ClinicEvent["kind"],message:string){
  s.events.unshift({id:s.nextEventId++,minute:(s.day-1)*1440+s.minuteOfDay,kind,message});s.events=s.events.slice(0,14);
