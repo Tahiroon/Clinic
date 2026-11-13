@@ -1,0 +1,215 @@
+# THERASON CLINIC 2.0 — Product Vision & Master Design
+
+**Status:** Approved product direction / implementation blueprint  
+**Date:** 2026-11-13  
+**Working branch:** `clinic-dev`  
+**Runtime:** PlayCanvas 2.23.3 (retain unless real-device evidence proves it cannot meet targets)
+
+## 1. Product promise
+
+THERASON CLINIC is a portrait-first mobile clinic-management and physiotherapy simulation game. The learner owns and develops a rehabilitation clinic, manages its space and finances, welcomes patients, and personally acts as the physiotherapist during clinical encounters. It combines the satisfying spatial management and progression loop of hospital-management games with an original physiotherapy identity and evidence-informed clinical reasoning.
+
+It is inspired by the broad management-game language of Two Point Hospital (readable isometric rooms, visible staff/patients, room planning, progression and playful management), but must not copy its characters, art, UI, assets, names, diseases, or exact layouts.
+
+## 2. Product pillars
+
+1. **Build:** design, furnish, decorate and expand a clinic and its surrounding property.
+2. **Manage:** appointments, patient flow, finances, reputation, equipment upkeep and optional reception support.
+3. **Treat:** the player avatar is the physiotherapist and personally performs the clinical journey.
+4. **Learn:** evidence-informed cases, assessment choices, reasoning, intervention, response and reassessment.
+5. **Progress:** unlock new spaces, equipment, specialisms, case packs, visual themes and challenges.
+6. **Belong:** later, allow safe read-only visits to other players' clinics and fair design/management challenges.
+
+## 3. Character scope — strict first-release rule
+
+The first release has only:
+- **Player avatar:** the physiotherapist. The player personally welcomes, assesses and treats patients.
+- **Optional receptionist:** one purchasable/hireable receptionist character. Reception support improves appointment organization and reduces administrative load; it is not required to start or operate the starter clinic.
+
+Explicitly out of scope for the initial release:
+- Nurses, nursing staff, doctors as clinic employees, cleaners, assistants, and other staff roles.
+- Staff-management simulation beyond the optional receptionist.
+- Large crowds or complex multi-agent staffing.
+
+Patients are visitors/clinical case characters, not employees. They may appear in the clinic and clinical encounter. The clinical content must not imply that a receptionist provides clinical care.
+
+## 4. Starter clinic — standardized foundation
+
+Every learner starts with the same recognizable, compact, attractive starter clinic and the same initial plot footprint. This creates a fair baseline, reduces asset and testing scope, and makes the first experience easy to understand.
+
+Starter-clinic principles:
+- Small but visually polished; never an oversized empty warehouse.
+- Open-roof isometric presentation with readable wall height, doors and windows.
+- A simple reception/waiting zone, one treatment room, a compact circulation route, and a modest outdoor green area.
+- A small set of essential furnishings and physiotherapy equipment.
+- A clear empty/expandable edge so future growth is visible.
+- Players can personalize furnishing and decoration within safe placement rules, while the starter architectural footprint remains standardized.
+
+The first clinic is a shared template, not a permanently identical interior. Personalization starts with furniture placement, selected finishes and decor; major architectural variation unlocks later.
+
+## 5. Land, property and expansion
+
+The clinic sits on a larger property/world tile with outdoor space. Expansion is a progression system:
+- Start with one owned plot and a small clinic.
+- Unlock or purchase adjacent land parcels with in-game currency and progression requirements.
+- Add new rooms, wings or separate buildings as later milestones.
+- Outdoor development can include paths, trees, benches, signs, parking and a rehabilitation garden.
+- Future specialist facilities may include a larger exercise gym, sports rehabilitation, balance/mobility area, hydrotherapy (only when technically and educationally justified), and learning/research spaces.
+
+Expansion must be spatially meaningful and optional. Do not force players to buy land simply to continue the core clinical loop.
+
+## 6. Camera and visual identity
+
+- Portrait-first Android experience; no forced landscape rotation.
+- Isometric-style orthographic camera, inspired by readable management-game views.
+- Camera pan and zoom use touch gestures with smoothing and strict bounds.
+- Management view: overview of the clinic and plot.
+- Build view: closer view with placement preview and clear grid.
+- Clinical encounter: a controlled, smooth camera transition to a closer treatment-room composition, then return to management view.
+- Stylized realism: believable human proportions, medical equipment silhouettes and materials, modern calm architecture, distinctive THERASON palette and signage.
+- No photorealism requirement. Clarity, consistency, mobile performance and visual polish take priority over raw polygon count.
+
+The visual direction must be original. Do not reproduce Two Point Hospital's exact art style, characters, UI or room compositions.
+
+## 7. Core game loops
+
+### Daily clinic loop
+Open clinic → review appointments and clinic status → receive patients → personally conduct sessions → collect revenue/reputation/progression → resolve small operational decisions → improve the clinic.
+
+### Build and management loop
+Earn currency → inspect needs and available space → buy equipment/decor/land → preview placement → validate footprint and access → commit → observe the improved clinic.
+
+### Clinical loop
+Patient arrives → history and priorities → safety screening → choose and justify assessment → gather findings → interpret and form hypotheses → set functional goals → choose intervention and dosage → observe response → reassess → receive reasoning feedback and references.
+
+### Long-term progression
+Improve clinical capability and clinic reputation independently. Unlock content through meaningful milestones, not repetitive grinding or unsafe shortcuts.
+
+## 8. Economy and progression
+
+Keep the visible economy simple at launch:
+- **Coins:** clinic revenue and spending (equipment, decor, property and approved operating costs).
+- **Reputation:** reflects patient experience, clinic quality and reliable service.
+- **Research/learning points:** unlock educational content and advanced equipment through learning and validated milestones.
+
+Internal dashboard metrics can include care quality, patient satisfaction, staff satisfaction only where relevant, cleanliness only if later simulated, and financial health. Do not introduce many currencies.
+
+No energy timers, pay-to-win clinical advantages, loot boxes, or punishment for taking breaks. Rewards must not incentivize rushing, overtreatment, unsafe decisions or patient volume over care quality.
+
+Optional receptionist is a meaningful investment: helps organize arrivals/appointments and reduces administrative friction. It is not required for the player to treat patients.
+
+## 9. Patient and character simulation
+
+- The player physiotherapist is the only active clinical staff character in the initial release.
+- The optional receptionist is a simple non-clinical support character.
+- Patients are individual visitors with distinct presentation, goals, needs and case data.
+- Begin with a small visible population and limited simultaneous activity.
+- Use authored animation states and lightweight navigation; do not simulate a large crowd.
+- Nearby visible characters use full animation and path navigation. Distant/off-screen activity is simplified or paused.
+- Movement must respect walls, furniture, doors and walkable areas. Avoid jitter and frame-by-frame object allocation.
+
+## 10. Clinical case platform
+
+Clinical content is data-driven and separate from the 3D engine. New approved cases must be publishable as content updates without rebuilding the entire game client.
+
+A case package should include:
+- Stable case ID and semantic version.
+- Intended learner level and learning objectives.
+- Patient profile and simulated history.
+- Safety screening and referral logic.
+- Assessment options, findings and measurement rules.
+- Expected reasoning pathways and acceptable alternatives.
+- Functional goals, intervention options and dosage constraints.
+- Simulated response and reassessment branches.
+- Scoring rubric that evaluates process, justification and safety—not only the final answer.
+- Source references, evidence notes, review date, reviewers and revision history.
+
+### Clinical publishing workflow
+Draft → evidence attachment → physiotherapy educator review → additional specialist/medical review where appropriate → clinical safety and logic review → playtest → approval → publish → monitor/revise/withdraw.
+
+AI may assist with structuring drafts and checking completeness. AI must not independently approve, authoritatively validate, or publish clinical content. A qualified physiotherapy reviewer is required; other experts are included when the case requires them. Use de-identified fictional/synthetic patient information only.
+
+A clinical case is educational simulation, not a diagnosis or treatment recommendation for a real person, and does not replace supervised clinical practice.
+
+## 11. Retention without compulsion
+
+Use meaningful short-, medium- and long-term goals:
+- Short: finish a session, arrange a room, solve a small clinic issue.
+- Medium: unlock equipment, improve clinic layout, complete a case series, improve a skill.
+- Long: expand property, open a specialism, build a strong reputation, master a clinical domain.
+
+Later systems:
+- Scenario-driven events and weekly design/management challenges.
+- Research and equipment unlocks.
+- Multi-visit patient stories and longitudinal rehabilitation cases.
+- Clinic history and milestones ("first patient", "first completed program", "first expansion").
+- Read-only clinic visits and fair competitions.
+- Adaptive case recommendations based on learner gaps, with transparent educational rationale.
+
+No streak loss, energy lockouts or coercive notifications. The player should return because the clinic and goals are engaging.
+
+## 12. Mobile performance and modern implementation strategy
+
+Treat low-end Android as a first-class target from the first prototype.
+
+- Keep PlayCanvas as the single 3D runtime. Do not ship PlayCanvas and Babylon.js together.
+- Separate engine runtime, game domain, UI, clinical case data and persistence.
+- Keep UI lightweight and preferably DOM/CSS-based where that is cheaper and more accessible than 3D UI.
+- Use compressed glTF/GLB assets; evaluate meshopt/Draco where supported by the asset pipeline and runtime.
+- Use GPU texture compression/transcoding (Basis/KTX2 where supported by the chosen pipeline) and size textures for actual on-screen use.
+- Use LODs, instancing for repeated props, mesh/material reuse, atlases where beneficial, and baked lighting for static geometry.
+- Limit real-time shadows, post-processing, transparent surfaces and dynamic lights.
+- Load only the active scene/room and nearby assets; use progressive loading and explicit asset budgets.
+- Use object pooling for frequently reused simulation objects; avoid per-frame allocations.
+- Cap render resolution/device pixel ratio adaptively. Provide Low/Medium/High profiles.
+- Pause or reduce updates when the tab is hidden; avoid continuous network polling.
+- Keep the initial boot path tiny; cache versioned static assets for unreliable networks.
+- Store core clinic layout and session state locally first. Sync later through a queue with retries and conflict handling.
+- Use deterministic, testable domain rules for grid, placement, economy and progression.
+
+Potential advanced features should be adopted only after a measured prototype shows they reduce payload, memory, frame time or maintenance. Avoid adding libraries/frameworks without a concrete benefit.
+
+## 13. Architecture boundaries
+
+1. **App/UI:** portrait navigation, menus, HUD, accessibility and feedback.
+2. **Simulation runtime:** PlayCanvas lifecycle, scene, camera, touch, animation and asset streaming.
+3. **Clinic domain:** plot, rooms, layout, grid, placement, object catalog and expansion.
+4. **Game domain:** economy, appointments, progression, reputation and events.
+5. **Clinical domain:** case schema, actions, findings, reasoning, feedback and rubric.
+6. **Persistence:** versioned local save; remote sync adapter later.
+7. **THERASON bridge:** later secure identity and approved progress summaries; no second game password.
+
+The game must remain independently deployable and must not touch THERASON production or repository `main`. All development stays on `clinic-dev` unless the owner explicitly approves another branch.
+
+## 14. First playable vertical slice
+
+The first proof must demonstrate quality, not feature count:
+- Standardized starter property with small clinic, green outdoor area and visible expansion boundary.
+- One player physiotherapist avatar; no nurse/doctor/cleaner/assistant staff.
+- Optional receptionist purchase can be implemented after core scene stability.
+- Reception/waiting zone and one treatment room.
+- One patient encounter with a short, reviewed clinical flow (can be stubbed until content review).
+- Camera overview, build camera and close clinical camera transition.
+- Small validated object catalog, grid placement, rotation and collision/path checks.
+- Basic currency and one purchase.
+- Local save/reload.
+- Stable touch interaction on low-end Android.
+
+## 15. Acceptance criteria and gates
+
+Do not scale content until the vertical slice passes:
+- Portrait composition is legible and attractive on narrow phones.
+- Camera pan/zoom and avatar movement have no visible jitter.
+- Avatar proportions are credible relative to doors, bed and equipment.
+- Walkable navigation respects obstacles and doors.
+- Build placement cannot overlap objects, walls or block required access.
+- Starter clinic feels intentionally designed, not oversized or empty.
+- A user can understand and complete a short loop without a tutorial wall.
+- Local save survives reload and handles invalid data safely.
+- Sustained test on a low-end Android target is stable at an agreed frame-time target; target 30 FPS baseline, 60 FPS on capable devices.
+- Cold/warm startup, frame-time distribution, memory, asset transfer size and touch latency are recorded.
+- No production THERASON credentials, real patient data or secrets enter the client/repository.
+
+## 16. Explicit non-goals for initial release
+
+No multiplayer editing, chat, trading, nurse/doctor staff, large staff roster, complex crowd simulation, photorealistic graphics, massive open world, real patient records, real clinical decision support, or monetization mechanics that compromise learning or fairness.
