@@ -1116,7 +1116,7 @@ sessionBtn.addEventListener("click",()=>{
  if(!started.ok){status.textContent=started.message;return;}
  activeSessionPatientId=started.patient!.id;sessionCompleted=false;renderManagement();save();
  sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();
- const assessmentRoom=management.rooms.find(r=>r.type==="assessment")!;const patientGoal=patientGoalFor(assessmentRoom,"assessment");sessionPending=moveAvatarTo(patientGoal.x-.72,patientGoal.z-.1);
+ const assessmentRoom=management.rooms.find(r=>r.type==="assessment")!;const patientGoal=patientGoalFor(assessmentRoom,"assessment");sessionPending=moveAvatarTo(patientGoal.x+.65,patientGoal.z-.1);
  if(sessionPending){status.textContent="الأخصائي يتجه إلى المريض. ستبدأ الجلسة بعد الوصول إلى موضع آمن بجانبه.";}
  else{cancelPatientSession(management,activeSessionPatientId);renderManagement();focus=false;cameraGoal.set(0,0,0);viewBtn.classList.remove("active");status.textContent="لا يوجد مسار آمن إلى المريض. أعد ترتيب الأثاث وحاول مجدداً.";}
 });
