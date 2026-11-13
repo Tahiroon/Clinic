@@ -343,6 +343,15 @@ let patientFallbackRig:FallbackRig|null=patientFallback,patientRig:HumanoidRig|n
 let patientVisualId=0,patientVisualStage="",patientTarget:pc.Vec3|null=null,patientWalkPath:{x:number;z:number}[]=[];
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,rig=>{patientFallback.entity.destroy();patientFallbackRig=null;patientRig=rig;});
 
+type WaitingPatientVisual={root:pc.Entity;fallback:FallbackRig|null;rig:HumanoidRig|null};
+const waitingPatientVisuals:WaitingPatientVisual[]=[];
+for(let i=0;i<2;i++){
+ const root=new pc.Entity("Waiting patient "+(i+2));world.addChild(root);root.enabled=false;
+ const fallback=createFallbackHumanoid(root,"patient");
+ const visual:WaitingPatientVisual={root,fallback,rig:null};waitingPatientVisuals.push(visual);
+ loadHumanoid(characterAssets.patient,root,1.62,false,rig=>{visual.fallback?.entity.destroy();visual.fallback=null;visual.rig=rig;});
+}
+
 type StaffVisual={root:pc.Entity;fallback:FallbackRig|null;rig:HumanoidRig|null;target:pc.Vec3};
 const staffVisuals=new Map<number,StaffVisual>();
 function syncStaffVisuals(){
@@ -889,6 +898,17 @@ function renderManagement(){
  const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"التسجيل",waiting:"ينتظر",assessment:"التقييم",treatment:"جلسة علاج"};
  const queue=getPatientQueue(management);
  const visiblePatient=queue[0];
+ const receptionRoom=management.rooms.find(r=>r.type==="reception");
+ for(let i=0;i<waitingPatientVisuals.length;i++){
+  const visual=waitingPatientVisuals[i],queued=queue[i+1];
+  const show=!!queued&&!!receptionRoom&&(queued.stage==="reception"||queued.stage==="waiting");
+  visual.root.enabled=show;
+  if(show&&receptionRoom){
+   visual.root.setLocalPosition(receptionRoom.x+1.05+i*.82,0,receptionRoom.z+1.05);
+   visual.root.setLocalEulerAngles(0,180,0);
+   visual.fallback?.update(0,false);transitionHumanoid(visual.rig,false);
+  }
+ }
  if(!visiblePatient){patientNpc.enabled=false;patientVisualId=0;patientVisualStage="";patientTarget=null;patientWalkPath=[];}
  else{
   patientNpc.enabled=true;
