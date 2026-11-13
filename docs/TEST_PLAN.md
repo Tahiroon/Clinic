@@ -13,38 +13,40 @@
 ## Product scope checks
 1. Only the player physiotherapist is an employed/active clinic character in the first release.
 2. Patients appear as visitors/case characters.
-3. Optional receptionist is deferred until the core world, movement and save loop are stable.
+3. One optional receptionist may be hired later; no receptionist NPC is required for the first playable slice.
 4. No nurses, employed doctors, cleaners, assistants or staff roster in the first release.
-5. Fresh accounts receive the same compact starter clinic: reception, one treatment room, clear internal passage, landscaped 12×10 m starter property with expansion parcels deferred outside the initial boundary and visible expansion margin.
-6. Starter treatment room loads licensed 3D treatment-table and storage-cabinet assets, with procedural fallbacks if the network is unavailable.
-7. Equipment can be placed inside room footprints without treating the room floor itself as an obstacle.
-8. Shared room doors are traversable; walls, built-in furniture and placed equipment block movement appropriately.
-9. Starter clinic is visually coherent and not an oversized empty shell.
-10. Clinical session activation smoothly frames the treatment area; closing the session restores the overview.
-11. Session controls remain compact enough to leave a meaningful portion of the 3D world visible.
-12. Bottom toolbar is absent during the world-foundation phase; the scene uses the full phone viewport.
-13. Babylon.js is not a shipped dependency or build entry; PlayCanvas is the only runtime in the game build.
+5. Every fresh account receives the same portrait-oriented starter property, approximately 6.5 m × 14 m, with one reception room at the front, one treatment room behind it, a direct internal doorway and an outdoor lawn/path around the building.
+6. Trees, planters and shrubs remain outdoors, outside the building walls and away from the entrance and main walking route.
+7. Starter reception includes a real licensed reception desk and a four-seat GLB waiting row, with procedural fallback seats if the asset fails.
+8. Starter treatment room loads the individual licensed physiotherapy treatment-table and storage-cabinet GLB objects; it must not scale an entire hospital-room scene into a single prop.
+9. Equipment can be placed inside room footprints without treating the room floor itself as an obstacle.
+10. Room wall rendering and navigation collision must derive from the same wall/door dimensions.
+11. The outside property hedge, trees and planters are collision obstacles; the avatar cannot pass through the plot boundary.
+12. Babylon.js is not a shipped dependency or build entry; PlayCanvas is the only runtime in the game build.
+13. Bottom toolbar remains hidden during the current world-foundation pass.
 
 ## First-slice acceptance
-1. App opens in usable portrait layout.
-2. Scene shows the standardized starter property without requiring a build step.
-3. Loading has recoverable asset errors and never spins indefinitely.
-4. Camera frames the starter clinic and a useful portion of its property on narrow phones.
+1. App opens in usable portrait layout and the building, yard and player remain visible at the initial camera zoom.
+2. Camera angle shows the front and side walls clearly; the long axis of the plot reads vertically on a phone.
+3. Scene shows the standardized starter property without requiring a build step.
+4. Loading has recoverable asset errors and never spins indefinitely.
 5. Pan and pinch zoom are stable, bounded and damped rather than snapping.
 6. Long frame stalls do not teleport the avatar.
-7. Tapping walkable floor moves the avatar to the selected point or the nearest reachable point when the tapped location is occupied.
-8. A blocked target on the far side of a wall must never cause the avatar to stop at an arbitrary point on the near side; route search must choose the closest reachable endpoint.
-9. Avatar does not pass through walls, closed boundaries, built-in furniture or placed furniture.
-10. Avatar can pass through intended room doorways and the internal reception/treatment connection.
-11. Grid aligns with the floor.
-12. Valid equipment placement updates occupancy and can occur inside rooms.
-13. Overlapping/out-of-bounds/path-blocking placement is rejected clearly.
-14. Rotation updates footprint correctly.
-15. Layout and coin balance survive reload.
-16. Invalid, duplicated, out-of-bounds or unsupported save records are ignored safely; unrecoverable saves fall back to a clean starter clinic.
-17. Low graphics mode reduces costly effects and remains usable.
-18. Repeated scene entry/exit does not cause unbounded memory growth.
-19. No secrets or real student/patient data exist in repository.
+7. Tapping an open floor point moves the avatar to the actual selected point, not a nearby arbitrary waypoint.
+8. Tapping a blocked point selects the nearest reachable approach point on the same connected side of obstacles.
+9. A blocked target on the far side of a wall must never cause the avatar to stop at an arbitrary point on the near side.
+10. The avatar can walk from the outside entrance through reception and the internal doorway into the treatment room.
+11. The avatar can approach the patient beside the treatment table without intersecting the table or wall.
+12. The avatar routes around the waiting-seat row, reception desk, table, cabinet, trees, planters and boundary hedge.
+13. Avatar does not pass through walls, closed boundaries, built-in furniture or placed furniture.
+14. Grid aligns with the floor.
+15. Valid equipment placement updates occupancy and can occur inside rooms.
+16. Overlapping/out-of-bounds/path-blocking placement is rejected clearly.
+17. Rotation updates footprint correctly.
+18. Layout and coin balance survive reload.
+19. Invalid, duplicated, out-of-bounds or unsupported save records are ignored safely; unrecoverable saves fall back to a clean starter clinic.
+20. Repeated scene entry/exit does not cause unbounded memory growth.
+21. No secrets or real student/patient data exist in repository.
 
 ## Performance conditions
 Test at least one real entry-level Android phone and one stronger device. Record exact models and browser versions. Test cold and warm cache, constrained network where possible, and a sustained three-minute interaction loop.
