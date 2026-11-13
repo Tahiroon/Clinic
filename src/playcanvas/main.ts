@@ -902,11 +902,19 @@ canvas.addEventListener("pointerup",e=>{
   const gx=Math.floor(ground.x),gz=Math.floor(ground.z);
   if(selected==="asset"&&!selectedAssetKey){status.textContent="اختر أصلاً من المتجر أولاً.";return;}
   if(occupied(gx,gz,selected,wallRotation,selectedAssetKey??undefined)){status.textContent="المكان غير متاح: ضع الأثاث داخل غرفة، واترك مسافة حول الأجهزة والجدران.";return;}
-  const cost=selected==="asset"&&selectedAssetKey?storeAssetSpecs[selectedAssetKey].cost:costs[selected];
-  if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}
-  coins-=cost;coinsLabel.textContent=String(coins);
+  if(isRoomKind(selected)){
+   const roomType:ClinicRoomType=selected==="gym"?"exercise":selected as ClinicRoomType;
+   const result=buildRoom(management,roomType,gx,gz);
+   if(!result.ok){status.textContent=result.message;return;}
+   coins=management.balance;
+  }else{
+   const cost=selected==="asset"&&selectedAssetKey?storeAssetSpecs[selectedAssetKey].cost:costs[selected];
+   if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد.";return;}
+   coins-=cost;management.balance=coins;
+  }
+  coinsLabel.textContent=String(coins);
   const item:Placed={id:nextId++,kind:selected,gx,gz,rot:wallRotation,assetKey:selected==="asset"?selectedAssetKey??undefined:undefined};
-  placed.push(item);drawPlaced(item);if(isRoomKind(item.kind))createLawnGrass();save();updatePlacementPreview(e.clientX,e.clientY);status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;
+  placed.push(item);drawPlaced(item);if(isRoomKind(item.kind))createLawnGrass();save();updatePlacementPreview(e.clientX,e.clientY);status.textContent=isRoomKind(item.kind)?"تم بناء الغرفة. جهّزها بالمعدات والموظفين المناسبين.":"تمت إضافة العنصر إلى العيادة.";return;
  }
  const start=avatar.getLocalPosition().clone(),tx=ground.x,tz=ground.z;
  destination=new pc.Vec3(tx,0,tz);
@@ -930,7 +938,7 @@ canvas.addEventListener("pointerup",e=>{
  status.textContent="الأخصائي يلتف حول العائق ويتجه إلى النقطة المحددة.";
 });
 canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;});
-function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}
+function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",assessment:"غرفة تقييم",gym:"صالة تأهيل",staff:"استراحة الفريق",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}
 function selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));el("#build-hint").textContent="تم اختيار "+spec.label+" من الأصول ثلاثية الأبعاد. يحتاج مساحة "+spec.footprint+"×"+spec.footprint+" خلايا.";}
 moveBtn.addEventListener("click",()=>{updateMode("move");storeBtn.classList.remove("active");});
 buildBtn.addEventListener("click",()=>{updateMode(mode==="build"?"move":"build");storeBtn.classList.remove("active");});
