@@ -214,7 +214,7 @@ loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
  avatarAnim=rig.anim;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
-const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(1.55,0,1.5);world.addChild(patientNpc);
+const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(.55,0,2.0);world.addChild(patientNpc);
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>patientFallback.destroy());
 
