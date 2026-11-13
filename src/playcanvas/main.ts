@@ -1,6 +1,6 @@
 import * as pc from "playcanvas";
 import "../style.css";
-import { createInitialManagementState, advanceSimulation, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, setClinicOpen, hireReceptionist, beginPatientSession, completePatientSession, cancelPatientSession, ROOM_BLUEPRINTS, type ManagementState, type ClinicRoomType } from "../game/management";
+import { createInitialManagementState, advanceSimulation, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, setClinicOpen, hireReceptionist, beginPatientSession, completePatientSession, cancelPatientSession, registerPatient, ROOM_BLUEPRINTS, type ManagementState, type ClinicRoomType } from "../game/management";
 
 type BuildKind = "treatment" | "reception" | "assessment" | "gym" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door" | "asset";
 type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90; assetKey?:string; width?:number; depth?:number };
@@ -920,7 +920,7 @@ function renderManagement(){
   receptionistNpc.setLocalPosition(receptionistRoom.x+receptionistRoom.width/2-.12,0,receptionistRoom.z+receptionistRoom.depth/2+1.62);
   receptionistNpc.setLocalEulerAngles(0,180,0);transitionHumanoid(receptionistRig,false);
  }
- const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"التسجيل",waiting:"ينتظر الأخصائي",assessment:"جلسة التقييم",treatment:"جلسة العلاج"};
+ const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"بانتظار التسجيل",waiting:"ينتظر الأخصائي",assessment:"جلسة التقييم",treatment:"جلسة العلاج"};
  const queue=getPatientQueue(management),visiblePatient=queue[0],receptionRoom=management.rooms.find(r=>r.type==="reception");
  for(let i=0;i<waitingPatientVisuals.length;i++){
   const visual=waitingPatientVisuals[i],queued=queue[i+1],show=!!queued&&!!receptionRoom&&(queued.stage==="reception"||queued.stage==="waiting");
@@ -941,7 +941,7 @@ function renderManagement(){
    patientNpc.enabled=true;
   }
  }
- el("#patient-queue").innerHTML=queue.length?queue.map(patient=>'<div class="management-row"><div><strong>'+patient.name+' · '+patient.caseLabel+'</strong><small>'+stageLabels[patient.stage]+' · انتظار '+Math.round(patient.waitMinutes)+' دقيقة</small></div><div><small>الصبر '+Math.round(patient.patience)+'%</small><div class="meter"><i style="width:'+Math.round(patient.patience)+'%"></i></div></div></div>').join(""):'<p class="empty-management">لا توجد حالات نشطة حالياً. افتح العيادة وانتظر وصول المرضى.</p>';
+ el("#patient-queue").innerHTML=queue.length?queue.map(patient=>'<div class="management-row"><div><strong>'+patient.name+' · '+patient.caseLabel+'</strong><small>'+stageLabels[patient.stage]+' · انتظار '+Math.round(patient.waitMinutes)+' دقيقة</small></div><div><small>الصبر '+Math.round(patient.patience)+'%</small><div class="meter"><i style="width:'+Math.round(patient.patience)+'%"></i></div>'+(patient.stage==="reception"&&!management.receptionistOwned?'<button class="register-patient-button" type="button" data-register-patient="'+patient.id+'">تسجيل المريض</button>':"")+'</div></div>').join(""):'<p class="empty-management">لا توجد حالات نشطة حالياً. افتح العيادة وانتظر وصول المرضى.</p>';
  el("#clinic-events").innerHTML=management.events.slice(0,6).map(item=>'<div class="management-event">'+item.message+'</div>').join("");
  document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>button.classList.toggle("selected",Number(button.dataset.speed)===management.speed));
 }
@@ -1051,6 +1051,12 @@ managementToggle.addEventListener("click",()=>{
  if(!managementPanel.hidden){buildPanel.hidden=true;updateMode("move");renderManagement();}
 });
 el<HTMLButtonElement>("#management-close").addEventListener("click",()=>{managementPanel.hidden=true;});
+el("#patient-queue").addEventListener("click",event=>{
+ const button=(event.target as HTMLElement).closest<HTMLButtonElement>("[data-register-patient]");
+ if(!button)return;
+ const result=registerPatient(management,Number(button.dataset.registerPatient));
+ status.textContent=result.message;renderManagement();save();
+});
 document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>button.addEventListener("click",()=>{
  const speed=Number(button.dataset.speed) as 0|1|2|3;setSimulationSpeed(management,speed);renderManagement();save();
 }));
