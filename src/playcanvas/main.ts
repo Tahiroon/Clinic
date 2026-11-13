@@ -89,8 +89,8 @@ const pathEdge=material(new Color(.43,.48,.37));
 const trim=material(new Color(.10,.39,.47));
 const roofAccent=material(new Color(.16,.28,.38));
 const lawnBase=material(new Color(.25,.39,.24));
-const outdoorTreePositions:[number,number][]=[[-9.1,-16.1],[9.1,-16.1],[-9.1,16.1],[9.1,16.1]];
-const outdoorShrubPositions:[number,number][]=[[-8.8,-7.5],[8.8,-4.5],[-8.8,5.2],[8.8,8.0]];
+const outdoorTreePositions:[number,number][]=[[-9.1,-16.1],[9.1,-16.1],[-9.1,16.1],[9.1,16.1],[-9.1,-7.2],[9.1,-7.2],[-9.1,7.2],[9.1,7.2]];
+const outdoorShrubPositions:[number,number][]=[[-8.8,-12.0],[8.8,-12.0],[-8.8,-7.5],[8.8,-4.5],[-8.8,5.2],[8.8,8.0],[-8.8,12.0],[8.8,12.0]];
 // The property is a continuous outdoor lawn. Only constructed rooms receive a finished interior floor.
 box("Surrounding green landscape",0,-.24,0,W+10,.42,D+10,lawnBase,world);
 box("Clinic buildable foundation",0,.005,0,W,.08,D,material(new Color(.66,.68,.65)),world);
@@ -485,6 +485,51 @@ function drawAssetFallback(p:Placed,spec:{label:string}){
  else if(key==="hospital-oxygen"){cylinder("Fallback oxygen tank",0,.72,0,.34,1.35,.34,M.pale,root);for(const x of [-.3,.3])box("Fallback trolley handle",x,.65,-.2,.05,1.2,.05,M.dark,root);box("Fallback trolley base",0,.08,0,.75,.1,.48,M.dark,root);}
  else if(key==="hospital-stretcher"){bed("Fallback stretcher");for(const x of [-.7,.7])for(const z of [-.3,.3])sphere("Fallback stretcher wheel",x,.08,z,.12,M.dark,root);}
  else if(key==="hospital-walking-frame"){for(const x of [-.3,.3]){box("Fallback walking frame side",x,.58,0,.055,1.15,.055,M.dark,root);box("Fallback walking frame handle",x,1.18,-.12,.08,.07,.35,M.teal,root);}box("Fallback walking frame crossbar",0,.62,0,.62,.055,.055,M.dark,root);}
+}
+let storePreviewRoot:Entity|null=null;
+let storePreviewGeneration=0;
+function clearStorePreview(){
+ storePreviewGeneration++;
+ if(storePreviewRoot){storePreviewRoot.destroy();storePreviewRoot=null;}
+}
+function showStorePreview(key:string){
+ const spec=storeAssetSpecs[key];if(!spec)return;
+ clearStorePreview();
+ const generation=storePreviewGeneration;
+ const root=new Entity("THERASON real 3D store preview");
+ world.addChild(root);root.setLocalPosition(0,0,17.1);storePreviewRoot=root;
+ cylinder("Preview display plinth",0,.12,0,1.18,.22,1.18,M.dark,root);
+ primitive("Preview display accent ring","torus",0,.245,0,1.13,.035,1.13,M.teal,root);
+ const url=clinicAssetUrls[spec.file];
+ if(!url){el("#store-preview-detail").textContent="لا يتوفر ملف النموذج لهذا العنصر حالياً.";return;}
+ getClinicContainer(url).then(asset=>{
+  if(generation!==storePreviewGeneration||storePreviewRoot!==root)return;
+  const instance=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
+  let model:Entity=instance;
+  if(spec.node!=="*"){
+   const chosen=findEntityByName(instance,spec.node);
+   if(!chosen)throw new Error("Missing preview model node "+spec.node);
+   const parent=chosen.parent as Entity|null;if(parent)parent.removeChild(chosen);
+   instance.destroy();model=chosen;
+  }
+  root.addChild(model);model.setLocalEulerAngles(0,32,0);root.syncHierarchy();
+  let bounds=renderBounds(model);
+  if(!bounds||bounds.width<.01||bounds.depth<.01||bounds.height<.01){model.destroy();throw new Error("Invalid 3D preview bounds");}
+  const scale=spec.targetSize/Math.max(bounds.width,bounds.depth,.05);
+  model.setLocalScale(scale,scale,scale);root.syncHierarchy();
+  bounds=renderBounds(model);if(!bounds)throw new Error("3D preview has no visible meshes");
+  const current=model.getPosition(),origin=root.getPosition();
+  model.setPosition(current.x+origin.x-(bounds.minX+bounds.maxX)/2,current.y-bounds.minY+.245,current.z+origin.z-(bounds.minZ+bounds.maxZ)/2);
+  root.syncHierarchy();
+  el("#store-preview-detail").textContent="النموذج ثلاثي الأبعاد الحقيقي نفسه الذي سيظهر داخل عيادتك بعد وضعه.";
+  el<HTMLButtonElement>("#store-place-selected").disabled=false;
+ }).catch(error=>{
+  if(generation!==storePreviewGeneration)return;
+  console.error("Real store preview failed",key,error);
+  el("#store-preview-detail").textContent="تعذر تحميل النموذج الحقيقي الآن. لن نعرض رسماً بديلاً على أنه صورة الجهاز.";
+  el<HTMLButtonElement>("#store-place-selected").disabled=true;
+ });
+ focus=true;cameraGoal.set(0,0,15.2);desiredOrthoHeight=8.7;viewBtn.classList.add("active");
 }
 function collectDescendants(root:Entity):Entity[]{
  // Imported GLB hierarchies can be unusually deep. Traverse iteratively so a
@@ -1095,11 +1140,35 @@ el<HTMLButtonElement>("#clinic-open-toggle").addEventListener("click",()=>{
  renderManagement();save();
 });
 function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",assessment:"غرفة تقييم",gym:"صالة تأهيل",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent=isRoomKind(kind)?"تم اختيار "+names[kind]+". اسحب بإصبعك على الأرض لرسم مساحة الغرفة بالحجم الذي تريده.":"تم اختيار "+names[kind]+". المس خلية فارغة لوضع العنصر، ويمكنك تدوير الحائط من زر التدوير.";}
-function selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));document.querySelectorAll<HTMLButtonElement>("[data-store-cat]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));storePanel.hidden=true;buildPanel.hidden=true;storeBtn.classList.add("active");status.textContent="تم اختيار "+spec.label+". حرّك المؤشر إلى داخل الغرفة ثم المس لتأكيد الشراء ووضع الجهاز.";}
+function selectAsset(key:string){
+ const spec=storeAssetSpecs[key];if(!spec)return;
+ selected="asset";selectedAssetKey=key;previewValidity=null;
+ document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));
+ document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));
+ document.querySelectorAll<HTMLButtonElement>("[data-store-cat]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));
+ el("#store-preview").hidden=false;
+ el("#store-preview-name").textContent=spec.label;
+ el("#store-preview-detail").textContent="نحمّل النموذج الحقيقي للمعاينة ثلاثية الأبعاد…";
+ el<HTMLButtonElement>("#store-place-selected").disabled=true;
+ document.body.classList.add("store-previewing");
+ showStorePreview(key);
+ status.textContent="معاينة "+spec.label+" من النموذج ثلاثي الأبعاد الأصلي قبل الشراء.";
+}
+function beginPlacingSelectedAsset(){
+ if(!selectedAssetKey)return;
+ const spec=storeAssetSpecs[selectedAssetKey];
+ storePanel.hidden=true;buildPanel.hidden=true;
+ clearStorePreview();document.body.classList.remove("store-previewing");
+ focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=15.5;viewBtn.classList.remove("active");
+ storeBtn.classList.add("active");
+ status.textContent="تم اختيار "+spec.label+". حرّك المؤشر إلى داخل الغرفة ثم المس لتأكيد الشراء ووضع الجهاز.";
+}
 moveBtn.addEventListener("click",()=>{storePanel.hidden=true;updateMode("move");storeBtn.classList.remove("active");});
 buildBtn.addEventListener("click",()=>{storePanel.hidden=true;updateMode(mode==="build"?"move":"build");storeBtn.classList.remove("active");});
 el("#cancel-build").addEventListener("click",()=>{storePanel.hidden=true;updateMode("move");storeBtn.classList.remove("active");});
 storeBtn.addEventListener("click",()=>{
+ clearStorePreview();document.body.classList.remove("store-previewing");el("#store-preview").hidden=true;
+ focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=15.5;viewBtn.classList.remove("active");
  updateMode("build");buildPanel.hidden=true;storePanel.hidden=false;
  el("#store-coins").textContent=String(coins);
  document.querySelectorAll<HTMLButtonElement>("[data-store-category]").forEach(b=>b.classList.toggle("active",b.dataset.storeCategory==="therapy"));
@@ -1107,7 +1176,8 @@ storeBtn.addEventListener("click",()=>{
  storeBtn.classList.add("active");
  status.textContent="متجر العيادة: اختر الجهاز المناسب، ثم ضعه داخل غرفة مبنية.";
 });
-el<HTMLButtonElement>("#store-close").addEventListener("click",()=>{storePanel.hidden=true;updateMode("move");storeBtn.classList.remove("active");});
+el<HTMLButtonElement>("#store-close").addEventListener("click",()=>{storePanel.hidden=true;clearStorePreview();document.body.classList.remove("store-previewing");focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=15.5;viewBtn.classList.remove("active");updateMode("move");storeBtn.classList.remove("active");});
+el<HTMLButtonElement>("#store-place-selected").addEventListener("click",beginPlacingSelectedAsset);
 document.querySelectorAll<HTMLButtonElement>("[data-store-category]").forEach(b=>b.addEventListener("click",()=>{
  document.querySelectorAll<HTMLButtonElement>("[data-store-category]").forEach(x=>x.classList.toggle("active",x===b));
  document.querySelectorAll<HTMLButtonElement>("[data-store-cat]").forEach(x=>x.hidden=x.dataset.storeCat!==b.dataset.storeCategory);
