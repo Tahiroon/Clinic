@@ -577,7 +577,7 @@ function canAvatarStand(x:number,z:number){
  ];
  if(outdoorBarriers.some(w=>rectanglesOverlap(player,w)))return false;
  const gardenProps=[
-  ...[[-2.72,-6.0],[2.72,-6.0],[-2.72,6.05],[2.72,6.05]].map(([gx,gz])=>({x:gx-.26,z:gz-.26,w:.52,d:.52})),
+  ...[[-2.72,-5.02],[2.72,-5.02],[-2.72,5.02],[2.72,5.02]].map(([gx,gz])=>({x:gx-.26,z:gz-.26,w:.52,d:.52})),
   ...[[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]].map(([gx,gz])=>({x:gx-.3,z:gz-.45,w:.6,d:.9}))
  ];
  if(gardenProps.some(w=>rectanglesOverlap(player,w)))return false;
