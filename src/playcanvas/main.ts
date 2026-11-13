@@ -338,38 +338,57 @@ const characterAssets:Record<string,string>={
 type HumanoidRig={entity:Entity;anim:any;clips:string[];idle:string;walk:string};
 type FallbackRig={entity:Entity;update:(dt:number,moving:boolean)=>void};
 function createFallbackHumanoid(parent:Entity,kind:"physiotherapist"|"patient"|"receptionist"):FallbackRig{
- const root=new Entity("Fallback character rig · "+kind);parent.addChild(root);
- const shirt=kind==="physiotherapist"?M.white:kind==="receptionist"?M.teal:M.pale,trousers=kind==="physiotherapist"?M.blue:kind==="receptionist"?M.dark:M.teal;
- box("Humanoid torso",0,1.02,0,.42,.62,.27,shirt,root);
- box("Humanoid neck",0,1.38,0,.11,.14,.12,M.skin,root);
- sphere("Humanoid head",0,1.57,0,.155,M.skin,root);
- sphere("Humanoid hair",0,1.69,-.025,.15,M.dark,root);
+ const root=new Entity("Clay human fallback · "+kind);parent.addChild(root);
+ const skinTone=material(kind==="patient"?new Color(.58,.36,.25):new Color(.70,.49,.36));
+ const hairTone=material(new Color(.16,.12,.10));
+ const shirt=kind==="physiotherapist"?material(new Color(.91,.89,.79)):kind==="receptionist"?material(new Color(.08,.43,.46)):material(new Color(.76,.78,.69));
+ const trousers=kind==="physiotherapist"?material(new Color(.16,.27,.43)):kind==="receptionist"?material(new Color(.13,.17,.22)):material(new Color(.25,.38,.37));
+ const shoeMat=material(new Color(.12,.13,.14)),eyeMat=material(new Color(.10,.075,.06)),whiteMat=material(new Color(.94,.91,.83));
+ const torso=new Entity("Soft torso pivot");root.addChild(torso);torso.setLocalPosition(0,1.02,0);
+ primitive("Rounded human torso","capsule",0,0,0,.235,.34,.17,shirt,torso);
+ primitive("Human pelvis","capsule",0,-.34,0,.19,.16,.15,trousers,torso);
+ primitive("Neck","capsule",0,.37,0,.075,.11,.075,skinTone,torso);
+ const head=new Entity("Human head and face");torso.addChild(head);head.setLocalPosition(0,.57,.015);
+ const face=sphere("Natural head shape",0,0,0,.145,skinTone,head);face.setLocalScale(.90,1.12,.94);
+ const hair=sphere("Rounded hair cap",0,.075,-.035,.145,hairTone,head);hair.setLocalScale(1.02,.66,1.02);
+ for(const x of [-.055,.055]){sphere("Eye white",x,.018,.124,.024,whiteMat,head).setLocalScale(1,.72,.45);sphere("Eye pupil",x,.018,.137,.011,eyeMat,head);sphere("Ear",x*2.25,-.012,0,.032,skinTone,head).setLocalScale(.55,1,.72);}
+ primitive("Small nose","capsule",0,-.018,.139,.018,.035,.018,skinTone,head);
+ box("Subtle mouth",0,-.062,.129,.045,.009,.012,eyeMat,head);
  const legPivots:Entity[]=[];
- for(const x of [-.14,.14]){
-  const pivot=new Entity("Leg swing pivot");root.addChild(pivot);pivot.setLocalPosition(x,.78,0);
-  box("Humanoid thigh and lower leg",0,-.34,0,.15,.68,.17,trousers,pivot);
-  box("Humanoid shoe",0,-.69,.075,.19,.13,.29,M.dark,pivot);
-  legPivots.push(pivot);
+ for(const x of [-.105,.105]){
+  const hip=new Entity("Hip joint");torso.addChild(hip);hip.setLocalPosition(x,-.40,0);
+  primitive("Rounded upper leg","capsule",0,-.18,0,.095,.22,.10,trousers,hip);
+  const knee=new Entity("Knee joint");hip.addChild(knee);knee.setLocalPosition(0,-.34,0);
+  sphere("Knee form",0,0,0,.075,trousers,knee);
+  primitive("Rounded lower leg","capsule",0,-.16,0,.075,.20,.08,trousers,knee);
+  primitive("Human shoe","capsule",0,-.30,.075,.085,.055,.15,shoeMat,knee);
+  legPivots.push(hip);
  }
  const armPivots:Entity[]=[];
- for(const x of [-.27,.27]){
-  const pivot=new Entity("Arm swing pivot");root.addChild(pivot);pivot.setLocalPosition(x,1.27,0);
-  box("Humanoid arm",0,-.29,0,.13,.58,.15,shirt,pivot);
-  sphere("Humanoid hand",0,-.61,.015,.085,M.skin,pivot);
-  armPivots.push(pivot);
+ for(const x of [-.245,.245]){
+  const shoulder=new Entity("Shoulder joint");torso.addChild(shoulder);shoulder.setLocalPosition(x,.22,0);
+  sphere("Rounded shoulder",0,0,0,.105,shirt,shoulder);
+  primitive("Upper arm","capsule",0,-.16,0,.075,.19,.075,shirt,shoulder);
+  const elbow=new Entity("Elbow joint");shoulder.addChild(elbow);elbow.setLocalPosition(0,-.31,.005);
+  sphere("Elbow form",0,0,0,.068,shirt,elbow);
+  primitive("Forearm","capsule",0,-.13,.005,.062,.16,.062,shirt,elbow);
+  sphere("Human hand",0,-.29,.025,.067,skinTone,elbow);
+  armPivots.push(shoulder);
  }
- if(kind==="physiotherapist")box("Physiotherapist ID badge",.12,1.18,-.15,.1,.13,.025,trim,root);
- if(kind==="receptionist")box("Receptionist name badge",.12,1.18,-.15,.1,.13,.025,M.yellow,root);
+ if(kind==="physiotherapist"){box("Soft ID badge",.13,.12,.151,.075,.105,.018,trim,torso);box("Badge detail",.13,.14,.163,.036,.012,.009,M.white,torso);}
+ else if(kind==="receptionist")box("Name badge",.13,.12,.151,.075,.105,.018,M.yellow,torso);
  let phase=0;
  return {entity:root,update:(dt,moving)=>{
-  if(moving)phase+=dt*7.2;
-  const swing=moving?Math.sin(phase)*27:0;
+  phase+=dt*(moving?7.0:1.5);
+  const swing=moving?Math.sin(phase)*24:0;
   legPivots[0].setLocalEulerAngles(swing,0,0);legPivots[1].setLocalEulerAngles(-swing,0,0);
-  armPivots[0].setLocalEulerAngles(-swing*.72,0,0);armPivots[1].setLocalEulerAngles(swing*.72,0,0);
+  armPivots[0].setLocalEulerAngles(-swing*.62,0,0);armPivots[1].setLocalEulerAngles(swing*.62,0,0);
+  torso.setLocalPosition(0,1.02+(moving?Math.abs(Math.sin(phase*2))*.018:Math.sin(phase)*.008),0);
+  torso.setLocalEulerAngles(moving?2.5:Math.sin(phase)*.7,0,0);
+  head.setLocalEulerAngles(0,Math.sin(phase*.55)*2,0);
  }};
 }
-
- const humanoidAssetCache=new Map<string,Promise<any>>();
+const humanoidAssetCache=new Map<string,Promise<any>>();
  function loadHumanoid(url:string,parent:Entity,height:number,castShadow:boolean,onReady?:(rig:HumanoidRig)=>void){
   let pending=humanoidAssetCache.get(url);
   if(!pending){pending=new Promise((resolve,reject)=>app.assets.loadFromUrl(url,"container",(err,asset)=>err||!asset?.resource?reject(err??new Error("Character asset unavailable")):resolve(asset)));humanoidAssetCache.set(url,pending);}
