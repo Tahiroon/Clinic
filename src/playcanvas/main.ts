@@ -868,8 +868,6 @@ function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string
    return a.x>=left&&a.z>=front&&a.x+a.w<=right&&a.z+a.d<=back;
   });
   if(!insideRoom)return true;
-  const starterFurniture=[{x:-.55,z:-1.15,w:1.1,d:2.3},{x:1.07,z:1.07,w:.86,d:.86}];
-  if(placed.some(p=>p.kind==="treatment"&&p.id===1)&&starterFurniture.some(obstacle=>rectanglesOverlap(a,obstacle)))return true;
  }
  // Furniture may share a room's floor, but never another prop's physical footprint.
  return placed.some(p=>!isRoomKind(p.kind)&&rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey,p.width,p.depth)));
@@ -933,19 +931,7 @@ function canAvatarStand(x:number,z:number){
     {x:gx,z:gz+rd-.08,w:rw,d:.16}
    ];
    if(walls.some(w=>rectanglesOverlap(player,w)))return false;
-   const furniture:{x:number;z:number;w:number;d:number}[]=p.kind==="reception"?[
-    {x:gx+rw*.12,z:gz+rd*.60,w:Math.min(1.7,rw*.45),d:.9},
-    {x:gx+rw-.95,z:gz+rd*.12,w:.95,d:Math.min(2.2,rd*.55)}
-   ]:p.kind==="treatment"&&p.id===1?[
-    {x:gx+.45,z:gz+.85,w:1.1,d:2.3},
-    {x:gx+2.07,z:gz+2.07,w:.86,d:.86}
-   ]:p.kind==="assessment"?[]:[
-    {x:gx+.15,z:gz+2.05,w:.2,d:1.1},
-    {x:gx+1.95,z:gz+2.05,w:.2,d:1.1},
-    {x:gx+.65,z:gz+2.4,w:1,d:.16}
-   ];
-   if(furniture.some(w=>rectanglesOverlap(player,w)))return false;
-   continue;
+   // Rooms begin empty. Real purchased props are checked below from the placed-item registry.\n   continue;
   }
   if(rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey,p.width,p.depth)))return false;
  }
