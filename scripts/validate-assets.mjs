@@ -216,7 +216,7 @@ try {
   if (!/function showStorePreview\(key:string\)/.test(source) ||
       !/getClinicContainer\(url\)\.then\(asset=>/.test(source) ||
       !/id="store-preview"/.test(html) || !/id="store-place-selected"/.test(html) ||
-      !/id="store-rotate-selected"/.test(html) || !/canvas\.toDataURL\("image\/webp",\.68\)/.test(source) ||
+      !/id="store-rotate-selected"/.test(html) || !/app\.on\("postrender"/.test(source) || !/drawImage\(canvas/.test(source) || !/storeThumbnailCanvas\.toDataURL\("image\/webp",\.72\)/.test(source) ||
       !/storeThumbnailCache/.test(source) || /class="store-item-art art-/.test(html)) {
     throw new Error("The shop must preview the exact bundled GLB model before placement, not use fake product drawings");
   }
