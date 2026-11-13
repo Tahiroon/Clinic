@@ -1,4 +1,4 @@
-import { Application, BLEND_NORMAL, CULLFACE_NONE, Color, Entity, FILLMODE_NONE, GraphNode, Mat4, Mesh, MeshInstance, Model, PROJECTION_ORTHOGRAPHIC, RESOLUTION_AUTO, StandardMaterial, Vec3, calculateNormals } from "playcanvas";
+import { Application, BLEND_NORMAL, CULLFACE_NONE, Color, Entity, FILLMODE_NONE, GraphNode, Mat4, Mesh, MeshInstance, Model, PROJECTION_ORTHOGRAPHIC, RESOLUTION_AUTO, SHADOW_PCSS_32F, StandardMaterial, Vec3, calculateNormals } from "playcanvas";
 import "../style.css";
 import { createInitialManagementState, advanceSimulation, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, setClinicOpen, hireReceptionist, beginPatientSession, completePatientSession, cancelPatientSession, registerPatient, recoverInterruptedSessions, ROOM_BLUEPRINTS, type ManagementState, type ClinicRoomType } from "../game/management";
 
@@ -54,24 +54,52 @@ window.visualViewport?.addEventListener("resize",queueResize,{passive:true});
 window.visualViewport?.addEventListener("scroll",queueResize,{passive:true});
 app.scene.ambientLight=new Color(.72,.75,.78);
 function material(c:Color){const m=new StandardMaterial();m.diffuse=c;m.update();return m;}
-const M={ground:material(new Color(.24,.52,.39)),tile:material(new Color(.34,.66,.48)),grid:material(new Color(.12,.62,.72)),room:material(new Color(.86,.91,.88)),wall:material(new Color(.96,.97,.93)),wallBase:material(new Color(.82,.89,.88)),wallGlass:material(new Color(.64,.83,.84)),wallBlue:material(new Color(.66,.80,.91)),wallFrame:material(new Color(.10,.29,.37)),wallCap:material(new Color(.16,.35,.41)),wallAccent:material(new Color(.10,.68,.72)),wood:material(new Color(.54,.34,.23)),wood2:material(new Color(.78,.55,.31)),teal:material(new Color(.02,.64,.70)),blue:material(new Color(.10,.34,.66)),pale:material(new Color(.82,.95,.94)),green:material(new Color(.20,.65,.39)),skin:material(new Color(.72,.49,.36)),dark:material(new Color(.08,.15,.23)),white:material(new Color(.98,.98,.92)),yellow:material(new Color(.98,.73,.23))};
+const M={ground:material(new Color(.24,.52,.39)),tile:material(new Color(.34,.66,.48)),grid:material(new Color(.12,.62,.72)),room:material(new Color(.86,.91,.88)),wall:material(new Color(.92,.93,.89)),wallBase:material(new Color(.77,.82,.78)),wallGlass:material(new Color(.64,.83,.84)),wallBlue:material(new Color(.66,.80,.85)),wallFrame:material(new Color(.16,.25,.29)),wallCap:material(new Color(.72,.78,.74)),wallAccent:material(new Color(.10,.55,.60)),wallRecess:material(new Color(.53,.61,.58)),wood:material(new Color(.54,.34,.23)),wood2:material(new Color(.78,.55,.31)),teal:material(new Color(.02,.64,.70)),blue:material(new Color(.10,.34,.66)),pale:material(new Color(.82,.95,.94)),green:material(new Color(.20,.65,.39)),skin:material(new Color(.72,.49,.36)),dark:material(new Color(.08,.15,.23)),white:material(new Color(.98,.98,.92)),yellow:material(new Color(.98,.73,.23))};
 type PrimitiveModelType="box"|"capsule"|"cone"|"cylinder"|"plane"|"sphere"|"torus";
 function primitive(name:string,type:PrimitiveModelType,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){
  const e=new Entity(name);e.addComponent("model",{type});parent.addChild(e);e.setLocalPosition(x,y,z);e.setLocalScale(sx,sy,sz);
- e.model!.material=m;e.model!.castShadows=false;e.model!.receiveShadows=false;return e;
+ e.model!.material=m;
+ const simpleDetail=/grass|tuft|flower bloom|gait lane marker|tap destination/i.test(name);
+ const architecturalCaster=/wall|tree|trunk|bench|planter|lamp|facade|canopy|pillar|door|cabinet|desk|bed|chair|equipment|room|sign|column|counter/i.test(name);
+ const surfaceReceiver=/floor|ground|landscape|path|foundation|tile|wall|plinth|paver/i.test(name);
+ e.model!.castShadows=highDetailDevice&&!simpleDetail&&architecturalCaster;
+ e.model!.receiveShadows=highDetailDevice&&!simpleDetail&&(surfaceReceiver||architecturalCaster);
+ return e;
 }
 function box(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){return primitive(name,"box",x,y,z,sx,sy,sz,m,parent);}
 function sphere(name:string,x:number,y:number,z:number,s:number,m:StandardMaterial,parent:Entity=app.root){return primitive(name,"sphere",x,y,z,s,s,s,m,parent);}
 function cylinder(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){return primitive(name,"cylinder",x,y,z,sx,sy,sz,m,parent);}
 function cone(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){return primitive(name,"cone",x,y,z,sx,sy,sz,m,parent);}
+const contactShadowOuter=material(new Color(.10,.16,.17));
+contactShadowOuter.opacity=.075;contactShadowOuter.blendType=BLEND_NORMAL;contactShadowOuter.depthWrite=false;contactShadowOuter.useLighting=false;contactShadowOuter.update();
+const contactShadowInner=material(new Color(.08,.12,.14));
+contactShadowInner.opacity=.045;contactShadowInner.blendType=BLEND_NORMAL;contactShadowInner.depthWrite=false;contactShadowInner.useLighting=false;contactShadowInner.update();
+function addContactShadow(parent:Entity,name:string,x:number,z:number,width:number,depth:number):Entity|null{
+ if(highDetailDevice)return null;
+ const root=new Entity(name+" · soft contact shadow");parent.addChild(root);root.setLocalPosition(x,.052,z);
+ const outer=sphere("Soft shadow feather",0,0,0,1,contactShadowOuter,root);outer.setLocalScale(width,.006,depth);
+ const inner=sphere("Soft shadow core",0,.002,0,1,contactShadowInner,root);inner.setLocalScale(width*.68,.004,depth*.68);
+ return root;
+}
 const camera=new Entity("Portrait isometric camera");
 camera.addComponent("camera",{projection:PROJECTION_ORTHOGRAPHIC,orthoHeight:15.5,clearColor:new Color(.69,.79,.80),nearClip:.1,farClip:200});
 const cameraTarget=new Vec3(0,0,0),cameraGoal=new Vec3(0,0,0);
 camera.setPosition(3.5,21.5,-15);camera.lookAt(cameraTarget);app.root.addChild(camera);
 let desiredOrthoHeight=15.5;
 const light=new Entity("Soft daylight");
-light.addComponent("light",{type:"directional",intensity:1.22,castShadows:highDetailDevice});
-if(highDetailDevice){light.light!.shadowResolution=1024;light.light!.shadowDistance=36;light.light!.normalOffsetBias=.035;}
+light.addComponent("light",{type:"directional",intensity:1.08,castShadows:highDetailDevice});
+if(highDetailDevice){
+ light.light!.shadowType=SHADOW_PCSS_32F;
+ light.light!.shadowResolution=1024;
+ light.light!.shadowDistance=42;
+ light.light!.shadowIntensity=.52;
+ light.light!.shadowBias=.025;
+ light.light!.normalOffsetBias=.018;
+ light.light!.penumbraSize=1.35;
+ light.light!.penumbraFalloff=1.15;
+ light.light!.shadowSamples=8;
+ light.light!.shadowBlockerSamples=8;
+}
 light.setEulerAngles(48,25,0);app.root.addChild(light);
 const world=new Entity("Clinic property · portrait 3/4 world");
 world.setEulerAngles(0,10,0);app.root.addChild(world);world.syncHierarchy();
@@ -126,12 +154,14 @@ for(const [x,z] of outdoorTreePositions){
  cylinder("Outdoor tree trunk",x,.78,z,.18,1.56,.18,M.wood,world);
  cylinder("Outdoor tree branch",x-.23,1.43,z,.075,.72,.075,M.wood,world).setLocalEulerAngles(0,0,-32);
  cylinder("Outdoor tree branch",x+.23,1.48,z,.07,.66,.07,M.wood,world).setLocalEulerAngles(0,0,29);
+ addContactShadow(world,"Tree ground shadow",x,z,.92,.74);
  const crown=sphere("Outdoor tree crown",x,2.02,z,.72,M.green,world);crown.setLocalScale(1.05,1.12,.96);
  for(const [dx,dy,dz,r] of [[-.43,1.92,.02,.46],[.40,2.02,.08,.48],[0,2.48,.02,.48]] as [number,number,number,number][]){
   const cluster=sphere("Layered tree foliage",x+dx,dy,z+dz,r,grassAlt,world);cluster.setLocalScale(1.0,1.08,.92);
  }
 }
 for(const [x,z] of outdoorShrubPositions){
+ addContactShadow(world,"Garden planter shadow",x,z,.55,.48);
  box("Outdoor raised planter",x,.17,z,.72,.34,.88,M.wood2,world);
  box("Planter dark inset",x,.355,z,.64,.045,.78,M.wood,world);
  for(const [dx,dz,r] of [[-.2,-.12,.28],[.16,.08,.31],[.02,-.2,.25]] as [number,number,number][]){
@@ -152,6 +182,7 @@ for(const x of [gaitLaneX-.72,gaitLaneX+.72]){
 }
 
 for(const [x,z] of outdoorBenchPositions){
+ addContactShadow(world,"Garden bench shadow",x,z,.95,.48);
  box("Garden bench seat",x,.38,z,1.55,.16,.52,M.wood2,world);
  box("Garden bench back",x,.78,z+.2,1.55,.62,.12,M.wood,world);
  for(const dx of [-.58,.58])box("Garden bench support",x+dx,.19,z,.09,.38,.42,M.dark,world);
@@ -164,6 +195,7 @@ for(const [x,z] of outdoorFlowerPositions){
  }
 }
 for(const [x,z] of outdoorLampPositions){
+ addContactShadow(world,"Garden lamp shadow",x,z,.32,.30);
  cylinder("Garden lamp base",x,.12,z,.22,.24,.22,M.dark,world);
  cylinder("Garden lamp post",x,.92,z,.07,1.6,.07,M.dark,world);
  sphere("Garden lamp globe",x,1.82,z,.2,M.yellow,world);
@@ -217,15 +249,42 @@ function createLawnGrass(){
 const arrivalMetal=material(new Color(.20,.31,.38));
 const warmGlass=material(new Color(.96,.76,.40));
 for(const x of [-1.12,1.12]){
+ addContactShadow(world,"Entrance light shadow",x,-3.75,.28,.26);
  cylinder("Entrance path light base",x,.12,-3.75,.18,.22,.18,arrivalMetal,world);
  cylinder("Entrance path light stem",x,.52,-3.75,.065,.78,.065,arrivalMetal,world);
  sphere("Entrance path light diffuser",x,.98,-3.75,.14,warmGlass,world);
 }
-box("Clinic facade lower accent",0,.28,-2.08,3.85,.12,.10,trim,world);
-box("Clinic facade upper accent",0,2.82,-2.08,4.15,.10,.12,arrivalMetal,world);
-box("THERASON entrance sign",0,2.55,-2.13,2.0,.46,.12,trim,world);
-box("Entrance sign inset",0,2.56,-2.205,1.7,.27,.035,M.white,world);
-box("Entrance canopy",0,2.15,-2.28,2.3,.16,.78,roofAccent,world);
+// Compact starter-clinic pavilion: a calm, recognisable building rather than a floating sign.
+box("Starter clinic stone plinth",0,.13,-2.38,6.0,.26,1.42,M.wallFrame,world);
+box("Starter clinic warm facade left wing",-2.12,1.42,-2.22,1.72,2.58,.28,M.wallBase,world);
+box("Starter clinic warm facade right wing",2.12,1.42,-2.22,1.72,2.58,.28,M.wallBase,world);
+for(const x of [-2.12,2.12]){
+ box("Starter clinic recessed window reveal",x,1.66,-2.385,1.30,1.52,.035,M.wallRecess,world);
+ box("Starter clinic front window glass",x,1.66,-2.415,1.18,1.39,.035,M.wallBlue,world);
+ box("Starter clinic window sill",x,.86,-2.46,1.42,.10,.16,M.wallCap,world);
+ box("Starter clinic window lintel",x,2.45,-2.46,1.42,.10,.16,M.wallCap,world);
+ box("Starter clinic window mullion",x,1.66,-2.46,.055,1.48,.10,arrivalMetal,world);
+}
+for(const x of [-1.18,1.18]){
+ box("Starter clinic entrance portal pier",x,1.42,-2.42,.22,2.72,.46,M.wall,world);
+ box("Starter clinic portal shadow reveal",x,1.42,-2.67,.045,2.55,.045,M.wallRecess,world);
+}
+box("Starter clinic glazed entrance left leaf",-.47,1.18,-2.37,.78,2.20,.075,M.wallBlue,world);
+box("Starter clinic glazed entrance right leaf",.47,1.18,-2.37,.78,2.20,.075,M.wallBlue,world);
+box("Starter clinic entrance centre mullion",0,1.18,-2.43,.055,2.22,.11,arrivalMetal,world);
+box("Starter clinic entrance handle left",-.10,1.10,-2.50,.035,.34,.035,M.wallFrame,world);
+box("Starter clinic entrance handle right",.10,1.10,-2.50,.035,.34,.035,M.wallFrame,world);
+box("Starter clinic facade lintel",0,2.82,-2.36,2.62,.24,.48,M.wall,world);
+box("Starter clinic roof fascia",0,3.02,-2.26,6.12,.22,1.52,arrivalMetal,world);
+box("Starter clinic roof top",0,3.15,-2.26,6.20,.10,1.58,M.wall,world);
+box("THERASON sign shadow backing",0,2.88,-3.045,2.68,.48,.16,M.wallFrame,world);
+box("THERASON entrance sign",0,2.88,-3.14,2.42,.34,.055,trim,world);
+box("THERASON sign inset",0,2.88,-3.18,2.16,.22,.025,M.white,world);
+box("THERASON sign identity mark",-.88,2.88,-3.20,.08,.18,.035,M.wallAccent,world);
+box("Entrance canopy",0,2.30,-2.86,3.45,.16,1.10,roofAccent,world);
+box("Entrance canopy underside",0,2.205,-2.86,3.12,.035,.88,M.wallCap,world);
+for(const x of [-1.48,1.48])box("Entrance canopy bracket",x,2.06,-2.66,.10,.34,.32,M.wallFrame,world);
+addContactShadow(world,"Starter clinic pavilion shadow",0,-2.2,3.45,1.15);
 const roomRoot=new Entity("Player-built clinic rooms");world.addChild(roomRoot);
 const buildGrid=new Entity("Expandable property construction grid");world.addChild(buildGrid);
 const gridMaterial=material(new Color(.20,.57,.65));
@@ -261,7 +320,7 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
  addRoomWallRun(root,"x",-halfW,sideSegment,-halfD,"solid",.62);
  addRoomWallRun(root,"x",doorWidth/2,sideSegment,-halfD,"solid",.62);
  loadRoomDoor(root,0,-halfD);
- // Plain, opaque clinic walls: keep the room architecture calm and readable.
+ // Recessed panel geometry creates depth without busy decorative trim.
  box("Simple room entrance plaque",-halfW+.12,1.95,0,.05,.32,.62,M.wall,root);
  for(const x of [-Math.min(1,width*.25),Math.min(1,width*.25)]){
   box("Ceiling light housing",x,2.55,0,.68,.055,.20,M.white,root);
@@ -273,6 +332,7 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
 }
 // The starter clinic is assembled from lightweight procedural geometry; optional GLB assets load independently.
 const avatar=new Entity("Player physiotherapist");world.addChild(avatar);avatar.setLocalPosition(0,0,-4.55);
+const avatarContactShadow=addContactShadow(world,"Player physiotherapist shadow",0,-4.55,.42,.25);
 let walkVelocity=0;
 let avatarAnim:any=null;let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
@@ -476,29 +536,27 @@ function loadRoomModule(parent:Entity,file:string,x:number,y:number,z:number,rot
  });
 }
 function addRoomWallRun(parent:Entity,axis:"x"|"z",start:number,length:number,fixed:number,kind:"solid"|"glazed",heightScale=1){
- // Modular THERASON wall kit: protective lower panel, broad frosted glazing,
- // structural mullions, continuous top cap and a cyan identity rail.
- const glass=kind==="glazed"?M.wallBlue:M.wallGlass;
- const wallHeight=2.7*heightScale,baseHeight=.88*heightScale;
- const placePanel=(name:string,center:number,span:number,y:number,height:number,thickness:number,mat:StandardMaterial)=>{
-  const x=axis==="x"?center:fixed,z=axis==="x"?fixed:center;
-  box(name,x,y,z,axis==="x"?span:thickness,height,axis==="z"?span:thickness,mat,parent);
+ // Quiet architectural depth: a real wall body, shallow recessed panels,
+ // slim shadow reveals, a restrained baseboard and a continuous top edge.
+ const wallHeight=2.7*heightScale,thickness=.22,baseHeight=.20*heightScale;
+ const place=(name:string,center:number,span:number,y:number,height:number,depth:number,offset:number,mat:StandardMaterial)=>{
+  const x=axis==="x"?center:fixed+offset,z=axis==="x"?fixed+offset:center;
+  box(name,x,y,z,axis==="x"?span:depth,height,axis==="z"?span:depth,mat,parent);
  };
  let cursor=0;
  while(cursor<length-.02){
   const span=Math.min(2,length-cursor),center=start+cursor+span/2;
-  const glassHeight=Math.max(.18,wallHeight-baseHeight-.34*heightScale);
-  const glassY=baseHeight+glassHeight/2+.06*heightScale;
-  placePanel("Architectural wall lower solid panel",center,span,baseHeight/2,baseHeight,.20,M.wallBase);
-  placePanel("Frosted clinic glazing",center,Math.max(.12,span-.20),glassY,glassHeight,.075,glass);
-  placePanel("Wall base protective skirting",center,span,.13*heightScale,.16*heightScale,.235,M.wallFrame);
-  placePanel("Wall continuous upper cap",center,span,wallHeight-.055*heightScale,.11*heightScale,.25,M.wallCap);
-  placePanel("Wall cyan identity rail",center,span,baseHeight+.035*heightScale,.07*heightScale,.235,M.wallAccent);
-  for(const edge of [-1,1]){
-   const postCenter=center+edge*(span/2-.055);
-   placePanel("Wall structural frame post",postCenter,.11,wallHeight/2,wallHeight,.23,M.wallFrame);
+  place("Solid warm plaster wall",center,span,wallHeight/2,wallHeight,thickness,0,M.wallBase);
+  for(const side of [-1,1]){
+   const face=side*(thickness/2+.012);
+   place("Recessed wall panel shadow line",center,Math.max(.22,span-.18),baseHeight+(wallHeight-baseHeight)*.52,wallHeight-baseHeight-.34,.026,face,M.wallRecess);
+   place("Raised wall panel face",center,Math.max(.16,span-.28),baseHeight+(wallHeight-baseHeight)*.52,wallHeight-baseHeight-.44,.028,face+side*.018,M.wall);
+   place("Wall vertical reveal",center-span/2+.055,.035,wallHeight/2,wallHeight-.08,.045,face+side*.025,M.wallCap);
+   place("Wall vertical reveal",center+span/2-.055,.035,wallHeight/2,wallHeight-.08,.045,face+side*.025,M.wallCap);
+   place("Wall protective skirting",center,span,.105*heightScale,.17*heightScale,.28,face+side*.025,M.wallFrame);
+   place("Wall top coping",center,span,wallHeight-.055*heightScale,.11*heightScale,.29,face+side*.03,M.wallCap);
   }
-  if(span>1.15)placePanel("Glazing centre mullion",center,.055,glassY,glassHeight,.105,M.wallFrame);
+  if(kind==="glazed"&&heightScale===1)place("Quiet clinic glass clerestory",center,Math.max(.25,span-.38),wallHeight-.34,.22,.055,thickness/2+.04,M.wallBlue);
   cursor+=span;
  }
 }
@@ -1360,6 +1418,8 @@ app.on("update",(dt:number)=>{
  camera.camera!.orthoHeight+=(desiredOrthoHeight-camera.camera!.orthoHeight)*cameraAlpha;
  camera.setPosition(cameraTarget.x+(focus?2.0:3.5),focus?16:21.5,cameraTarget.z+(focus?-8.0:-15));
  camera.lookAt(cameraTarget);
+ const standingPosition=avatar.getLocalPosition();
+ if(avatarContactShadow)avatarContactShadow.setLocalPosition(standingPosition.x,.052,standingPosition.z);
  if(!target){if(sessionPending){sessionPending=false;sessionDialog.showModal();}return;}
  const p=avatar.getLocalPosition().clone(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
  if(d<.10){
