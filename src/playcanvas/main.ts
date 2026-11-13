@@ -74,9 +74,9 @@ const contactShadowOuter=material(new Color(.10,.16,.17));
 contactShadowOuter.opacity=.075;contactShadowOuter.blendType=BLEND_NORMAL;contactShadowOuter.depthWrite=false;contactShadowOuter.useLighting=false;contactShadowOuter.update();
 const contactShadowInner=material(new Color(.08,.12,.14));
 contactShadowInner.opacity=.045;contactShadowInner.blendType=BLEND_NORMAL;contactShadowInner.depthWrite=false;contactShadowInner.useLighting=false;contactShadowInner.update();
-function addContactShadow(parent:Entity,name:string,x:number,z:number,width:number,depth:number):Entity|null{
+function addContactShadow(parent:Entity,name:string,x:number,z:number,width:number,depth:number,groundY=.052):Entity|null{
  if(highDetailDevice)return null;
- const root=new Entity(name+" · soft contact shadow");parent.addChild(root);root.setLocalPosition(x,.052,z);
+ const root=new Entity(name+" · soft contact shadow");parent.addChild(root);root.setLocalPosition(x,groundY,z);
  const outer=sphere("Soft shadow feather",0,0,0,1,contactShadowOuter,root);outer.setLocalScale(width,.006,depth);
  const inner=sphere("Soft shadow core",0,.002,0,1,contactShadowInner,root);inner.setLocalScale(width*.68,.004,depth*.68);
  return root;
@@ -154,14 +154,14 @@ for(const [x,z] of outdoorTreePositions){
  cylinder("Outdoor tree trunk",x,.78,z,.18,1.56,.18,M.wood,world);
  cylinder("Outdoor tree branch",x-.23,1.43,z,.075,.72,.075,M.wood,world).setLocalEulerAngles(0,0,-32);
  cylinder("Outdoor tree branch",x+.23,1.48,z,.07,.66,.07,M.wood,world).setLocalEulerAngles(0,0,29);
- addContactShadow(world,"Tree ground shadow",x,z,.92,.74);
+ addContactShadow(world,"Tree ground shadow",x,z,.92,.74,-.023);
  const crown=sphere("Outdoor tree crown",x,2.02,z,.72,M.green,world);crown.setLocalScale(1.05,1.12,.96);
  for(const [dx,dy,dz,r] of [[-.43,1.92,.02,.46],[.40,2.02,.08,.48],[0,2.48,.02,.48]] as [number,number,number,number][]){
   const cluster=sphere("Layered tree foliage",x+dx,dy,z+dz,r,grassAlt,world);cluster.setLocalScale(1.0,1.08,.92);
  }
 }
 for(const [x,z] of outdoorShrubPositions){
- addContactShadow(world,"Garden planter shadow",x,z,.55,.48);
+ addContactShadow(world,"Garden planter shadow",x,z,.55,.48,-.023);
  box("Outdoor raised planter",x,.17,z,.72,.34,.88,M.wood2,world);
  box("Planter dark inset",x,.355,z,.64,.045,.78,M.wood,world);
  for(const [dx,dz,r] of [[-.2,-.12,.28],[.16,.08,.31],[.02,-.2,.25]] as [number,number,number][]){
@@ -182,12 +182,13 @@ for(const x of [gaitLaneX-.72,gaitLaneX+.72]){
 }
 
 for(const [x,z] of outdoorBenchPositions){
- addContactShadow(world,"Garden bench shadow",x,z,.95,.48);
+ addContactShadow(world,"Garden bench shadow",x,z,.95,.48,-.023);
  box("Garden bench seat",x,.38,z,1.55,.16,.52,M.wood2,world);
  box("Garden bench back",x,.78,z+.2,1.55,.62,.12,M.wood,world);
  for(const dx of [-.58,.58])box("Garden bench support",x+dx,.19,z,.09,.38,.42,M.dark,world);
 }
 for(const [x,z] of outdoorFlowerPositions){
+ addContactShadow(world,"Flower bed ground shadow",x,z,.62,.42,-.023);
  box("Outdoor flower bed",x,.16,z,1.15,.3,.72,M.wood2,world);
  for(const [dx,dz] of [[-.34,-.12],[0,.08],[.34,-.1]] as [number,number][]){
   cylinder("Garden flower stem",x+dx,.42,z+dz,.025,.28,.025,M.green,world);
@@ -195,7 +196,7 @@ for(const [x,z] of outdoorFlowerPositions){
  }
 }
 for(const [x,z] of outdoorLampPositions){
- addContactShadow(world,"Garden lamp shadow",x,z,.32,.30);
+ addContactShadow(world,"Garden lamp shadow",x,z,.32,.30,-.023);
  cylinder("Garden lamp base",x,.12,z,.22,.24,.22,M.dark,world);
  cylinder("Garden lamp post",x,.92,z,.07,1.6,.07,M.dark,world);
  sphere("Garden lamp globe",x,1.82,z,.2,M.yellow,world);
@@ -284,7 +285,7 @@ box("THERASON sign identity mark",-.88,2.88,-3.20,.08,.18,.035,M.wallAccent,worl
 box("Entrance canopy",0,2.30,-2.86,3.45,.16,1.10,roofAccent,world);
 box("Entrance canopy underside",0,2.205,-2.86,3.12,.035,.88,M.wallCap,world);
 for(const x of [-1.48,1.48])box("Entrance canopy bracket",x,2.06,-2.66,.10,.34,.32,M.wallFrame,world);
-addContactShadow(world,"Starter clinic pavilion shadow",0,-2.2,3.45,1.15);
+addContactShadow(world,"Starter clinic pavilion shadow",0,-3.45,2.9,.72,.052);
 const roomRoot=new Entity("Player-built clinic rooms");world.addChild(roomRoot);
 const buildGrid=new Entity("Expandable property construction grid");world.addChild(buildGrid);
 const gridMaterial=material(new Color(.20,.57,.65));
@@ -553,8 +554,8 @@ function addRoomWallRun(parent:Entity,axis:"x"|"z",start:number,length:number,fi
    place("Raised wall panel face",center,Math.max(.16,span-.28),baseHeight+(wallHeight-baseHeight)*.52,wallHeight-baseHeight-.44,.028,face+side*.018,M.wall);
    place("Wall vertical reveal",center-span/2+.055,.035,wallHeight/2,wallHeight-.08,.045,face+side*.025,M.wallCap);
    place("Wall vertical reveal",center+span/2-.055,.035,wallHeight/2,wallHeight-.08,.045,face+side*.025,M.wallCap);
-   place("Wall protective skirting",center,span,.105*heightScale,.17*heightScale,.28,face+side*.025,M.wallFrame);
-   place("Wall top coping",center,span,wallHeight-.055*heightScale,.11*heightScale,.29,face+side*.03,M.wallCap);
+   place("Wall protective skirting",center,span,.105*heightScale,.17*heightScale,.045,face+side*.025,M.wallFrame);
+   place("Wall top coping",center,span,wallHeight-.055*heightScale,.11*heightScale,.045,face+side*.03,M.wallCap);
   }
   if(kind==="glazed"&&heightScale===1)place("Quiet clinic glass clerestory",center,Math.max(.25,span-.38),wallHeight-.34,.22,.055,thickness/2+.04,M.wallBlue);
   cursor+=span;
@@ -563,7 +564,7 @@ function addRoomWallRun(parent:Entity,axis:"x"|"z",start:number,length:number,fi
 function loadRoomDoor(parent:Entity,x:number,z:number){
  const url=clinicAssetUrls["door-leaf.glb"];
  getClinicContainer(url).then(asset=>{
-  const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:true});
+  const model=asset.resource.instantiateRenderEntity({castShadows:highDetailDevice,receiveShadows:highDetailDevice});
   parent.addChild(model);model.setLocalPosition(x,0,z);model.syncHierarchy();
   const leaf=findEntityByName(model,"door");if(leaf)leaf.setLocalEulerAngles(0,68,0);
   model.syncHierarchy();
@@ -713,7 +714,7 @@ function loadWaitingSeats(parent:Entity){
 function loadReceptionDesk(parent:Entity){
  const url=clinicAssetUrls["reception-desk.glb"];
  getClinicContainer(url).then(asset=>{
-  const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
+  const model=asset.resource.instantiateRenderEntity({castShadows:highDetailDevice,receiveShadows:highDetailDevice});
   parent.addChild(model);model.syncHierarchy();
   let bounds=renderBounds(model);
   if(!bounds||bounds.width<.05||bounds.depth<.05||bounds.height<.05){model.destroy();throw new Error("Reception counter asset has invalid bounds");}
@@ -763,7 +764,7 @@ function loadClinicAsset(p:Placed){
  const url=clinicAssetUrls[spec.file];
  if(!url){drawAssetFallback(p,spec);return;}
  getClinicContainer(url).then(asset=>{
-  const container=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
+  const container=asset.resource.instantiateRenderEntity({castShadows:highDetailDevice,receiveShadows:highDetailDevice});
   const chosen=spec.node==="*"?container:findEntityByName(container,spec.node);
   if(!chosen){container.destroy();throw new Error("Missing model node "+spec.node);}
   if(spec.node!=="*"){const sourceParent=chosen.parent as Entity|null;if(sourceParent)sourceParent.removeChild(chosen);container.destroy();}
