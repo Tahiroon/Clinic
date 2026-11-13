@@ -160,7 +160,8 @@ function createLawnGrass(){
    indices.push(first,first+1,first+2);
   }
  };
- for(let i=0;i<2600;i++){
+ const tuftBudget=highDetailDevice?2600:1400;
+ for(let i=0;i<tuftBudget;i++){
   const x=-HALF_X-4.7+rand()*(W+9.4),z=-HALF_Z-4.7+rand()*(D+9.4);
   const insideBuildablePlot=x>-HALF_X-.08&&x<HALF_X+.08&&z>-HALF_Z-.08&&z<HALF_Z+.08;
   if(insideBuildablePlot)continue;
