@@ -7,7 +7,7 @@ type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90; asse
 const el=<T extends HTMLElement>(s:string)=>document.querySelector<T>(s)!;
 const canvas=el<HTMLCanvasElement>("#scene"), status=el<HTMLElement>("#status"), fpsLabel=el<HTMLElement>("#fps"), loading=el<HTMLElement>("#loading");
 const stage=el<HTMLElement>(".stage"), moveBtn=el<HTMLButtonElement>("#move-mode"), buildBtn=el<HTMLButtonElement>("#build-mode"), storeBtn=el<HTMLButtonElement>("#store-mode"), sessionBtn=el<HTMLButtonElement>("#session-mode"), viewBtn=el<HTMLButtonElement>("#view-mode");
-const buildPanel=el<HTMLElement>("#build-panel"), saveState=el<HTMLElement>("#save-state"), coinsLabel=el<HTMLElement>("#coins"), sessionDialog=el<HTMLDialogElement>("#session-dialog");
+const buildPanel=el<HTMLElement>("#build-panel"),storePanel=el<HTMLElement>("#store-panel"), saveState=el<HTMLElement>("#save-state"), coinsLabel=el<HTMLElement>("#coins"), sessionDialog=el<HTMLDialogElement>("#session-dialog");
 const managementPanel=el<HTMLElement>("#management-panel"),managementToggle=el<HTMLButtonElement>("#management-toggle");
 let management:ManagementState=createInitialManagementState();
 const deviceMemory=Number((navigator as any).deviceMemory??2),cpuCores=navigator.hardwareConcurrency||4;
@@ -609,7 +609,7 @@ function loadClinicAsset(p:Placed){
  });
 }
 
-function save(){try{management.balance=coins;management.experience=xp;localStorage.setItem(saveKey,JSON.stringify({v:12,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
+function save(){try{management.balance=coins;management.experience=xp;el("#store-coins").textContent=String(coins);localStorage.setItem(saveKey,JSON.stringify({v:12,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function validSavedItem(value:any):value is Placed{
  if(!value||typeof value!=="object")return false;
  const kinds:BuildKind[]=["treatment","reception","assessment","gym","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
@@ -1092,23 +1092,26 @@ el<HTMLButtonElement>("#clinic-open-toggle").addEventListener("click",()=>{
  renderManagement();save();
 });
 function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",assessment:"غرفة تقييم",gym:"صالة تأهيل",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent=isRoomKind(kind)?"تم اختيار "+names[kind]+". اسحب بإصبعك على الأرض لرسم مساحة الغرفة بالحجم الذي تريده.":"تم اختيار "+names[kind]+". المس خلية فارغة لوضع العنصر، ويمكنك تدوير الحائط من زر التدوير.";}
-function selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));el("#build-hint").textContent="تم اختيار "+spec.label+" من الأصول ثلاثية الأبعاد. يحتاج مساحة "+spec.footprint+"×"+spec.footprint+" خلايا.";}
-moveBtn.addEventListener("click",()=>{updateMode("move");storeBtn.classList.remove("active");});
-buildBtn.addEventListener("click",()=>{updateMode(mode==="build"?"move":"build");storeBtn.classList.remove("active");});
-el("#cancel-build").addEventListener("click",()=>{updateMode("move");storeBtn.classList.remove("active");});
+function selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));document.querySelectorAll<HTMLButtonElement>("[data-store-cat]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));storePanel.hidden=true;buildPanel.hidden=true;storeBtn.classList.add("active");status.textContent="تم اختيار "+spec.label+". حرّك المؤشر إلى داخل الغرفة ثم المس لتأكيد الشراء ووضع الجهاز.";}
+moveBtn.addEventListener("click",()=>{storePanel.hidden=true;updateMode("move");storeBtn.classList.remove("active");});
+buildBtn.addEventListener("click",()=>{storePanel.hidden=true;updateMode(mode==="build"?"move":"build");storeBtn.classList.remove("active");});
+el("#cancel-build").addEventListener("click",()=>{storePanel.hidden=true;updateMode("move");storeBtn.classList.remove("active");});
 storeBtn.addEventListener("click",()=>{
- updateMode("build");
- document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.classList.toggle("active",b.dataset.category==="furniture"));
- el("#catalog-structure").hidden=true;
- el("#catalog-rooms").hidden=true;
- el("#catalog-furniture").hidden=false;
- selectAsset("pt-treatment-table");
+ updateMode("build");buildPanel.hidden=true;storePanel.hidden=false;
+ el("#store-coins").textContent=String(coins);
+ document.querySelectorAll<HTMLButtonElement>("[data-store-category]").forEach(b=>b.classList.toggle("active",b.dataset.storeCategory==="therapy"));
+ document.querySelectorAll<HTMLButtonElement>("[data-store-cat]").forEach(b=>(b as HTMLButtonElement).hidden=b.dataset.storeCat!=="therapy");
  storeBtn.classList.add("active");
- status.textContent="المتجر مفتوح: اختر أصلاً طبياً ثم المس مكاناً فارغاً لوضعه.";
+ status.textContent="متجر العيادة: اختر الجهاز المناسب، ثم ضعه داخل غرفة مبنية.";
 });
+el<HTMLButtonElement>("#store-close").addEventListener("click",()=>{storePanel.hidden=true;updateMode("move");storeBtn.classList.remove("active");});
+document.querySelectorAll<HTMLButtonElement>("[data-store-category]").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll<HTMLButtonElement>("[data-store-category]").forEach(x=>x.classList.toggle("active",x===b));
+ document.querySelectorAll<HTMLButtonElement>("[data-store-cat]").forEach(x=>x.hidden=x.dataset.storeCat!==b.dataset.storeCategory);
+}));
 document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEventListener("click",()=>selectBuild(b.dataset.build as BuildKind)));
 document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEventListener("click",()=>selectAsset(b.dataset.asset??"")));
-document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";el("#catalog-furniture").hidden=cat!=="furniture";if(cat==="structure")selectBuild("wall");else if(cat==="rooms")selectBuild("reception");else selectAsset("pt-treatment-table");}));
+document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";if(cat==="structure")selectBuild("wall");else selectBuild("treatment");}));
 el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;previewValidity=null;status.textContent="اتجاه العنصر الآن "+(wallRotation===0?"0°":"90°")+". سيتم تطبيقه على القطعة التالية.";});
 viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:15.5;viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
 let sessionStep=0,sessionScore=0,activeSessionPatientId=0,sessionCompleted=false;
