@@ -1,12 +1,15 @@
 import * as pc from "playcanvas";
 import "../style.css";
+import { createInitialManagementState, advanceSimulation, hireStaff, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, getRoleLabel, type ManagementState, type StaffRole, type ClinicRoomType } from "../game/management";
 
-type BuildKind = "treatment" | "reception" | "gym" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door" | "asset";
+type BuildKind = "treatment" | "reception" | "assessment" | "gym" | "staff" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door" | "asset";
 type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90; assetKey?:string };
 const el=<T extends HTMLElement>(s:string)=>document.querySelector<T>(s)!;
 const canvas=el<HTMLCanvasElement>("#scene"), status=el<HTMLElement>("#status"), fpsLabel=el<HTMLElement>("#fps"), loading=el<HTMLElement>("#loading");
 const stage=el<HTMLElement>(".stage"), moveBtn=el<HTMLButtonElement>("#move-mode"), buildBtn=el<HTMLButtonElement>("#build-mode"), storeBtn=el<HTMLButtonElement>("#store-mode"), sessionBtn=el<HTMLButtonElement>("#session-mode"), viewBtn=el<HTMLButtonElement>("#view-mode");
 const buildPanel=el<HTMLElement>("#build-panel"), saveState=el<HTMLElement>("#save-state"), coinsLabel=el<HTMLElement>("#coins"), sessionDialog=el<HTMLDialogElement>("#session-dialog");
+const managementPanel=el<HTMLElement>("#management-panel"),managementToggle=el<HTMLButtonElement>("#management-toggle");
+let management:ManagementState=createInitialManagementState();
 const app=new pc.Application(canvas,{graphicsDeviceOptions:{antialias:false,alpha:false,powerPreference:"low-power"}});
 app.setCanvasFillMode(pc.FILLMODE_NONE);
 app.setCanvasResolution(pc.RESOLUTION_AUTO);
@@ -356,17 +359,18 @@ const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 let patientFallbackRig:FallbackRig|null=patientFallback;
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>{patientFallback.entity.destroy();patientFallbackRig=null;});
 
-let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=4, focus=false, wallRotation:0|90=0;
+let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=3200, xp=0, nextId=4, focus=false, wallRotation:0|90=0;
 let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v2")||0);return saved===1?0:Math.max(0,Math.min(4,saved));}catch{return 0;}})();
 
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v9";
-const TRIAL_ACCOUNT_COINS=350; 
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v10";
+const managementSaveKey="therason-clinic-management-v1";
+const TRIAL_ACCOUNT_COINS=3200; 
 const starterLayout:Placed[]=[
  {id:1,kind:"treatment",gx:-2,gz:-2},
  {id:2,kind:"asset",gx:-1,gz:-1,rot:0,assetKey:"pt-treatment-table"},
  {id:3,kind:"asset",gx:-2,gz:1,rot:0,assetKey:"pt-storage-cabinet"}
 ];
-const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
+const costs:Record<BuildKind,number>={treatment:720,reception:420,assessment:620,gym:980,staff:360,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
  "pt-treatment-table":{file:"physical-therapy-room-set.glb",node:"TreatmentTable",label:"سرير علاج طبيعي",cost:90,footprint:2,targetSize:1.9},
  "pt-exam-table":{file:"doctors-office-set.glb",node:"ExamTable",label:"سرير فحص سريري",cost:95,footprint:2,targetSize:1.9},
