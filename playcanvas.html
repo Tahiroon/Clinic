@@ -13,8 +13,8 @@
 <div class="scene-top"><div><span class="scene-kicker">أرضك · مساحة قابلة للتوسع</span><strong id="zone-name">الفرع الأول · أرض البداية</strong></div><div class="scene-stats"><span id="patient-count">0 مرضى</span><span id="reputation">سمعة 50</span><span id="fps">-- FPS</span><span id="save-state">محفوظ</span></div></div>
 <section class="mission-card" id="mission-card" aria-label="مهمتك الحالية">
  <span class="mission-number">01</span>
- <div class="mission-copy"><span>مهمتك الحالية</span><strong id="mission-title">تفقّد غرفة العلاج</strong><small id="mission-detail">حرّك الأخصائي إلى غرفة العلاج لتتعرف على المكان.</small></div>
- <div class="mission-actions"><button id="start-tour" type="button">ابدأ الجولة</button><button id="skip-tour" type="button" aria-label="تخطي الجولة">تخطي</button></div>
+ <div class="mission-copy"><span>مهمتك الحالية</span><strong id="mission-title">ابنِ الاستقبال</strong><small id="mission-detail">اسحب على الأرض لرسم أول غرفة في عيادتك، ثم جهّزها لاستقبال المرضى.</small></div>
+ <div class="mission-actions"><button id="start-tour" type="button">ابدأ البناء</button><button id="skip-tour" type="button" aria-label="تخطي الجولة">تخطي</button></div>
 </section>
 <div class="stage"><canvas id="scene" aria-label="عالم العيادة ثلاثي الأبعاد"></canvas><div class="loading-cover" id="loading"><span class="loader"></span><b>نجهّز أرض عيادتك...</b><small>نحمّل المشهد الأساسي</small></div><div class="camera-hint" id="camera-hint">اسحب لتحريك المشهد · قرّب بإصبعين</div></div>
 <div class="scene-status"><span class="status-dot"></span><p id="status" aria-live="polite">اضغط على الأرض لتحريك الأخصائي. ابدأ بغرفة علاج واحدة، ثم وسّع عيادتك على أرضك.</p></div>
@@ -24,6 +24,7 @@
   <div><small>الرصيد</small><b id="mg-balance">3200</b></div><div><small>المرضى اليوم</small><b id="mg-treated">0</b></div><div><small>السمعة</small><b id="mg-reputation">50%</b></div><div><small>الفريق</small><b id="mg-staff-count">1</b></div>
  </div>
  <div class="time-controls"><b>وقت المحاكاة</b><div><button data-speed="0" type="button">إيقاف</button><button data-speed="1" class="selected" type="button">1×</button><button data-speed="2" type="button">2×</button><button data-speed="3" type="button">3×</button></div></div>
+ <button class="clinic-open-button" id="clinic-open-toggle" type="button">فتح العيادة</button>
  <div class="management-section"><h3>الفريق والموظفون</h3><div id="staff-list" class="management-list"></div>
   <div class="hire-grid"><button data-hire="physiotherapist" type="button">＋ أخصائي علاج طبيعي <small>520</small></button><button data-hire="receptionist" type="button">＋ موظف استقبال <small>280</small></button><button data-hire="rehab_assistant" type="button">＋ مساعد تأهيل <small>360</small></button><button data-hire="cleaner" type="button">＋ عامل نظافة <small>220</small></button></div>
  </div>
