@@ -4,32 +4,33 @@
 **Runtime:** PlayCanvas | **Branch:** clinic-dev | **World scale:** 1 unit = 1 metre.
 
 ## Art direction
-- Isometric 3D management-game presentation, viewed in portrait on a phone.
-- Inspired by the clarity and readability of Two Point Hospital, without copying its characters, architecture, UI, branding or assets.
-- Premium stylized realism: believable human proportions and recognizable physiotherapy equipment, with simplified clean geometry.
+- Portrait-first, isometric/three-quarter 3D management-game presentation.
+- Inspired by the readable rooms, staff scale and management camera of Two Point Hospital, without copying its characters, architecture, UI, branding or layouts.
+- Premium stylized realism: believable human proportions, recognizable physiotherapy equipment, readable room partitions, doors and furniture.
 - Calm modern rehabilitation-clinic identity: deep navy, teal/cyan accents, warm off-white walls, muted green landscaping and natural daylight.
-- Avoid toy-like miniature people, extreme saturation, excessive gloss, clutter and oversized empty hospital halls.
-- Rooms should read clearly from the isometric cutaway camera: open roof, readable wall thickness, visible doors/windows, distinct floor materials and believable furniture scale.
+- Avoid toy-like miniature people, excessive gloss, clutter, oversized empty hospital halls and oversized yard areas.
+- Roofless/cutaway rooms should be readable from the camera: consistent wall height, visible door clearance, distinct floor materials and believable furniture scale.
 
 ## Fixed starter-world dimensions
-- Maximum plot: 20 m × 20 m.
-- Starter building: two adjoining rooms, each approximately 4 m × 4 m; reception plus one treatment room.
-- Property includes a small entrance apron, paved walkway, lawn, low perimeter hedge, a few planters and trees.
-- Expansion is limited to the visible property boundary; no infinite world.
+- Starter property: approximately 6.5 m wide × 14 m deep, composed for portrait viewing; the plot is finite and surrounded by lawn/path/low edging.
+- Starter building: two adjoining 4 m × 4 m rooms aligned along the depth axis: reception at the entrance, treatment room directly behind it.
+- Both rooms share a 1.2 m internal doorway; each has a clear front entrance opening.
+- Outdoor area includes a short entrance walk, low perimeter hedge, a few trees and planters. All landscaping stays outside the building shell and outside the central walkway.
+- Later expansion purchases adjacent land parcels; do not make the first property infinite or warehouse-sized.
 - Human character height target: 1.65–1.80 m.
 - Room wall height target: approximately 2.2 m.
-- Door clear width target: at least 0.9 m.
+- Door clear width target: at least 1.0 m.
 - Keep all pivots at ground contact / logical placement center and all models in metre scale.
 
 ## Priority A — first production assets
-1. **Physiotherapist player:** one adult physiotherapist, neutral professional outfit with THERASON-compatible teal/navy accents, realistic body proportions, clean rig, idle/walk/turn animations.
+1. **Physiotherapist player:** one adult physiotherapist, neutral professional outfit with THERASON-compatible teal/navy accents, believable body proportions, clean rig, idle/walk/turn animations.
 2. **Patient visitor:** one adult patient character with a separate rig and idle/standing/sitting options. Patients are visitors, not employees.
 3. **Clinic modular shell:** straight wall, corner wall, shared partition, doorway, door frame, window frame, glass pane, wall cap, plinth and exterior sign.
 4. **Treatment table:** recognizable adjustable physiotherapy plinth with legs, mattress, head section and paper roll.
-5. **Reception desk:** realistic compact desk with monitor and storage; no receptionist NPC required for the first pass.
-6. **Storage cabinet:** compact medical storage with doors/handles.
-7. **Waiting chair:** one modular chair with correct seat height and backrest.
-8. **Outdoor kit:** grass ground, path pavers, low hedge segments/corners, one tree, one shrub, planter and a simple clinic entrance sign.
+5. **Reception desk:** compact realistic desk with monitor and storage; optional receptionist NPC is a later feature.
+6. **Waiting row:** modular 3–4 seat waiting row with correct seat height and enough side-lane clearance for the player.
+7. **Storage cabinet:** compact medical storage with doors/handles.
+8. **Outdoor kit:** grass ground, path pavers, low hedge segments/corners, one layered low-poly tree, one shrub, planter and simple clinic entrance sign.
 
 ## Priority B — first equipment catalogue
 - Parallel bars with correct handrail height.
@@ -49,9 +50,9 @@
 - Reuse materials; avoid unique 4K textures. Start with 512–1024 px texture maps where needed.
 - Prefer one atlas/material set per room kit when it reduces draw calls without causing excessive texture memory.
 - PBR maps only where they materially improve appearance; avoid expensive transparency except windows.
-- Target low-poly mobile geometry; use mesh compression and KTX2/Basis after validating browser support and visual quality.
+- Target mobile low-poly geometry; use mesh compression and KTX2/Basis after validating browser support and visual quality.
 - Keep textures and meshes separate only when reuse is valuable.
-- Include a preview render, source/license note, dimensions, pivot description and animation list with each asset delivery.
+- Include preview render, source/license note, dimensions, pivot description and animation list with each asset delivery.
 - No unnecessary rig bones, hidden mesh parts, duplicate materials or embedded demo scenes.
 
 ## Naming convention
@@ -61,6 +62,7 @@
 - `clinic_doorway_v01.glb`
 - `clinic_window_v01.glb`
 - `clinic_reception_desk_v01.glb`
+- `clinic_waiting_row_v01.glb`
 - `pt_treatment_table_v01.glb`
 - `pt_parallel_bars_v01.glb`
 - `env_grass_plot_v01.glb`
@@ -68,13 +70,13 @@
 ## Exclusions for the first release
 - No nurse, employed doctor, cleaner, assistant or staff roster.
 - No crowds or complex NPC simulation.
-- No full-size hospital building or oversized multi-floor architecture.
+- No full-size hospital building or multi-floor architecture.
 - No high-cost real-time reflections, heavy post-processing or 4K assets.
 - No unlicensed downloaded assets.
 
 ## Acceptance before an asset enters the game
-1. Fits the documented metre scale and camera angle.
-2. Looks correct in portrait at the target phone resolution.
+1. Fits the metre scale and portrait camera composition.
+2. Looks correct at the target phone resolution.
 3. Has a clean collision footprint and placement origin.
 4. Loads independently and has a fallback or graceful failure path.
 5. Does not exceed the agreed mobile memory / draw-call budget.
