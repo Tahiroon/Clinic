@@ -39,5 +39,22 @@ for (const [file, nodeNames, animationNames] of required) {
     console.error("✗ " + file + ": " + (error instanceof Error ? error.message : String(error)));
   }
 }
+// Regression guard: ModelComponent adds model.graph beneath its owner.
+ // Sharing the owner entity as model.graph creates a self-referential hierarchy.
+try {
+  const source = await readFile(resolve(root, "src/playcanvas/main.ts"), "utf8");
+  const lawn = source.slice(source.indexOf("function createLawnGrass"), source.indexOf("createLawnGrass();"));
+  if (!lawn || /model\\.graph\\s*=\\s*entity/.test(lawn)) {
+    throw new Error("The lawn model graph must never reference its owning entity");
+  }
+  if (!/model\\.graph\\s*=\\s*grassGraph/.test(lawn) ||
+      !/new pc\\.MeshInstance\\(mesh,\\s*grassMat,\\s*grassGraph\\)/.test(lawn)) {
+    throw new Error("The lawn mesh and Model must share a separate GraphNode root");
+  }
+  console.log("✓ PlayCanvas model graph has no owner self-reference");
+} catch (error) {
+  failed = true;
+  console.error("✗ PlayCanvas scene graph regression: " + (error instanceof Error ? error.message : String(error)));
+}
 if (failed) process.exit(1);
-console.log("All required clinic GLB assets and model names validated.");
+console.log("All required clinic GLB assets and scene graph checks passed.");
