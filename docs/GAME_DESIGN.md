@@ -21,16 +21,12 @@ The broad inspiration is the readable isometric management experience of Two Poi
 - Patients are visitors/case characters, not employees.
 - The starter clinic works fully without hiring a receptionist.
 
-## Standardized starter clinic
-All players begin with the same compact, polished starter clinic and initial plot footprint. The baseline includes:
-- A simple reception/waiting zone.
-- One treatment room.
-- A short, clear circulation route with usable doors.
-- A modest outdoor lawn/green area.
-- A small essential furniture/equipment catalog.
-- A visible edge or adjacent parcel that communicates future expansion.
+## Starter property and player-built clinic
+All players begin on the same generous 14 m × 28 m property, composed for portrait play. The land is continuous green outdoor space with a clear entrance path and landscaping around the edges. The only prebuilt interior is one compact 4 m × 4 m treatment room with one treatment table and one storage unit.
 
-The starter architecture remains recognizable and fair for all players. Personalization begins with furniture, equipment, selected finishes and decor. Major building variation and extra rooms unlock gradually. It must feel intentionally designed, not oversized or empty.
+Do not spawn a finished reception/waiting wing or pave the whole property with clinic tiles. The player builds the clinic gradually: additional treatment rooms, reception, waiting, exercise areas and specialist facilities are constructed on the open property as progression permits. Floors and walls belong to player-built rooms only; all unbuilt land remains outdoor lawn.
+
+The starter state should look like the beginning of a clinic-development game, not a completed miniature hospital.
 
 ## World and expansion
 The clinic is situated on a larger property. Players may unlock or purchase adjacent land parcels using in-game progression and currency. Expansion can add rooms, wings or separate buildings, plus outdoor paths, trees, benches, signs, parking and a rehabilitation garden. Later specialist spaces may include a larger exercise gym, sports rehabilitation, balance/mobility facilities, and other justified facilities.
