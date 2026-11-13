@@ -102,6 +102,44 @@ for(const [x,z] of [[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]] as [number,n
  box("Outdoor planter",x,.18,z,.48,.36,.78,M.wood2,world);
  cone("Planter shrub",x,.66,z,.40,.82,.40,M.green,world);
 }
+ // One merged mesh gives the exterior lawn real 3D grass blades without hundreds of draw calls.
+ function createLawnGrass(){
+  const positions:number[]=[],indices:number[]=[],colors:number[]=[];
+  let seed=7319;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+  const addTuft=(x:number,z:number)=>{
+   const count=2+Math.floor(rand()*2);
+   for(let n=0;n<count;n++){
+    const angle=rand()*Math.PI,half=.018+rand()*.018,height=.12+rand()*.16;
+    const lean=(rand()-.5)*.10,baseY=.015+rand()*.018;
+    const dx=Math.cos(angle)*half,dz=Math.sin(angle)*half;
+    const start=positions.length/3;
+    positions.push(x-dx,baseY,z-dz,x+dx,baseY,z+dz,x+lean,baseY+height,z);
+    const shade=rand();
+    const col=shade>.72?[63,119,66,255]:shade<.2?[91,139,77,255]:[74,130,69,255];
+    for(let k=0;k<3;k++)colors.push(...col);
+    indices.push(start,start+1,start+2);
+   }
+  };
+  for(let i=0;i<230;i++){
+   const z=-5.35+rand()*10.7;
+   addTuft(-2.72+rand()*.55,z);addTuft(2.17+rand()*.55,z);
+  }
+  for(let i=0;i<150;i++){
+   const x=-2.85+rand()*5.7,z=rand()>.5?5.25+rand()*1.25:-6.8+rand()*1.25;
+   if(z< -5.35&&Math.abs(x)<1.05)continue;
+   addTuft(x,z);
+  }
+  const mesh=new pc.Mesh(app.graphicsDevice);
+  mesh.setPositions(new Float32Array(positions));
+  mesh.setNormals(pc.calculateNormals(positions,indices));
+  mesh.setColors32(new Uint8Array(colors));
+  mesh.setIndices(indices);mesh.update();
+  const grassMat=material(new pc.Color(1,1,1));grassMat.diffuseVertexColor=true;grassMat.cull=pc.CULLFACE_NONE;grassMat.update();
+  const entity=new pc.Entity("Exterior lawn · merged 3D grass");
+  const model=new pc.Model();model.graph=entity;model.meshInstances=[new pc.MeshInstance(mesh,grassMat,entity)];
+  entity.addComponent("model");entity.model!.model=model;world.addChild(entity);
+ }
+ createLawnGrass();
 // The clinic identity is fixed to the entrance facade, not floating in the middle of the lawn.
 box("THERASON entrance sign",0,2.55,-4.13,2.0,.46,.12,trim,world);
 box("Entrance sign inset",0,2.56,-4.205,1.7,.27,.035,M.white,world);
