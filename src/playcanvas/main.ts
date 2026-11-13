@@ -103,10 +103,9 @@ for(const [x,z] of outdoorShrubPositions){
  box("Outdoor planter",x,.17,z,.56,.34,.78,M.wood2,world);
  const shrub=sphere("Outdoor shrub",x,.62,z,.37,M.green,world);shrub.setLocalScale(1.12,.8,.95);
 }
-let lawnGrassOwner:pc.Entity|null=null,lawnGrassMesh:pc.Mesh|null=null;
+let lawnGrassOwner:pc.Entity|null=null;
 function createLawnGrass(){
  if(lawnGrassOwner){lawnGrassOwner.destroy();lawnGrassOwner=null;}
- if(lawnGrassMesh){lawnGrassMesh.destroy();lawnGrassMesh=null;}
  const positions:number[]=[],indices:number[]=[],colors:number[]=[];
  let seed=7319;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
  const addTuft=(x:number,z:number)=>{
@@ -130,7 +129,7 @@ function createLawnGrass(){
   if(insideAnyRoom||onEntrancePath||nearTree||nearShrub)continue;
   addTuft(x,z);
  }
- const mesh=new pc.Mesh(app.graphicsDevice);lawnGrassMesh=mesh;
+ const mesh=new pc.Mesh(app.graphicsDevice);
  mesh.setPositions(new Float32Array(positions));
  mesh.setNormals(pc.calculateNormals(positions,indices));
  mesh.setColors32(new Uint8Array(colors));
