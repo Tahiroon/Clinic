@@ -209,6 +209,17 @@ try {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
   }
   console.log("✓ Player physiotherapist and waiting patients have visible character instances");
+  const clinicalSource=source.slice(source.indexOf("const patientBriefs:"),source.indexOf("function renderStep()"));
+  for (const need of ["pain:","mobility:","post_op:","sports:"]) {
+    if (!clinicalSource.includes(need)) throw new Error("The clinical encounter is missing the " + need + " patient scenario");
+  }
+  if (!/patientBriefs\[activePatient\.need\]/.test(source)) {
+    throw new Error("The learning encounter must show a brief that matches the actual patient's case type");
+  }
+  if (/ألماً بعد رفع جسم ثقيل/.test(clinicalSource)) {
+    throw new Error("Generic clinical prompts must not contradict the simulated patient's case");
+  }
+  console.log("✓ Clinical learning prompts match the patient case shown in the session");
 
 } catch (error) {
   failed = true;
