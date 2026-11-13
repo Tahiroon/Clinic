@@ -505,30 +505,45 @@ const managementSaveKey="therason-clinic-management-v5";
 const TRIAL_ACCOUNT_COINS=3200; 
 const starterLayout:Placed[]=[];
 const costs:Record<BuildKind,number>={treatment:720,reception:420,assessment:620,gym:980,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
-const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
- "pt-treatment-table":{file:"examination-couch.glb",node:"*",label:"سرير علاج طبيعي",cost:90,footprint:2,targetSize:2.3},
- "pt-exam-table":{file:"examination-couch.glb",node:"*",label:"سرير فحص سريري",cost:95,footprint:2,targetSize:2.3},
- "pt-patient-chair":{file:"doctors-office-set.glb",node:"Chair_Patient",label:"كرسي المريض",cost:45,footprint:1,targetSize:0.9},
- "pt-doctor-desk":{file:"doctors-office-set.glb",node:"Desk_Doctor",label:"مكتب الأخصائي",cost:65,footprint:2,targetSize:1.35},
- "pt-privacy-screen":{file:"privacy-screen.glb",node:"*",label:"حاجز خصوصية طبي",cost:60,footprint:2,targetSize:1.8},
- "pt-clinical-sink":{file:"doctors-office-set.glb",node:"Sink_Cabinet",label:"حوض غسل طبي",cost:50,footprint:1,targetSize:0.95},
- "pt-wall-chart":{file:"doctors-office-set.glb",node:"Wall_Chart",label:"لوحة فحص سريري",cost:25,footprint:1,targetSize:0.85},
- "pt-parallel-bars":{file:"physical-therapy-room-set.glb",node:"ParallelBars",label:"جهاز المتوازي",cost:100,footprint:3,targetSize:2.8},
- "pt-band-rack":{file:"physical-therapy-room-set.glb",node:"BandRack",label:"حامل أحزمة المقاومة",cost:35,footprint:2,targetSize:1.5},
- "pt-exercise-ball":{file:"physical-therapy-room-set.glb",node:"ExerciseBall",label:"كرة علاجية",cost:20,footprint:1,targetSize:.72},
- "pt-exercise-mat":{file:"physical-therapy-room-set.glb",node:"ExerciseMat",label:"بساط تمارين",cost:25,footprint:2,targetSize:2.2},
- "pt-hand-weights":{file:"physical-therapy-room-set.glb",node:"HandWeights",label:"أوزان علاجية",cost:30,footprint:2,targetSize:1.2},
- "pt-privacy-curtain":{file:"physical-therapy-room-set.glb",node:"PrivacyCurtain",label:"ستارة خصوصية",cost:45,footprint:3,targetSize:2.8},
- "pt-storage-cabinet":{file:"bedside-cabinet.glb",node:"*",label:"خزانة أدوات",cost:40,footprint:1,targetSize:.85},
- "pt-reception-desk":{file:"reception-desk.glb",node:"*",label:"مكتب استقبال",cost:160,footprint:3,targetSize:2.2},
- "pt-waiting-bench":{file:"waiting-bench-two-seat.glb",node:"*",label:"مقعد انتظار مزدوج",cost:65,footprint:2,targetSize:1.5},
- "pt-wheelchair":{file:"wheelchair.glb",node:"*",label:"كرسي متحرك",cost:75,footprint:2,targetSize:1.1},
- "hospital-crutches":{file:"hospital-equipment-set.glb",node:"Crutches",label:"عكازات طبية",cost:18,footprint:1,targetSize:1.35},
- "hospital-first-aid":{file:"hospital-equipment-set.glb",node:"FirstAidBag",label:"حقيبة إسعافات",cost:15,footprint:1,targetSize:.65},
- "hospital-oxygen":{file:"hospital-equipment-set.glb",node:"OxygenTrolley",label:"عربة أكسجين",cost:55,footprint:1,targetSize:1.15},
- "hospital-stretcher":{file:"hospital-equipment-set.glb",node:"Stretcher",label:"نقالة طبية",cost:75,footprint:3,targetSize:2.7},
- "hospital-transport-chair":{file:"hospital-equipment-set.glb",node:"TransportChair",label:"كرسي نقل مرضى",cost:55,footprint:2,targetSize:1.25},
- "hospital-walking-frame":{file:"hospital-equipment-set.glb",node:"WalkingFrame",label:"مشاية طبية",cost:35,footprint:2,targetSize:1.15}
+type StoreCategory="therapy"|"assessment"|"mobility"|"furnishing"|"safety"|"decor"|"specialty"|"kits";
+type StoreAssetSpec={file:string;node:string;label:string;cost:number;footprint:number;targetSize:number;category:StoreCategory;description:string;room:string};
+const storeAssetSpecs:Record<string,StoreAssetSpec>={
+ "pt-treatment-table":{file:"examination-couch.glb",node:"*",label:"سرير علاج طبيعي",cost:90,footprint:2,targetSize:2.3,category:"therapy",description:"سرير جلسات فردية مع مساحة وصول من الجانبين.",room:"غرفة العلاج"},
+ "pt-exam-table":{file:"examination-couch.glb",node:"*",label:"سرير فحص سريري",cost:95,footprint:2,targetSize:2.3,category:"assessment",description:"لفحص المدى الحركي والقوة والوظيفة.",room:"غرفة التقييم"},
+ "pt-patient-chair":{file:"doctors-office-set.glb",node:"Chair_Patient",label:"كرسي المريض",cost:45,footprint:1,targetSize:.9,category:"assessment",description:"مقعد للمقابلة وأخذ التاريخ المرضي.",room:"غرفة التقييم"},
+ "pt-doctor-desk":{file:"doctors-office-set.glb",node:"Desk_Doctor",label:"مكتب الأخصائي",cost:65,footprint:2,targetSize:1.35,category:"furnishing",description:"مساحة عمل لتوثيق الجلسات وتنظيم الملفات.",room:"غرفة التقييم أو الإدارة"},
+ "pt-privacy-screen":{file:"privacy-screen.glb",node:"*",label:"حاجز خصوصية طبي",cost:60,footprint:2,targetSize:1.8,category:"furnishing",description:"فاصل بصري متحرك بين مساحات الفحص والعلاج.",room:"غرفة العلاج أو التقييم"},
+ "pt-clinical-sink":{file:"doctors-office-set.glb",node:"Sink_Cabinet",label:"حوض غسل طبي",cost:50,footprint:1,targetSize:.95,category:"safety",description:"نقطة غسل يدين ونظافة سريرية.",room:"غرفة العلاج أو التقييم"},
+ "pt-wall-chart":{file:"doctors-office-set.glb",node:"Wall_Chart",label:"لوحة فحص سريري",cost:25,footprint:1,targetSize:.85,category:"assessment",description:"لوحة مرجعية للفحص والتثقيف.",room:"غرفة التقييم"},
+ "pt-parallel-bars":{file:"physical-therapy-room-set.glb",node:"ParallelBars",label:"جهاز المتوازي",cost:100,footprint:3,targetSize:2.8,category:"therapy",description:"تدريب الاتزان وتحميل الوزن وإعادة تعليم المشي.",room:"صالة التأهيل"},
+ "pt-band-rack":{file:"physical-therapy-room-set.glb",node:"BandRack",label:"حامل أحزمة المقاومة",cost:35,footprint:2,targetSize:1.5,category:"therapy",description:"تنظيم أحزمة المقاومة بمستوياتها المختلفة.",room:"صالة التأهيل"},
+ "pt-exercise-ball":{file:"physical-therapy-room-set.glb",node:"ExerciseBall",label:"كرة علاجية",cost:20,footprint:1,targetSize:.72,category:"therapy",description:"تمارين الثبات والتحكم بالجذع.",room:"صالة التأهيل"},
+ "pt-exercise-mat":{file:"physical-therapy-room-set.glb",node:"ExerciseMat",label:"بساط تمارين",cost:25,footprint:2,targetSize:2.2,category:"therapy",description:"تمارين أرضية وإطالة وتدريب وظيفي.",room:"صالة التأهيل"},
+ "pt-hand-weights":{file:"physical-therapy-room-set.glb",node:"HandWeights",label:"أوزان علاجية",cost:30,footprint:2,targetSize:1.2,category:"therapy",description:"تدريب المقاومة وتقوية الأطراف.",room:"صالة التأهيل"},
+ "pt-privacy-curtain":{file:"physical-therapy-room-set.glb",node:"PrivacyCurtain",label:"ستارة خصوصية",cost:45,footprint:3,targetSize:2.8,category:"furnishing",description:"ستارة لتقسيم المساحة العلاجية مع الحفاظ على الخصوصية.",room:"غرفة العلاج"},
+ "pt-storage-cabinet":{file:"bedside-cabinet.glb",node:"*",label:"خزانة أدوات",cost:40,footprint:1,targetSize:.85,category:"furnishing",description:"تخزين الأدوات والمستهلكات الصغيرة.",room:"أي غرفة"},
+ "pt-reception-desk":{file:"reception-desk.glb",node:"*",label:"مكتب استقبال",cost:160,footprint:3,targetSize:2.2,category:"furnishing",description:"كاونتر تسجيل وتنظيم دخول المراجعين.",room:"الاستقبال"},
+ "pt-waiting-bench":{file:"waiting-bench-two-seat.glb",node:"*",label:"مقعد انتظار مزدوج",cost:65,footprint:2,targetSize:1.5,category:"furnishing",description:"مقعدين للمرضى والمرافقين في منطقة الانتظار.",room:"الاستقبال"},
+ "pt-wheelchair":{file:"wheelchair.glb",node:"*",label:"كرسي متحرك",cost:75,footprint:2,targetSize:1.1,category:"mobility",description:"مساعدة التنقل للمرضى ذوي صعوبة المشي.",room:"الاستقبال أو الممر"},
+ "hospital-crutches":{file:"hospital-equipment-set.glb",node:"Crutches",label:"عكازات طبية",cost:18,footprint:1,targetSize:1.35,category:"mobility",description:"تدريب المشي وتخفيف التحميل حسب الحالة.",room:"صالة التأهيل"},
+ "hospital-first-aid":{file:"hospital-equipment-set.glb",node:"FirstAidBag",label:"حقيبة إسعافات أولية",cost:15,footprint:1,targetSize:.65,category:"safety",description:"حقيبة تجهيزات السلامة والإسعاف الأولي.",room:"الاستقبال أو غرفة العلاج"},
+ "hospital-oxygen":{file:"hospital-equipment-set.glb",node:"OxygenTrolley",label:"عربة أكسجين",cost:55,footprint:1,targetSize:1.15,category:"safety",description:"معدات دعم تنفسي للحالات التي تتطلبها.",room:"غرفة العلاج"},
+ "hospital-stretcher":{file:"hospital-equipment-set.glb",node:"Stretcher",label:"نقالة طبية",cost:75,footprint:3,targetSize:2.7,category:"mobility",description:"نقل الحالات غير القادرة على الانتقال بأمان.",room:"الممر أو مساحة النقل"},
+ "hospital-transport-chair":{file:"hospital-equipment-set.glb",node:"TransportChair",label:"كرسي نقل مرضى",cost:55,footprint:2,targetSize:1.25,category:"mobility",description:"كرسي مخصص لنقل المرضى داخل المنشأة.",room:"الاستقبال أو الممر"},
+ "hospital-walking-frame":{file:"hospital-equipment-set.glb",node:"WalkingFrame",label:"مشاية طبية",cost:35,footprint:2,targetSize:1.15,category:"mobility",description:"تدريب المشي ودعم الاتزان.",room:"صالة التأهيل"},
+ "clinic-partition-wall":{file:"partition-wall.glb",node:"*",label:"حاجز تقسيم داخلي",cost:55,footprint:2,targetSize:1.85,category:"furnishing",description:"وحدة تقسيم معمارية لتحديد مناطق العمل.",room:"داخل الغرف"},
+ "clinic-short-partition":{file:"partition-wall-1m.glb",node:"*",label:"حاجز تقسيم قصير",cost:30,footprint:1,targetSize:.9,category:"furnishing",description:"فاصل قصير للمساحات الصغيرة.",room:"داخل الغرف"},
+ "clinic-door-leaf":{file:"door-leaf.glb",node:"*",label:"ضلفة باب داخلية",cost:35,footprint:1,targetSize:.9,category:"furnishing",description:"باب داخلي لتجهيز الغرف ومسارات الحركة.",room:"داخل الغرف"},
+ "clinic-floor-tile":{file:"corridor-floor-tile.glb",node:"*",label:"بلاطة أرضية طبية",cost:12,footprint:1,targetSize:.9,category:"decor",description:"وحدة تشطيب أرضيات للممرات والمساحات الداخلية.",room:"الممرات والغرف"},
+ "clinic-signage-pack":{file:"hospital-signage-set.glb",node:"*",label:"حزمة لافتات وإرشاد",cost:85,footprint:3,targetSize:2.25,category:"decor",description:"مجموعة لافتات تساعد على تعريف الغرف وتوجيه المرضى.",room:"الاستقبال والممرات"},
+ "clinic-amenities-corner":{file:"hospital-gift-shop-set.glb",node:"*",label:"ركن خدمات ومستلزمات",cost:180,footprint:4,targetSize:3.1,category:"decor",description:"ركن خدمات إضافي يمكن تخصيصه للضيافة والمستلزمات.",room:"منطقة الخدمات"},
+ "clinic-therapy-suite":{file:"physical-therapy-room-set.glb",node:"*",label:"طقم صالة علاج متكامل",cost:340,footprint:4,targetSize:3.55,category:"kits",description:"مجموعة تجهيزات علاج طبيعي من حزمة المجسمات نفسها.",room:"صالة تأهيل واسعة"},
+ "clinic-waiting-suite":{file:"hospital-waiting-room.glb",node:"*",label:"طقم منطقة انتظار",cost:260,footprint:4,targetSize:3.45,category:"kits",description:"مجموعة أثاث انتظار جاهزة من نموذج الغرفة الأصلي.",room:"الاستقبال"},
+ "clinic-reception-suite":{file:"hospital-reception-desk.glb",node:"*",label:"طقم استقبال متكامل",cost:240,footprint:4,targetSize:3.2,category:"kits",description:"وحدة استقبال كاملة من مجموعة المستشفى.",room:"الاستقبال"},
+ "clinic-patient-room-suite":{file:"hospital-patient-room.glb",node:"*",label:"طقم غرفة مريض",cost:290,footprint:4,targetSize:3.35,category:"kits",description:"تجهيز غرفة رعاية ومتابعة للحالات التي تحتاج مساحة سريرية.",room:"غرفة مخصصة"},
+ "clinic-bed-bay":{file:"hospital-bed-bay.glb",node:"*",label:"وحدة سرير رعاية",cost:220,footprint:4,targetSize:3.2,category:"specialty",description:"تجهيز سرير ومحيطه للاستخدامات السريرية المتخصصة.",room:"غرفة مخصصة"},
+ "clinic-lab-suite":{file:"hospital-lab-set.glb",node:"*",label:"وحدة مختبر سريري",cost:420,footprint:4,targetSize:3.4,category:"specialty",description:"تجهيز مختبر توسعي للمنشآت متعددة التخصصات.",room:"غرفة مخصصة"},
+ "clinic-imaging-suite":{file:"x-ray-room-set.glb",node:"*",label:"وحدة تصوير طبي",cost:520,footprint:4,targetSize:3.4,category:"specialty",description:"تجهيز تصوير طبي كتوسعة مستقبلية لمركز تأهيل متكامل.",room:"غرفة مخصصة"}
 };
 const clinicAssetUrls:Record<string,string>={
  "physical-therapy-room-set.glb":new URL("../assets/clinic-kit/hospital/physical-therapy-room-set.glb",import.meta.url).href,
@@ -546,7 +561,12 @@ const clinicAssetUrls:Record<string,string>={
  "partition-wall.glb":new URL("../assets/clinic-kit/management-sim/partition-wall.glb",import.meta.url).href,
  "partition-wall-1m.glb":new URL("../assets/clinic-kit/management-sim/partition-wall-1m.glb",import.meta.url).href,
  "door-leaf.glb":new URL("../assets/clinic-kit/management-sim/door-leaf.glb",import.meta.url).href,
- "corridor-floor-tile.glb":new URL("../assets/clinic-kit/management-sim/corridor-floor-tile.glb",import.meta.url).href
+ "corridor-floor-tile.glb":new URL("../assets/clinic-kit/management-sim/corridor-floor-tile.glb",import.meta.url).href,
+ "hospital-signage-set.glb":new URL("../assets/clinic-kit/hospital/hospital-signage-set.glb",import.meta.url).href,
+ "hospital-gift-shop-set.glb":new URL("../assets/clinic-kit/hospital/hospital-gift-shop-set.glb",import.meta.url).href,
+ "hospital-bed-bay.glb":new URL("../assets/clinic-kit/hospital/hospital-bed-bay.glb",import.meta.url).href,
+ "hospital-lab-set.glb":new URL("../assets/clinic-kit/hospital/hospital-lab-set.glb",import.meta.url).href,
+ "x-ray-room-set.glb":new URL("../assets/clinic-kit/hospital/x-ray-room-set.glb",import.meta.url).href
 };
 const containerCache=new Map<string,Promise<any>>();
 function loadRoomModule(parent:Entity,file:string,x:number,y:number,z:number,rotation:number,scaleX=1,scaleZ=1,fallback:"floor"|"wall"="wall",scaleY=1){
