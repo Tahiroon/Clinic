@@ -99,11 +99,11 @@ try {
   if (!/id:1,kind:"treatment",gx:-2,gz:-2,width:4,depth:4/.test(starter[1])) {
     throw new Error("The starter clinic must contain exactly one 4×4 treatment room");
   }
-  if (!/Owned green property/.test(source) || !/Main entrance garden path/.test(source) || !/outdoorTreePositions/.test(source) || !/setClinicOpen\(management/.test(source)) {
+  if (!/Surrounding green landscape/.test(source) || !/Clinic buildable foundation/.test(source) || !/Main entrance garden path/.test(source) || !/outdoorTreePositions/.test(source) || !/setClinicOpen\(management/.test(source)) {
     throw new Error("The open green property, entrance path and outdoor landscaping must exist");
   }
   console.log("✓ PlayCanvas model graph has no owner self-reference");
-  if (!/insideAnyRoom=placed\.some/.test(source) || !/if\(isRoomKind\(item\.kind\)\)createLawnGrass\(\)/.test(source)) {
+  if (!/insideBuildablePlot=x>-HALF_X/.test(source) || !/if\(isRoomKind\(item\.kind\)\)createLawnGrass\(\)/.test(source)) {
     throw new Error("Outdoor grass must be masked and regenerated when new rooms are built");
   }
   if (!/Math\.min\(34,pinchHeight/.test(source)) {
@@ -112,8 +112,8 @@ try {
   console.log("✓ Main campaign starts with one 4×4 m treatment room on a 14×28 m green property");
   console.log("✓ Grass stays outside every player-built room"); 
   const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.z < b.z + b.d && a.z + a.d > b.z;
-  const treePositions = [[-5.65,-11.4],[5.65,-11.4],[-5.65,11.4],[5.65,11.4]];
-  const shrubPositions = [[-5.9,-5.5],[5.9,-2.5],[-5.9,4.2],[5.9,6.0]];
+  const treePositions = [[-9.1,-16.1],[9.1,-16.1],[-9.1,16.1],[9.1,16.1]];
+  const shrubPositions = [[-8.8,-7.5],[8.8,-4.5],[-8.8,5.2],[8.8,8.0]];
   const routeObstacles = [
     {x:.97,z:1.07,w:.56,d:.56},
     {x:-2.08,z:-2,w:.16,d:4},{x:1.92,z:-2,w:.16,d:4},
@@ -166,18 +166,20 @@ try {
   }
   console.log("✓ Player physiotherapist, patient flow, optional receptionist upgrade, economy and simulation controls are wired");
   console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
-  if (!/Room identity signboard/.test(source) || !/Left wall crown/.test(source) || !/Right wall skirting/.test(source)) {
-    throw new Error("Room architecture is missing its THERASON colour trim and readable entrance signage");
+  if (!/addRoomWallRun\(root,"x",-halfW,width,halfD,"solid"\)/.test(source) || !/const twoMetreFile="partition-wall\.glb"/.test(source)) {
+    throw new Error("Clinic rooms must use plain opaque walls, not glass partitions");
   }
-  if (!/p\.kind==="assessment"[\s\S]*?assetKey:"pt-exam-table"[\s\S]*?assetKey:"pt-privacy-screen"/.test(source) ||
-      !/p\.kind==="gym"[\s\S]*?assetKey:"pt-parallel-bars"[\s\S]*?assetKey:"pt-exercise-ball"/.test(source)) {
-    throw new Error("Assessment and exercise rooms must be furnished with their matching 3D equipment");
+  const drawPlacedSource=source.slice(source.indexOf("function drawPlaced(p:Placed)"),source.indexOf("\nfunction footprint("));
+  if (/loadClinicAsset\(\{id:p\.id\*1000/.test(drawPlacedSource)) throw new Error("Rooms must be empty until the player buys and places equipment");
+  if (!/id="store-panel"/.test(html) || !/data-store-category/.test(html) || (html.match(/class="store-item"/g)||[]).length < 16) {
+    throw new Error("The dedicated categorized equipment shop is incomplete");
   }
+  console.log("✓ Plain opaque room architecture and player-controlled furnishing are wired");
+  console.log("✓ Dedicated mobile equipment store contains categorized, priced clinical assets");
   if (!/highDetailDevice=deviceMemory>=4&&cpuCores>=6/.test(source) ||
       !/maxPixelRatio=highDetailDevice\?Math\.min\(window\.devicePixelRatio\|\|1,1\.25\):1\.0/.test(source)) {
     throw new Error("Adaptive rendering quality is missing for high-end and low-end devices");
   }
-  console.log("✓ Room cutaway architecture, THERASON identity and room-specific 3D equipment are wired");
   console.log("✓ Adaptive rendering preserves low-end performance and sharpens capable devices");
   for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.physiotherapist,avatar", "loadHumanoid(characterAssets.patient,root", "loadHumanoid(characterAssets.receptionist,receptionistNpc", "receptionistNpc.enabled=management.receptionistOwned", "registerPatient(management,Number(button.dataset.registerPatient))", "recoverInterruptedSessions(management)", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
