@@ -232,20 +232,16 @@ try {
       !/addEventListener\("wheel"/.test(source)) {
     throw new Error("Accessible one-handed zoom, recenter and desktop wheel controls are required");
   }
-  if (!/const gaitLaneX=3\.25,gaitLaneZ=-16\.15/.test(source) && !/const gaitLaneX=3\.25,gaitLaneZ=-16\.05/.test(source) ||
-      !/Outdoor gait training lane/.test(source) || !/nearGaitLane/.test(source)) {
-    throw new Error("The outdoor gait-training lane must stay outside the buildable plot and clear its grass mesh");
+  if (!/const gaitLaneX=4\.2,gaitLaneZ=-17\.8/.test(source) ||
+      !/Outdoor physiotherapy gait lane/.test(source) || !/Gait lane walking surface/.test(source)) {
+    throw new Error("The outdoor gait-training lane must be part of the expanded district");
   }
-  if (!/Garden entrance gate pier/.test(source) || !/Clinic arrival court paving/.test(source) ||
-      !/Property edge coping/.test(source) || !/propertyEdges/.test(source)) {
-    throw new Error("Outdoor arrival must include an open gate, layered property edge and paved entrance court");
+  if (!/Clinic entrance gate lintel/.test(source) || !/Arrival court paving/.test(source) ||
+      !/West clinic boundary/.test(source) || !/East clinic boundary/.test(source) ||
+      !/Rear clinic boundary/.test(source) || !/Main gate masonry pier/.test(source)) {
+    throw new Error("The clinic must be enclosed by substantial masonry walls with a readable public gate");
   }
-  console.log("✓ Portrait arrival sequence, open garden gate and layered stone edge are present");
-  if (!/const tuftBudget=highDetailDevice\?4200:2400/.test(source) || !/for\(let i=0;i<tuftBudget;i\+\+\)/.test(source) ||
-      !/Layered landscape turf island/.test(source)) {
-    throw new Error("Outdoor grass density and layered lawn treatment must adapt to device capability");
-  }
-  console.log("✓ Layered lawn islands and denser outdoor grass adapt to device capability");
+  console.log("✓ District arrival, gait-training area and complete masonry property enclosure are present");
   for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.physiotherapist,avatar", "loadHumanoid(characterAssets.patient,root", "loadHumanoid(characterAssets.receptionist,receptionistNpc", "receptionistNpc.enabled=management.receptionistOwned", "registerPatient(management,Number(button.dataset.registerPatient))", "recoverInterruptedSessions(management)", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
   }
