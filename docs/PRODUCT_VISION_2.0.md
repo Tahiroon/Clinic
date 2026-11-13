@@ -33,19 +33,20 @@ Explicitly out of scope for the initial release:
 
 Patients are visitors/clinical case characters, not employees. They may appear in the clinic and clinical encounter. The clinical content must not imply that a receptionist provides clinical care.
 
-## 4. Starter clinic — standardized foundation
+## 4. Starter property — open land, not a prebuilt clinic
 
-Every learner starts with the same recognizable, compact, attractive starter clinic and the same initial plot footprint. This creates a fair baseline, reduces asset and testing scope, and makes the first experience easy to understand.
+Every learner starts on the same generous, portrait-composed property: approximately **14 m × 28 m**. The land is primarily open green lawn, with a clear entrance path, a small outdoor landscape and substantial usable space around the first room.
 
-Starter-clinic principles:
-- Small but visually polished; never an oversized empty warehouse.
-- Open-roof isometric presentation with readable wall height, doors and windows.
-- A simple reception/waiting zone, one treatment room, a compact circulation route, and a modest outdoor green area.
-- A small set of essential furnishings and physiotherapy equipment.
-- A clear empty/expandable edge so future growth is visible.
-- Players can personalize furnishing and decoration within safe placement rules, while the starter architectural footprint remains standardized.
+The first playable state contains:
+- One compact 4 m × 4 m treatment room only.
+- One treatment table and one storage unit as essential starter equipment.
+- A visible patient approach and a clear entrance route.
+- Continuous outdoor grass around the building; grass, trees and shrubs never appear inside constructed rooms.
+- Large, visibly empty buildable land where the learner can add rooms and facilities.
 
-The first clinic is a shared template, not a permanently identical interior. Personalization starts with furniture placement, selected finishes and decor; major architectural variation unlocks later.
+Do not prebuild a complete clinic, reception wing, waiting hall or a tiled floor covering the whole property. The learner creates the clinic over time. Room floors exist only inside rooms the player has built; the surrounding property remains outdoor ground.
+
+The initial property is a generous development site, not an empty warehouse: landscaping and paths give it identity while preserving most of the land for meaningful expansion.
 
 ## 5. Land, property and expansion
 
