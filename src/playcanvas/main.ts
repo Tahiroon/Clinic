@@ -471,7 +471,7 @@ function loadWaitingSeats(parent:pc.Entity){
   seats.setLocalScale(scale,scale,scale);seats.syncHierarchy();
   bounds=renderBounds(seats);
   if(!bounds)throw new Error("Waiting seats have no render meshes");
-  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(2.45,0,1.45),new pc.Vec3());
+  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(1.45,0,.45),new pc.Vec3());
   const current=seats.getPosition();
   seats.setPosition(current.x+target.x-(bounds.minX+bounds.maxX)/2,current.y-bounds.minY,current.z+target.z-(bounds.minZ+bounds.maxZ)/2);
   seats.syncHierarchy();
@@ -508,7 +508,7 @@ function loadReceptionDesk(parent:pc.Entity){
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();
   b=renderBounds(model);
   if(!b)throw new Error("Reception desk has no renderable meshes after scaling");
-  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(-.15,0,2.0),new pc.Vec3());
+  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(-.15,0,1.0),new pc.Vec3());
   const current=model.getPosition();
   model.setPosition(current.x+target.x-(b.minX+b.maxX)/2,current.y-b.minY,current.z+target.z-(b.minZ+b.maxZ)/2);
   model.syncHierarchy();
@@ -581,7 +581,8 @@ function validSavedItem(value:any):value is Placed{
  if(!Number.isInteger(value.gx)||!Number.isInteger(value.gz)||![0,90].includes(value.rot??0))return false;
  if(value.kind==="asset"&&(!value.assetKey||!storeAssetSpecs[value.assetKey]))return false;
  if(value.kind!=="asset"&&value.assetKey!==undefined)return false;
- const bounds=footprintAt(value.gx,value.gz,value.kind,value.rot??0,value.assetKey);
+ if(isRoomKind(value.kind)&&((value.width!==undefined&&(!Number.isInteger(value.width)||value.width<4||value.width>12))||(value.depth!==undefined&&(!Number.isInteger(value.depth)||value.depth<4||value.depth>12))))return false;
+ const bounds=footprintAt(value.gx,value.gz,value.kind,value.rot??0,value.assetKey,value.width,value.depth);
  return bounds.x>=-HALF_X&&bounds.z>=-HALF_Z&&bounds.x+bounds.w<=HALF_X&&bounds.z+bounds.d<=HALF_Z;
 }
 function load(){
@@ -605,7 +606,7 @@ function load(){
   for(const p of placed)drawPlaced(p);
  }catch{useStarter();}
 }
-function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"gym":p.kind==="staff"?"staff":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"gym"|"staff",p.gx,p.gz,p.id); return;}
+function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"gym":p.kind==="staff"?"staff":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"gym"|"staff",p.gx,p.gz,p.id,p.width??4,p.depth??4); return;}
  const root=new pc.Entity("Placed "+p.kind);
  world.addChild(root);
  if(p.kind==="wall")root.setLocalPosition(p.rot===90?p.gx+1.5:x,0,p.rot===90?z:p.gz+1.5);
@@ -625,12 +626,12 @@ function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}co
 }
 function footprint(kind:BuildKind,assetKey?:string){if(kind==="asset")return storeAssetSpecs[assetKey??""]?.footprint??1;return kind==="treatment"||kind==="reception"||kind==="assessment"||kind==="gym"||kind==="staff"?4:1;}
 function isRoomKind(kind:BuildKind){return kind==="treatment"||kind==="reception"||kind==="assessment"||kind==="gym"||kind==="staff";}
-function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string){
+function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string,width?:number,depth?:number){
  const size=footprint(kind,assetKey);
  // Reserve a full snapped cell block, but leave a small physical clearance around props.
  if(kind==="wall")return rot===0?{x:gx,z:gz+.2,w:1,d:2.6}:{x:gx+.2,z:gz,w:2.6,d:1};
  if(kind==="door")return rot===0?{x:gx,z:gz+.41,w:1,d:.18}:{x:gx+.41,z:gz,w:.18,d:1};
- if(isRoomKind(kind))return {x:gx,z:gz,w:size,d:size};
+ if(isRoomKind(kind))return {x:gx,z:gz,w:width??size,d:depth??size};
  // Asset bounds follow their measured design size, with a conservative cell reservation for one-cell props.
  const spec=kind==="asset"?storeAssetSpecs[assetKey??""]:undefined;
  const actual=spec
@@ -653,7 +654,7 @@ function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string
    ...outdoorShrubPositions.map(([x,z])=>({x:x-.34,z:z-.48,w:.68,d:.96}))
   ];
   if(fixedOutdoor.some(obstacle=>rectanglesOverlap(a,obstacle)))return true;
-  return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey)));
+  return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey,p.width,p.depth)));
  }
  // New furnishings and partitions must belong to a room's usable interior.
  // Loading legacy saves skips this new rule so existing user layouts are preserved.
@@ -666,7 +667,7 @@ function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string
   if(!insideRoom)return true;
  }
  // Furniture may share a room's floor, but never another prop's physical footprint.
- return placed.some(p=>!isRoomKind(p.kind)&&rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey)));
+ return placed.some(p=>!isRoomKind(p.kind)&&rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey,p.width,p.depth)));
 }
 
 // Reusable placement ghost: one lightweight mesh, updated in place (never spawned per pointer event).
