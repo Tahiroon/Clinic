@@ -7,10 +7,10 @@
 </head>
 <body>
 <main class="clinic-app">
-<header class="app-header"><a class="brand" href="/" aria-label="ثيراسون"><span class="brand-mark">T<span>+</span></span><span><b>THERASON</b><small>CLINIC SIMULATOR</small></span></a><div class="header-right"><span class="level-chip">المستوى 01 · الحساب التجريبي</span><span class="coin-pill">◈ <b id="coins">350</b></span></div></header>
+<header class="app-header"><a class="brand" href="/" aria-label="ثيراسون"><span class="brand-mark">T<span>+</span></span><span><b>THERASON</b><small>CLINIC SIMULATOR</small></span></a><div class="header-right"><span class="level-chip" id="game-clock">اليوم 1 · 08:00</span><span class="coin-pill">◈ <b id="coins">3200</b></span><button class="management-toggle" id="management-toggle" type="button">إدارة</button></div></header>
 <section class="welcome"><div><p class="eyebrow">عيادتك · رحلتك المهنية</p><h1>مساحة تبني فيها مستقبلك</h1><p class="subline">ابدأ بغرفة واحدة، ووسّع عيادتك بخبرتك.</p></div></section>
 <section class="game-frame" aria-label="عالم العيادة">
-<div class="scene-top"><div><span class="scene-kicker">أرضك · مساحة قابلة للتوسع</span><strong id="zone-name">الفرع الأول · أرض البداية</strong></div><div class="scene-stats"><span id="fps">-- FPS</span><span id="save-state">محفوظ</span></div></div>
+<div class="scene-top"><div><span class="scene-kicker">أرضك · مساحة قابلة للتوسع</span><strong id="zone-name">الفرع الأول · أرض البداية</strong></div><div class="scene-stats"><span id="patient-count">0 مرضى</span><span id="reputation">سمعة 50</span><span id="fps">-- FPS</span><span id="save-state">محفوظ</span></div></div>
 <section class="mission-card" id="mission-card" aria-label="مهمتك الحالية">
  <span class="mission-number">01</span>
  <div class="mission-copy"><span>مهمتك الحالية</span><strong id="mission-title">تفقّد غرفة العلاج</strong><small id="mission-detail">حرّك الأخصائي إلى غرفة العلاج لتتعرف على المكان.</small></div>
@@ -18,6 +18,18 @@
 </section>
 <div class="stage"><canvas id="scene" aria-label="عالم العيادة ثلاثي الأبعاد"></canvas><div class="loading-cover" id="loading"><span class="loader"></span><b>نجهّز أرض عيادتك...</b><small>نحمّل المشهد الأساسي</small></div><div class="camera-hint" id="camera-hint">اسحب لتحريك المشهد · قرّب بإصبعين</div></div>
 <div class="scene-status"><span class="status-dot"></span><p id="status" aria-live="polite">اضغط على الأرض لتحريك الأخصائي. ابدأ بغرفة علاج واحدة، ثم وسّع عيادتك على أرضك.</p></div>
+<section class="management-panel" id="management-panel" hidden aria-label="لوحة إدارة العيادة">
+ <div class="management-heading"><div><span class="eyebrow">لوحة الإدارة</span><h2>إدارة THERASON CLINIC</h2><small id="management-date">اليوم الأول · بداية العمل</small></div><button id="management-close" type="button" aria-label="إغلاق">×</button></div>
+ <div class="management-stats">
+  <div><small>الرصيد</small><b id="mg-balance">3200</b></div><div><small>المرضى اليوم</small><b id="mg-treated">0</b></div><div><small>السمعة</small><b id="mg-reputation">50%</b></div><div><small>الفريق</small><b id="mg-staff-count">1</b></div>
+ </div>
+ <div class="time-controls"><b>وقت المحاكاة</b><div><button data-speed="0" type="button">إيقاف</button><button data-speed="1" class="selected" type="button">1×</button><button data-speed="2" type="button">2×</button><button data-speed="3" type="button">3×</button></div></div>
+ <div class="management-section"><h3>الفريق والموظفون</h3><div id="staff-list" class="management-list"></div>
+  <div class="hire-grid"><button data-hire="physiotherapist" type="button">＋ أخصائي علاج طبيعي <small>520</small></button><button data-hire="receptionist" type="button">＋ موظف استقبال <small>280</small></button><button data-hire="rehab_assistant" type="button">＋ مساعد تأهيل <small>360</small></button><button data-hire="cleaner" type="button">＋ عامل نظافة <small>220</small></button></div>
+ </div>
+ <div class="management-section"><h3>حركة المرضى</h3><div id="patient-queue" class="management-list"><p class="empty-management">لم يصل مرضى بعد. ابنِ الاستقبال ووظّف موظف استقبال لفتح العيادة.</p></div></div>
+ <div class="management-section"><h3>آخر الأحداث</h3><div id="clinic-events" class="management-events"></div></div>
+</section>
 </section>
 <nav class="tool-dock" aria-label="أدوات العيادة">
 <button class="tool active" id="move-mode" type="button"><span class="tool-icon">➤</span><b>تحريك</b></button>
