@@ -597,7 +597,7 @@ function load(){
    placed.push(item);ids.add(item.id);
   }
   if(v.placed.length>0&&placed.length===0){useStarter();return;}
-  nextId=Math.max(5,...placed.map(p=>p.id+1));
+  nextId=Math.max(1,...placed.map(p=>p.id+1));
   coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";
   for(const p of placed)drawPlaced(p);
  }catch{useStarter();}
