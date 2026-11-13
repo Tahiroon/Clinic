@@ -90,10 +90,11 @@ const glass=material(new Color(.28,.67,.76));
 const trim=material(new Color(.10,.39,.47));
 const roofAccent=material(new Color(.16,.28,.38));
 const lawnBase=material(new Color(.25,.39,.24));
-const outdoorTreePositions:[number,number][]=[[-5.65,-11.4],[5.65,-11.4],[-5.65,11.4],[5.65,11.4]];
-const outdoorShrubPositions:[number,number][]=[[-5.9,-5.5],[5.9,-2.5],[-5.9,4.2],[5.9,6.0]];
+const outdoorTreePositions:[number,number][]=[[-9.1,-16.1],[9.1,-16.1],[-9.1,16.1],[9.1,16.1]];
+const outdoorShrubPositions:[number,number][]=[[-8.8,-7.5],[8.8,-4.5],[-8.8,5.2],[8.8,8.0]];
 // The property is a continuous outdoor lawn. Only constructed rooms receive a finished interior floor.
-box("Owned green property · expandable land",0,-.22,0,W,.42,D,lawnBase,world);
+box("Surrounding green landscape",0,-.24,0,W+10,.42,D+10,lawnBase,world);
+box("Clinic buildable foundation",0,.005,0,W,.08,D,material(new Color(.66,.68,.65)),world);
 box("Main entrance garden path",0,.018,-8.45,1.75,.045,11.0,pathMat,world);
 box("Path west edging",-.91,.045,-8.45,.055,.06,11.0,pathEdge,world);
 box("Path east edging",.91,.045,-8.45,.055,.06,11.0,pathEdge,world);
@@ -128,8 +129,10 @@ function createLawnGrass(){
    indices.push(first,first+1,first+2);
   }
  };
- for(let i=0;i<1900;i++){
-  const x=-HALF_X+.28+rand()*(W-.56),z=-HALF_Z+.28+rand()*(D-.56);
+ for(let i=0;i<2600;i++){
+  const x=-HALF_X-4.7+rand()*(W+9.4),z=-HALF_Z-4.7+rand()*(D+9.4);
+  const insideBuildablePlot=x>-HALF_X-.08&&x<HALF_X+.08&&z>-HALF_Z-.08&&z<HALF_Z+.08;
+  if(insideBuildablePlot)continue;
   const insideAnyRoom=placed.some(p=>isRoomKind(p.kind)&&x>p.gx-.14&&x<p.gx+(p.width??4)+.14&&z>p.gz-.14&&z<p.gz+(p.depth??4)+.14);
   const onEntrancePath=Math.abs(x)<1.12&&z< -2.1;
   const nearTree=outdoorTreePositions.some(([tx,tz])=>Math.hypot(x-tx,z-tz)<1.05);
@@ -190,25 +193,13 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
  // Modular two-metre partitions, glazed rear wall and a real hinged door reproduce the readable cutaway-room language of a management sim.
  addRoomWallRun(root,"z",-halfD,depth,-halfW,"solid");
  addRoomWallRun(root,"z",-halfD,depth,halfW,"solid");
- addRoomWallRun(root,"x",-halfW,width,halfD,"glazed");
+ addRoomWallRun(root,"x",-halfW,width,halfD,"solid");
  const doorWidth=Math.min(1.2,width*.34),sideSegment=(width-doorWidth)/2;
  addRoomWallRun(root,"x",-halfW,sideSegment,-halfD,"solid",.62);
  addRoomWallRun(root,"x",doorWidth/2,sideSegment,-halfD,"solid",.62);
  loadRoomDoor(root,0,-halfD);
- const trimMat=kind==="reception"?M.teal:kind==="assessment"?M.blue:kind==="exercise"?M.yellow:M.teal;
- // A continuous coloured crown and skirting give each room a finished, readable silhouette.
- box("Left wall crown", -halfW,2.73,0,.20,.12,depth+.12,trimMat,root);
- box("Right wall crown",halfW,2.73,0,.20,.12,depth+.12,trimMat,root);
- box("Rear wall crown",0,2.73,halfD,width,.12,.20,trimMat,root);
- box("Front wall crown",0,2.73,-halfD,width,.12,.20,trimMat,root);
- box("Left wall skirting",-halfW,.14,0,.19,.20,depth,trimMat,root);
- box("Right wall skirting",halfW,.14,0,.19,.20,depth,trimMat,root);
- box("Rear wall skirting",0,.14,halfD,width,.20,.18,trimMat,root);
- // The front sign is visible from the management camera and reads like a real clinic room entrance.
- box("Room identity signboard",0,2.24,-halfD-.105,Math.min(1.75,width*.62),.38,.10,trimMat,root);
- box("Room identity sign inset",0,2.24,-halfD-.165,Math.min(1.48,width*.52),.24,.025,M.white,root);
- box("Room identity sign accent",0,2.24,-halfD-.183,.10,.18,.018,M.teal,root);
- box("Room identity plaque",-halfW+.12,2.0,0,.06,.42,.86,trimMat,root);
+ // Plain, opaque clinic walls: keep the room architecture calm and readable.
+ box("Simple room entrance plaque",-halfW+.12,1.95,0,.05,.32,.62,M.wall,root);
  for(const x of [-Math.min(1,width*.25),Math.min(1,width*.25)]){
   box("Ceiling light housing",x,2.55,0,.68,.055,.20,M.white,root);
   box("Ceiling light diffuser",x,2.515,0,.54,.018,.13,M.pale,root);
@@ -434,7 +425,7 @@ function addRoomWallRun(parent:Entity,axis:"x"|"z",start:number,length:number,fi
   const x=axis==="x"?center:fixed,z=axis==="x"?fixed:center;
   loadRoomModule(parent,file,x,0,z,rotation,1,1,"wall",heightScale);
  };
- const twoMetreFile=kind==="glazed"?"glazed-partition.glb":"partition-wall.glb";
+ const twoMetreFile="partition-wall.glb";
  while(length-cursor>=1.95){place(twoMetreFile,2,start+cursor+1);cursor+=2;}
  if(length-cursor>=.95){place("partition-wall-1m.glb",1,start+cursor+.5);cursor+=1;}
  const remainder=length-cursor;
@@ -651,7 +642,7 @@ function load(){
   for(const p of placed)drawPlaced(p);
  }catch{useStarter();}
 }
-function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"exercise":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"exercise",p.gx,p.gz,p.id,p.width??4,p.depth??4);if(p.kind==="treatment"&&p.id===1){loadClinicAsset({id:90001,kind:"asset",gx:-1,gz:-1,assetKey:"pt-treatment-table"});loadClinicAsset({id:90002,kind:"asset",gx:1,gz:1,assetKey:"pt-storage-cabinet"});}else if(p.kind==="assessment"){loadClinicAsset({id:p.id*1000+1,kind:"asset",gx:p.gx,gz:p.gz+1,assetKey:"pt-exam-table"});loadClinicAsset({id:p.id*1000+2,kind:"asset",gx:p.gx+2,gz:p.gz+1,assetKey:"pt-privacy-screen"});}else if(p.kind==="gym"){loadClinicAsset({id:p.id*1000+1,kind:"asset",gx:p.gx,gz:p.gz,assetKey:"pt-parallel-bars"});loadClinicAsset({id:p.id*1000+2,kind:"asset",gx:p.gx+3,gz:p.gz+3,assetKey:"pt-exercise-ball"});}return;}
+function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"exercise":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"exercise",p.gx,p.gz,p.id,p.width??4,p.depth??4);return;}
  const root=new Entity("Placed "+p.kind);
  world.addChild(root);
  if(p.kind==="wall")root.setLocalPosition(p.rot===90?p.gx+1.5:x,0,p.rot===90?z:p.gz+1.5);
