@@ -15,14 +15,15 @@
 2. Patients appear as visitors/case characters.
 3. Optional receptionist is deferred until the core world, movement and save loop are stable.
 4. No nurses, employed doctors, cleaners, assistants or staff roster in the first release.
-5. Fresh accounts receive the same compact starter clinic: reception, one treatment room, clear internal passage, small green outdoor area and visible expansion space.
-6. Equipment can be placed inside room footprints without treating the room floor itself as an obstacle.
-7. Shared room doors are traversable; walls, built-in furniture and placed equipment block movement appropriately.
-8. Starter clinic is visually coherent and not an oversized empty shell.
-9. Clinical session activation smoothly frames the treatment area; closing the session restores the overview.
-10. Session controls remain compact enough to leave a meaningful portion of the 3D world visible.
-11. Hidden build tabs/panels are actually hidden on first load and after category changes.
-12. Babylon.js is not a shipped dependency or build entry; PlayCanvas is the only runtime in the game build.
+5. Fresh accounts receive the same compact starter clinic: reception, one treatment room, clear internal passage, landscaped 20×20 m maximum property and visible expansion margin.
+6. Starter treatment room loads licensed 3D treatment-table and storage-cabinet assets, with procedural fallbacks if the network is unavailable.
+7. Equipment can be placed inside room footprints without treating the room floor itself as an obstacle.
+8. Shared room doors are traversable; walls, built-in furniture and placed equipment block movement appropriately.
+9. Starter clinic is visually coherent and not an oversized empty shell.
+10. Clinical session activation smoothly frames the treatment area; closing the session restores the overview.
+11. Session controls remain compact enough to leave a meaningful portion of the 3D world visible.
+12. Bottom toolbar is absent during the world-foundation phase; the scene uses the full phone viewport.
+13. Babylon.js is not a shipped dependency or build entry; PlayCanvas is the only runtime in the game build.
 
 ## First-slice acceptance
 1. App opens in usable portrait layout.
