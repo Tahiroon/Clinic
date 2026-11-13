@@ -15,7 +15,7 @@
 2. Patients appear as visitors/case characters.
 3. Optional receptionist is deferred until the core world, movement and save loop are stable.
 4. No nurses, employed doctors, cleaners, assistants or staff roster in the first release.
-5. Fresh accounts receive the same compact starter clinic: reception, one treatment room, clear internal passage, landscaped 20×20 m maximum property and visible expansion margin.
+5. Fresh accounts receive the same compact starter clinic: reception, one treatment room, clear internal passage, landscaped 12×10 m starter property with expansion parcels deferred outside the initial boundary and visible expansion margin.
 6. Starter treatment room loads licensed 3D treatment-table and storage-cabinet assets, with procedural fallbacks if the network is unavailable.
 7. Equipment can be placed inside room footprints without treating the room floor itself as an obstacle.
 8. Shared room doors are traversable; walls, built-in furniture and placed equipment block movement appropriately.
@@ -32,18 +32,19 @@
 4. Camera frames the starter clinic and a useful portion of its property on narrow phones.
 5. Pan and pinch zoom are stable, bounded and damped rather than snapping.
 6. Long frame stalls do not teleport the avatar.
-7. Tapping walkable floor moves the avatar toward the target.
-8. Avatar does not pass through walls, closed boundaries, built-in furniture or placed furniture.
-9. Avatar can pass through intended room doorways and the internal reception/treatment connection.
-10. Grid aligns with the floor.
-11. Valid equipment placement updates occupancy and can occur inside rooms.
-12. Overlapping/out-of-bounds/path-blocking placement is rejected clearly.
-13. Rotation updates footprint correctly.
-14. Layout and coin balance survive reload.
-15. Invalid, duplicated, out-of-bounds or unsupported save records are ignored safely; unrecoverable saves fall back to a clean starter clinic.
-16. Low graphics mode reduces costly effects and remains usable.
-17. Repeated scene entry/exit does not cause unbounded memory growth.
-18. No secrets or real student/patient data exist in repository.
+7. Tapping walkable floor moves the avatar to the selected point or the nearest reachable point when the tapped location is occupied.
+8. A blocked target on the far side of a wall must never cause the avatar to stop at an arbitrary point on the near side; route search must choose the closest reachable endpoint.
+9. Avatar does not pass through walls, closed boundaries, built-in furniture or placed furniture.
+10. Avatar can pass through intended room doorways and the internal reception/treatment connection.
+11. Grid aligns with the floor.
+12. Valid equipment placement updates occupancy and can occur inside rooms.
+13. Overlapping/out-of-bounds/path-blocking placement is rejected clearly.
+14. Rotation updates footprint correctly.
+15. Layout and coin balance survive reload.
+16. Invalid, duplicated, out-of-bounds or unsupported save records are ignored safely; unrecoverable saves fall back to a clean starter clinic.
+17. Low graphics mode reduces costly effects and remains usable.
+18. Repeated scene entry/exit does not cause unbounded memory growth.
+19. No secrets or real student/patient data exist in repository.
 
 ## Performance conditions
 Test at least one real entry-level Android phone and one stronger device. Record exact models and browser versions. Test cold and warm cache, constrained network where possible, and a sustained three-minute interaction loop.
