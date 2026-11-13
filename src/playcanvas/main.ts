@@ -148,11 +148,11 @@ for(const x of [-1.12,1.12]){
  cylinder("Entrance path light stem",x,.52,-3.75,.065,.78,.065,arrivalMetal,world);
  sphere("Entrance path light diffuser",x,.98,-3.75,.14,warmGlass,world);
 }
-box("Clinic facade lower accent",0,.28,-3.08,3.85,.12,.10,trim,world);
-box("Clinic facade upper accent",0,2.82,-3.08,4.15,.10,.12,arrivalMetal,world);
-box("THERASON entrance sign",0,2.55,-3.13,2.0,.46,.12,trim,world);
-box("Entrance sign inset",0,2.56,-3.205,1.7,.27,.035,M.white,world);
-box("Entrance canopy",0,2.15,-3.28,2.3,.16,.78,roofAccent,world);
+box("Clinic facade lower accent",0,.28,-2.08,3.85,.12,.10,trim,world);
+box("Clinic facade upper accent",0,2.82,-2.08,4.15,.10,.12,arrivalMetal,world);
+box("THERASON entrance sign",0,2.55,-2.13,2.0,.46,.12,trim,world);
+box("Entrance sign inset",0,2.56,-2.205,1.7,.27,.035,M.white,world);
+box("Entrance canopy",0,2.15,-2.28,2.3,.16,.78,roofAccent,world);
 const roomRoot=new pc.Entity("Player-built clinic rooms");world.addChild(roomRoot);
 const buildGrid=new pc.Entity("Expandable property construction grid");world.addChild(buildGrid);
 const gridMaterial=material(new pc.Color(.20,.57,.65));
