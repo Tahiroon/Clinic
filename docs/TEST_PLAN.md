@@ -16,11 +16,11 @@
 2. Patients appear as visitors with individual fictional cases.
 3. One optional receptionist can be purchased only after three completed patient sessions; it is never required to open the clinic.
 4. No recruitable physiotherapists, nurses, employed doctors, rehabilitation assistants, cleaners, staff roster, payroll, energy, morale, breaks or staff rooms.
-5. A fresh clinic begins on the 14 m × 28 m landscaped property with one 4 m × 4 m treatment room, one treatment table and one storage unit.
+5. A fresh clinic begins on an empty 14 m × 28 m landscaped buildable plot; the first room and its equipment are built and purchased by the player through the guided campaign.
 6. Grass remains on unbuilt outdoor land; room flooring appears only inside built rooms.
 7. The player builds reception, assessment and exercise rooms as progression requires.
-8. Licensed GLB physiotherapy and reception assets load independently with fallbacks.
-9. Patients arrive after clinic opening; without a receptionist the player registers them manually, while the purchased receptionist handles registration automatically. Patients then wait, move to assessment, complete a player-led session and leave.
+8. Licensed GLB physiotherapy and reception assets load independently; if a required equipment GLB fails, placement is blocked and the error is reported instead of displaying a fake substitute.
+9. Patients arrive after clinic opening; without a receptionist the player registers them manually, while the purchased receptionist handles registration automatically. Patients then wait, visibly walk along collision-aware routes to assessment/treatment, complete a player-led session and leave.
 10. Patient patience, reputation, session income and XP update consistently.
 11. The receptionist upgrade costs one-time coins, unlocks after three completed sessions and persists after reload.
 12. Pause and 1×/2×/3× controls advance simulation time deterministically.
@@ -37,7 +37,8 @@
 7. Tapping an open floor point moves the avatar to the actual selected point, not a nearby arbitrary waypoint.
 8. Tapping a blocked point selects the nearest reachable approach point on the same connected side of obstacles.
 9. A blocked target on the far side of a wall must never cause the avatar to stop at an arbitrary point on the near side.
-10. The avatar can walk from the outdoor property path through the single starter-room entrance and approach the patient safely.
+10. The avatar can walk from the outdoor property path through the constructed room entrance and approach the patient safely.
+11. Patient visitors visibly follow their calculated waypoints, turn smoothly, avoid walls/furniture and stop at their intended room-side destination; no route may be calculated and then left unused.
 11. The avatar can approach the patient beside the treatment table without intersecting the table or wall.
 12. The avatar routes around the treatment table, storage unit, trees, shrubs, player-built rooms and property boundary.
 13. Avatar does not pass through walls, closed boundaries, built-in furniture or placed furniture.
