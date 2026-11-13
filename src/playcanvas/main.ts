@@ -70,7 +70,7 @@ camera.setPosition(3.5,21.5,-15);camera.lookAt(cameraTarget);app.root.addChild(c
 let desiredOrthoHeight=15.5;
 const light=new pc.Entity("Soft daylight");
 light.addComponent("light",{type:"directional",intensity:1.22,castShadows:highDetailDevice});
-if(highDetailDevice){light.light!.shadowResolution=768;light.light!.shadowDistance=36;light.light!.normalOffsetBias=.035;app.scene.shadowType=pc.SHADOW_PCF3;}
+if(highDetailDevice){light.light!.shadowResolution=1024;light.light!.shadowDistance=36;light.light!.normalOffsetBias=.035;}
 light.setEulerAngles(48,25,0);app.root.addChild(light);
 const world=new pc.Entity("Clinic property · portrait 3/4 world");
 world.setEulerAngles(0,10,0);app.root.addChild(world);world.syncHierarchy();
