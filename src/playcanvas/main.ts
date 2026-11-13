@@ -1,8 +1,8 @@
 import * as pc from "playcanvas";
 import "../style.css";
-import { createInitialManagementState, advanceSimulation, hireStaff, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, getRoleLabel, setClinicOpen, ROOM_BLUEPRINTS, type ManagementState, type StaffRole, type ClinicRoomType } from "../game/management";
+import { createInitialManagementState, advanceSimulation, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, setClinicOpen, hireReceptionist, beginPatientSession, completePatientSession, type ManagementState, type ClinicRoomType } from "../game/management";
 
-type BuildKind = "treatment" | "reception" | "assessment" | "gym" | "staff" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door" | "asset";
+type BuildKind = "treatment" | "reception" | "assessment" | "gym" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door" | "asset";
 type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90; assetKey?:string; width?:number; depth?:number };
 const el=<T extends HTMLElement>(s:string)=>document.querySelector<T>(s)!;
 const canvas=el<HTMLCanvasElement>("#scene"), status=el<HTMLElement>("#status"), fpsLabel=el<HTMLElement>("#fps"), loading=el<HTMLElement>("#loading");
@@ -169,7 +169,7 @@ for(let i=0;i<=D;i++){
  box("Property grid horizontal",0,.035,z,W,.012,.012,gridMaterial,buildGrid);
 }
 buildGrid.enabled=false;
-function makeRoom(kind:"treatment"|"reception"|"assessment"|"gym"|"staff",gx:number,gz:number,id:number,width=4,depth=4){
+function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number,gz:number,id:number,width=4,depth=4){
  const root=new pc.Entity("Room "+id+" · "+kind);
  world.addChild(root);root.setLocalPosition(gx+width/2,0,gz+depth/2);
  const floor=material(new pc.Color(.72,.75,.71));
@@ -209,10 +209,6 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"gym"|"staff",gx:num
   box("Chart teal stripe",halfW-.55,1.55,halfD-wallThickness-.11,.10,.58,.025,trimMat,root);
  }else if(kind==="reception"){
   loadReceptionDesk(root);loadWaitingSeats(root);
- }else if(kind==="staff"){
-  box("Staff rest sofa seat",0,.38,depth*.18,Math.min(2.1,width*.62),.34,.82,M.teal,root);
-  box("Staff rest sofa back",0,.82,depth*.18+.34,Math.min(2.1,width*.62),.62,.18,M.blue,root);
-  box("Staff table",0,.38,-depth*.20,.95,.12,.65,M.wood2,root);
  }else{
   box("Exercise mat",0,.07,0,Math.min(width*.68,2.7),.08,Math.min(depth*.42,1.25),M.blue,root);
   for(const x of [-Math.min(width*.25,.9),Math.min(width*.25,.9)]){
@@ -352,34 +348,15 @@ for(let i=0;i<2;i++){
  loadHumanoid(characterAssets.patient,root,1.62,false,rig=>{visual.fallback?.entity.destroy();visual.fallback=null;visual.rig=rig;});
 }
 
-type StaffVisual={root:pc.Entity;fallback:FallbackRig|null;rig:HumanoidRig|null;target:pc.Vec3};
-const staffVisuals=new Map<number,StaffVisual>();
-function syncStaffVisuals(){
- for(const member of management.staff){
-  if(member.id===1)continue;
-  let visual=staffVisuals.get(member.id);
-  if(!visual){
-   const root=new pc.Entity("Clinic staff · "+member.name);world.addChild(root);root.setLocalPosition(0,0,-4.5);
-   const fallback=createFallbackHumanoid(root,"student");
-   visual={root,fallback,rig:null,target:new pc.Vec3(0,0,-4.5)};staffVisuals.set(member.id,visual);
-   loadHumanoid(characterAssets.student,root,1.72,false,rig=>{visual!.fallback?.entity.destroy();visual!.fallback=null;visual!.rig=rig;});
-  }
-  const assigned=member.assignedRoomId?management.rooms.find(r=>r.id===member.assignedRoomId):null;
-  const desiredType=member.status==="break"?"staff":member.role==="receptionist"?"reception":member.role==="rehab_assistant"?"exercise":member.role==="cleaner"?"staff":"treatment";
-  const room=assigned??management.rooms.find(r=>r.type===desiredType)??management.rooms.find(r=>r.type==="treatment");
-  if(room){const x=room.x+(member.role==="receptionist"?1.15:1.35),z=room.z+(member.role==="receptionist"?1.1:1.35);visual.target.set(x,0,z);}
-  else visual.target.set(0,0,-4.5);
- }
-}
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=3200, xp=0, nextId=1, focus=false, wallRotation:0|90=0;
 let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v3")||0);return Math.max(0,Math.min(6,saved));}catch{return 0;}})();
 
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v11";
-const managementSaveKey="therason-clinic-management-v2";
+const managementSaveKey="therason-clinic-management-v3";
 const TRIAL_ACCOUNT_COINS=3200; 
 const starterLayout:Placed[]=[];
-const costs:Record<BuildKind,number>={treatment:720,reception:420,assessment:620,gym:980,staff:360,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
+const costs:Record<BuildKind,number>={treatment:720,reception:420,assessment:620,gym:980,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
  "pt-treatment-table":{file:"physical-therapy-room-set.glb",node:"TreatmentTable",label:"سرير علاج طبيعي",cost:90,footprint:2,targetSize:1.9},
  "pt-exam-table":{file:"doctors-office-set.glb",node:"ExamTable",label:"سرير فحص سريري",cost:95,footprint:2,targetSize:1.9},
@@ -604,7 +581,7 @@ function loadClinicAsset(p:Placed){
 function save(){try{management.balance=coins;management.experience=xp;localStorage.setItem(saveKey,JSON.stringify({v:11,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function validSavedItem(value:any):value is Placed{
  if(!value||typeof value!=="object")return false;
- const kinds:BuildKind[]=["treatment","reception","assessment","gym","staff","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
+ const kinds:BuildKind[]=["treatment","reception","assessment","gym","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
  if(!kinds.includes(value.kind)||!Number.isSafeInteger(value.id)||value.id<1)return false;
  if(!Number.isInteger(value.gx)||!Number.isInteger(value.gz)||![0,90].includes(value.rot??0))return false;
  if(value.kind==="asset"&&(!value.assetKey||!storeAssetSpecs[value.assetKey]))return false;
@@ -618,7 +595,7 @@ function load(){
  try{
   const raw=localStorage.getItem(saveKey);if(!raw){useStarter();return;}
   const v=JSON.parse(raw);if(v.v!==11||!Array.isArray(v.placed)){useStarter();return;}
-  try{const savedManagement=JSON.parse(localStorage.getItem(managementSaveKey)||"null");if(savedManagement?.version===1&&Array.isArray(savedManagement.staff)&&Array.isArray(savedManagement.patients)&&Array.isArray(savedManagement.rooms))management=savedManagement;else management=createInitialManagementState();}catch{management=createInitialManagementState();}
+  try{const savedManagement=JSON.parse(localStorage.getItem(managementSaveKey)||"null");if(savedManagement?.version===2&&Array.isArray(savedManagement.patients)&&Array.isArray(savedManagement.rooms))management=savedManagement;else management=createInitialManagementState();}catch{management=createInitialManagementState();}
   coins=Math.max(0,Number.isFinite(management.balance)?Math.min(10000000,management.balance):TRIAL_ACCOUNT_COINS);management.balance=coins;
   xp=Number.isFinite(management.experience)?Math.max(0,Math.min(1000000000,management.experience)):0;
   placed=[];const ids=new Set<number>();
@@ -634,7 +611,7 @@ function load(){
   for(const p of placed)drawPlaced(p);
  }catch{useStarter();}
 }
-function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"gym":p.kind==="staff"?"staff":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"gym"|"staff",p.gx,p.gz,p.id,p.width??4,p.depth??4); return;}
+function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"exercise":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"exercise",p.gx,p.gz,p.id,p.width??4,p.depth??4); return;}
  const root=new pc.Entity("Placed "+p.kind);
  world.addChild(root);
  if(p.kind==="wall")root.setLocalPosition(p.rot===90?p.gx+1.5:x,0,p.rot===90?z:p.gz+1.5);
@@ -653,7 +630,7 @@ function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}co
  if(p.kind==="door"){box("Door left jamb",-.43,1.25,0,.12,2.5,.18,M.white,root);box("Door right jamb",.43,1.25,0,.12,2.5,.18,M.white,root);box("Door lintel",0,2.48,0,1,.16,.18,M.white,root);box("Door leaf",-.22,1.08,.09,.42,2.12,.055,M.wood2,root);}
 }
 function footprint(kind:BuildKind,assetKey?:string){if(kind==="asset")return storeAssetSpecs[assetKey??""]?.footprint??1;return kind==="treatment"||kind==="reception"||kind==="assessment"||kind==="gym"||kind==="staff"?4:1;}
-function isRoomKind(kind:BuildKind){return kind==="treatment"||kind==="reception"||kind==="assessment"||kind==="gym"||kind==="staff";}
+function isRoomKind(kind:BuildKind){return kind==="treatment"||kind==="reception"||kind==="assessment"||kind==="gym";}
 function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string,width?:number,depth?:number){
  const size=footprint(kind,assetKey);
  // Reserve a full snapped cell block, but leave a small physical clearance around props.
@@ -901,11 +878,9 @@ function renderManagement(){
  el("#mg-balance").textContent=String(Math.round(management.balance));
  el("#mg-treated").textContent=String(management.treated);
  el("#mg-reputation").textContent=Math.round(management.reputation)+"%";
- el("#mg-staff-count").textContent=String(management.staff.length);
+ el("#mg-completed").textContent=String(management.treated);
  const clinicToggle=el<HTMLButtonElement>("#clinic-open-toggle");clinicToggle.textContent=management.clinicOpen?"إغلاق العيادة":"فتح العيادة";clinicToggle.classList.toggle("closed",!management.clinicOpen);
  el("#management-date").textContent="اليوم "+management.day+" · "+formatGameTime(management)+" · "+(management.speed===0?"متوقفة":management.speed+"×");
- const staffStatus:Record<string,string>={idle:"متاح",working:"يعالج مريضاً",break:"في استراحة"};
- el("#staff-list").innerHTML=management.staff.map(member=>'<div class="management-row"><div><strong>'+member.name+' · '+getRoleLabel(member.role)+'</strong><small>'+staffStatus[member.status]+' · مهارة '+member.skill+' · معنويات '+Math.round(member.morale)+'</small></div><div><small>طاقة '+Math.round(member.energy)+'%</small><div class="meter"><i style="width:'+Math.round(member.energy)+'%"></i></div></div></div>').join("");
  const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"التسجيل",waiting:"ينتظر",assessment:"التقييم",treatment:"جلسة علاج"};
  const queue=getPatientQueue(management);
  const visiblePatient=queue[0];
@@ -935,7 +910,7 @@ function renderManagement(){
   }
  }
  el("#patient-queue").innerHTML=queue.length?queue.map(patient=>'<div class="management-row"><div><strong>'+patient.name+' · '+patient.caseLabel+'</strong><small>'+stageLabels[patient.stage]+' · انتظار '+Math.round(patient.waitMinutes)+' دقيقة</small></div><div><small>الصبر '+Math.round(patient.patience)+'%</small><div class="meter"><i style="width:'+Math.round(patient.patience)+'%"></i></div></div></div>').join(""):'<p class="empty-management">لا توجد حالات نشطة حالياً. ابنِ الاستقبال ووظّف موظف استقبال وغرفة تقييم وعلاج.</p>';
- syncStaffVisuals();
+
  el("#clinic-events").innerHTML=management.events.slice(0,6).map(item=>'<div class="management-event">'+item.message+'</div>').join("");
  document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>button.classList.toggle("selected",Number(button.dataset.speed)===management.speed));
 }
@@ -1049,12 +1024,9 @@ el<HTMLButtonElement>("#management-close").addEventListener("click",()=>{managem
 document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>button.addEventListener("click",()=>{
  const speed=Number(button.dataset.speed) as 0|1|2|3;setSimulationSpeed(management,speed);renderManagement();save();
 }));
-document.querySelectorAll<HTMLButtonElement>("[data-hire]").forEach(button=>button.addEventListener("click",()=>{
- const role=button.dataset.hire as StaffRole,result=hireStaff(management,role);
- coins=management.balance;coinsLabel.textContent=String(coins);status.textContent=result.message;
- if(result.ok&&role==="receptionist"&&missionPhase===1)setMissionPhase(2);
- save();renderManagement();
-}));
+el<HTMLButtonElement>("#buy-receptionist").addEventListener("click",()=>{
+ const result=hireReceptionist(management);coins=management.balance;coinsLabel.textContent=String(coins);status.textContent=result.message;renderManagement();save();
+});
 el<HTMLButtonElement>("#clinic-open-toggle").addEventListener("click",()=>{
  if(!management.clinicOpen){
   const missing:string[]=[];if(!hasAssetInRoom("pt-treatment-table","treatment"))missing.push("سرير العلاج");if(!hasAssetInRoom("pt-storage-cabinet","treatment"))missing.push("خزانة الأدوات");if(!hasAssetInRoom("pt-exam-table","assessment"))missing.push("سرير الفحص");
@@ -1065,7 +1037,7 @@ el<HTMLButtonElement>("#clinic-open-toggle").addEventListener("click",()=>{
  if(result.ok&&management.clinicOpen&&missionPhase===5)setMissionPhase(6);
  renderManagement();save();
 });
-function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",assessment:"غرفة تقييم",gym:"صالة تأهيل",staff:"استراحة الفريق",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent=isRoomKind(kind)?"تم اختيار "+names[kind]+". اسحب بإصبعك على الأرض لرسم مساحة الغرفة بالحجم الذي تريده.":"تم اختيار "+names[kind]+". المس خلية فارغة لوضع العنصر، ويمكنك تدوير الحائط من زر التدوير.";}
+function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",assessment:"غرفة تقييم",gym:"صالة تأهيل",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent=isRoomKind(kind)?"تم اختيار "+names[kind]+". اسحب بإصبعك على الأرض لرسم مساحة الغرفة بالحجم الذي تريده.":"تم اختيار "+names[kind]+". المس خلية فارغة لوضع العنصر، ويمكنك تدوير الحائط من زر التدوير.";}
 function selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));el("#build-hint").textContent="تم اختيار "+spec.label+" من الأصول ثلاثية الأبعاد. يحتاج مساحة "+spec.footprint+"×"+spec.footprint+" خلايا.";}
 moveBtn.addEventListener("click",()=>{updateMode("move");storeBtn.classList.remove("active");});
 buildBtn.addEventListener("click",()=>{updateMode(mode==="build"?"move":"build");storeBtn.classList.remove("active");});
@@ -1154,34 +1126,6 @@ app.on("update",(dt:number)=>{
  if(managementSaveTimer>=8){managementSaveTimer=0;save();}
  playerFallbackRig?.update(frameDt,!!target);
  patientFallbackRig?.update(frameDt,!!patientTarget||patientWalkPath.length>0);
- for(const visual of staffVisuals.values()){
-  const p=visual.root.getLocalPosition(),dx=visual.target.x-p.x,dz=visual.target.z-p.z,distance=Math.hypot(dx,dz),moving=distance>.14;
-  visual.fallback?.update(frameDt,moving);
-  if(moving){
-   const yaw=Math.atan2(dx,dz)*180/Math.PI,currentYaw=visual.root.getLocalEulerAngles().y,yawDelta=((yaw-currentYaw+540)%360)-180;
-   visual.root.setLocalEulerAngles(0,currentYaw+Math.max(-frameDt*190,Math.min(frameDt*190,yawDelta)),0);
-   const step=Math.min(distance,frameDt*.78);visual.root.setLocalPosition(p.x+dx/distance*step,0,p.z+dz/distance*step);
-  }
-  transitionHumanoid(visual.rig,moving);
- }
- if(patientNpc.enabled&&patientTarget){
-  const p=patientNpc.getLocalPosition(),waypoint=patientWalkPath.length?patientWalkPath[0]:{x:patientTarget.x,z:patientTarget.z};
-  const dx=waypoint.x-p.x,dz=waypoint.z-p.z,distance=Math.hypot(dx,dz);
-  if(distance<.12){
-   if(patientWalkPath.length)patientWalkPath.shift();
-   else{patientTarget=null;transitionHumanoid(patientRig,false);}
-  }else{
-   const yaw=Math.atan2(dx,dz)*180/Math.PI,currentYaw=patientNpc.getLocalEulerAngles().y;
-   const yawDelta=((yaw-currentYaw+540)%360)-180;
-   patientNpc.setLocalEulerAngles(0,currentYaw+Math.max(-frameDt*220,Math.min(frameDt*220,yawDelta)),0);
-   const step=Math.min(distance,frameDt*.88);
-   const wasEnabled=patientNpc.enabled;patientNpc.enabled=false;
-   const moveDistance=Math.hypot(dx, dz),parts=Math.max(1,Math.ceil(step/.05));let px=p.x,pz=p.z;
-   for(let i=1;i<=parts;i++){const nx=p.x+dx/moveDistance*step*i/parts,nz=p.z+dz/moveDistance*step*i/parts;if(canAvatarStand(nx,nz)){px=nx;pz=nz;}else break;}
-   patientNpc.setLocalPosition(px,0,pz);patientNpc.enabled=wasEnabled;
-   transitionHumanoid(patientRig,true);
-  }
- }
  // Smooth camera follow/pan/zoom instead of snapping the camera on every touch event.
  const cameraAlpha=1-Math.exp(-frameDt*11);
  cameraTarget.x+=(cameraGoal.x-cameraTarget.x)*cameraAlpha;
