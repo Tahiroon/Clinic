@@ -128,12 +128,13 @@ try {
   for (const required of ["export function advanceSimulation", "export function hireReceptionist", "export function beginPatientSession", "export function completePatientSession", "export function buildRoom", "export function setSimulationSpeed", "export const ROOM_BLUEPRINTS"]) {
     if (!management.includes(required)) throw new Error("Management simulation is missing " + required);
   }
+  if (/hireStaff|StaffRole|rehab_assistant|payroll|morale|staffRoom/i.test(management)) throw new Error("The initial game must not contain a staff-management system");
   for (const required of ["roomDrawing=true", "updateRoomDrawPreview()", "buildRoom(management,roomType,b.x,b.z,b.w,b.d)", "managementSaveKey", "advanceSimulation(management,frameDt)"]) {
     if (!source.includes(required)) throw new Error("Playable management/build loop is missing " + required);
   }
   console.log("✓ Player physiotherapist, patient flow, optional receptionist upgrade, economy and simulation controls are wired");
   console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
-  for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.physiotherapist,avatar", "loadHumanoid(characterAssets.patient,root", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
+  for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.physiotherapist,avatar", "loadHumanoid(characterAssets.patient,root", "loadHumanoid(characterAssets.receptionist,receptionistNpc", "receptionistNpc.enabled=management.receptionistOwned", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
   }
   console.log("✓ Player physiotherapist and waiting patients have visible character instances");
