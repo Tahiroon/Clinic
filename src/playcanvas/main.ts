@@ -1466,7 +1466,7 @@ app.on("update",(dt:number)=>{
  // Temporarily disable the moving patient during its own collision queries.
  if(patientNpc.enabled&&patientTarget&&patientStepTarget){
   const current=patientNpc.getLocalPosition().clone(),dx=patientStepTarget.x-current.x,dz=patientStepTarget.z-current.z,distance=Math.hypot(dx,dz);
-  if(distance<.10){
+  if(distance<.055){
    if(patientWalkPath.length){const next=patientWalkPath.shift()!;patientStepTarget=new Vec3(next.x,0,next.z);}
    else{patientNpc.setLocalPosition(patientTarget.x,0,patientTarget.z);patientStepTarget=null;patientWalkVelocity=0;transitionHumanoid(patientRig,false);}
   }else{
@@ -1474,8 +1474,8 @@ app.on("update",(dt:number)=>{
    const desiredYaw=Math.atan2(dx,dz)*180/Math.PI,currentYaw=patientNpc.getLocalEulerAngles().y;
    let yawDelta=((desiredYaw-currentYaw+540)%360)-180;const maxTurn=Math.max(1,frameDt*220);
    patientNpc.setLocalEulerAngles(0,currentYaw+Math.max(-maxTurn,Math.min(maxTurn,yawDelta)),0);
-   const desiredSpeed=Math.min(1.05,Math.max(.25,distance*1.5));
-   patientWalkVelocity+=(desiredSpeed-patientWalkVelocity)*(1-Math.exp(-frameDt*3.8));
+   const desiredSpeed=Math.min(.98,Math.max(.10,Math.sqrt(distance)*.82));
+   patientWalkVelocity+=(desiredSpeed-patientWalkVelocity)*(1-Math.exp(-frameDt*4.8));
    const step=Math.min(distance,frameDt*patientWalkVelocity),steps=Math.max(1,Math.ceil(step/.04));
    let x=current.x,z=current.z,moved=false;patientNpc.enabled=false;
    const avatarPosition=avatar.getLocalPosition();
@@ -1506,7 +1506,7 @@ app.on("update",(dt:number)=>{
  if(avatarContactShadow)avatarContactShadow.setLocalPosition(standingPosition.x,.052,standingPosition.z);
  if(!target){if(sessionPending){sessionPending=false;sessionDialog.showModal();}return;}
  const p=avatar.getLocalPosition().clone(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
- if(d<.10){
+ if(d<.055){
   if(walkPath.length){const next=walkPath.shift()!;target=new Vec3(next.x,0,next.z);}
   else{target=null;destination=null;walkVelocity=0;if(playerRig?.anim)playerRig.anim.speed=1;setLocomotion(false);}
  }else{
@@ -1516,8 +1516,8 @@ app.on("update",(dt:number)=>{
   let yawDelta=((desiredYaw-currentYaw+540)%360)-180;
   const maxTurn=Math.max(1,frameDt*240);
   avatar.setLocalEulerAngles(0,currentYaw+Math.max(-maxTurn,Math.min(maxTurn,yawDelta)),0);
-  const desiredSpeed=Math.min(1.42,Math.max(.28,d*1.8));
-   walkVelocity+=(desiredSpeed-walkVelocity)*(1-Math.exp(-frameDt*4.2));
+  const desiredSpeed=Math.min(1.28,Math.max(.12,Math.sqrt(d)*1.05));
+   walkVelocity+=(desiredSpeed-walkVelocity)*(1-Math.exp(-frameDt*5.0));
    if(playerRig?.anim)playerRig.anim.speed=Math.max(.72,Math.min(1.12,walkVelocity/desiredSpeed));
    const step=Math.min(d,frameDt*walkVelocity),moved=moveAvatarSafely(dx/d*step,dz/d*step);
   if(!moved){
