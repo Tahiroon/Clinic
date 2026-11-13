@@ -39,17 +39,17 @@
 9. A blocked target on the far side of a wall must never cause the avatar to stop at an arbitrary point on the near side.
 10. The avatar can walk from the outdoor property path through the constructed room entrance and approach the patient safely.
 11. Patient visitors visibly follow their calculated waypoints, turn smoothly, avoid walls/furniture and stop at their intended room-side destination; no route may be calculated and then left unused.
-11. The avatar can approach the patient beside the treatment table without intersecting the table or wall.
-12. The avatar routes around the treatment table, storage unit, trees, shrubs, player-built rooms and property boundary.
-13. Avatar does not pass through walls, closed boundaries, built-in furniture or placed furniture.
-14. Grid aligns with the floor.
-15. Valid equipment placement updates occupancy and can occur inside rooms.
-16. Overlapping/out-of-bounds/path-blocking placement is rejected clearly.
-17. Rotation updates footprint correctly.
-18. Layout and coin balance survive reload.
-19. Invalid, duplicated, out-of-bounds or unsupported save records are ignored safely; unrecoverable saves fall back to a clean starter clinic.
-20. Repeated scene entry/exit does not cause unbounded memory growth.
-21. No secrets or real student/patient data exist in repository.
+12. The avatar can approach the patient beside the treatment table without intersecting the table or wall.
+13. The avatar routes around the treatment table, storage unit, trees, shrubs, player-built rooms and property boundary.
+14. Avatar does not pass through walls, closed boundaries, built-in furniture or placed furniture.
+15. Grid aligns with the floor.
+16. Valid equipment placement updates occupancy and can occur inside rooms.
+17. Overlapping/out-of-bounds/path-blocking placement is rejected clearly.
+18. Rotation updates footprint correctly.
+19. Layout and coin balance survive reload.
+20. Invalid, duplicated, out-of-bounds or unsupported save records are ignored safely; unrecoverable saves fall back to a clean starter clinic.
+21. Repeated scene entry/exit does not cause unbounded memory growth.
+22. No secrets or real student/patient data exist in repository.
 
 ## Camera, touch and performance acceptance
 
