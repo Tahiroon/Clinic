@@ -14,20 +14,21 @@
 PlayCanvas is the single selected 3D runtime. Babylon.js remains only as a historical comparison prototype and must not be bundled into the shipped game. Revisit the engine only if measured low-end Android tests show PlayCanvas cannot meet the acceptance targets and a replacement materially improves them.
 
 ## Character and simulation scope
-The first playable release is a management simulation, not a single-avatar walking demo. It includes a player-owner/physiotherapist, hireable physiotherapists, rehabilitation assistants, receptionists, cleaners and a live patient flow. Characters have finite state machines, tasks, room assignments, energy, morale and navigation goals. Nearby characters use authored animations and obstacle-aware navigation; distant characters are simplified or paused. Use deterministic simulation ticks and cap active agents for low-end Android.
+
+The initial game has one player-controlled physiotherapist and patient visitors. A single optional receptionist can be purchased after three completed clinical sessions. Do not implement hireable physiotherapists, nurses, assistants, cleaners, payroll, staff schedules, morale, energy, breaks or staff rooms. Patient characters use finite state machines for arrival, registration, waiting, player-led clinical session and discharge. Use obstacle-aware navigation, a small active-character cap and simplified distant updates for low-end Android.
 
 ## Logical layers
 - **App/UI:** portrait navigation, HUD, menus, accessibility and feedback. Prefer lightweight DOM/CSS for interface elements when appropriate; keep 3D interaction in the canvas.
 - **Simulation runtime:** PlayCanvas lifecycle, scene, camera modes, touch, avatar animation/navigation, environment rendering and asset loading.
 - **Clinic domain:** starter plot, parcels, variable-size room blueprints, drag-to-draw construction, layout, grid, footprints, placement constraints, required room equipment and expansion.
-- **Game domain:** deterministic clock and speed controls, patient journey/queues, staff hiring/assignment/tasks, energy/morale, appointments, payroll, finances, reputation, campaign objectives and events.
+- **Game domain:** deterministic clock and speed controls, patient journey/queues, optional receptionist upgrade, appointments, finances, reputation, campaign objectives and events.
 - **Clinical domain:** versioned cases, actions, findings, reasoning, safety rules, rubrics and feedback. No dependency on PlayCanvas.
 - **Persistence:** versioned local saves first; remote sync later behind a queue/retry/conflict interface.
 - **THERASON bridge (future):** narrow identity and approved progress-summary adapter. No second game password.
 
 ## Simulation contracts
 
-The management domain is engine-independent. Its versioned state contains the clinic clock, pause/speed, wallet, reputation, staff roster, patient records, room definitions, event feed and progression counters. Simulation advances in bounded game-minute steps. Character rendering consumes state; it does not own or mutate management rules. Room construction accepts grid-aligned rectangle dimensions and validates plot bounds, overlap and area-based costs before committing. Save data is local-first and versioned.
+The management domain is engine-independent. Its versioned state contains the clinic clock, pause/speed, wallet, reputation, optional receptionist flag, patient records, room definitions, event feed and progression counters. Simulation advances in bounded game-minute steps. Character rendering consumes state; it does not own or mutate management rules. Room construction accepts grid-aligned rectangle dimensions and validates plot bounds, overlap and area-based costs before committing. Save data is local-first and versioned.
 
 ## Proposed code organization
 - `src/app` — entry and screen composition
@@ -95,4 +96,4 @@ The core local clinic loop must not require continuous network access. Save vers
 The simulator remains separately deployable. Auth, sync, content delivery or engine failure must not destabilize the THERASON website. Keep all current development on `clinic-dev`; do not merge to `main` without explicit owner approval.
 
 ## First vertical-slice technical gate
-Prove: stable portrait management camera; readable rooms and characters; room-drawing/building; staff hiring and assignment; patient arrival-to-discharge flow; queue and morale/economy simulation; pause and time speed; local save/reload; low-end Android frame-time/memory/startup measurements.
+Prove: stable portrait management camera; readable rooms and characters; room-drawing/building; player physiotherapist navigation; patient arrival-to-discharge flow; queue/patience/economy simulation; pause and time speed; local save/reload; low-end Android frame-time/memory/startup measurements.
