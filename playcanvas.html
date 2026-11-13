@@ -7,13 +7,13 @@
 </head>
 <body>
 <main class="clinic-app">
-<header class="app-header"><a class="brand" href="/" aria-label="ثيراسون"><span class="brand-mark">T<span>+</span></span><span><b>THERASON</b><small>CLINIC SIMULATOR</small></span></a><div class="header-right"><span class="level-chip" id="game-clock">اليوم 1 · 08:00</span><span class="coin-pill">◈ <b id="coins">3200</b></span><button class="management-toggle" id="management-toggle" type="button">إدارة</button></div></header>
+<header class="app-header"><a class="brand" href="/" aria-label="ثيراسون"><span class="brand-mark">T<span>+</span></span><span><b>THERASON</b><small>CLINIC SIMULATOR</small></span></a><div class="header-right"><span class="level-chip" id="game-clock">اليوم 1 · 08:00</span><span class="coin-pill">◈ <b id="coins">3200</b></span><button class="management-toggle" id="management-toggle" type="button">العيادة</button></div></header>
 <section class="welcome"><div><p class="eyebrow">عيادتك · رحلتك المهنية</p><h1>مساحة تبني فيها مستقبلك</h1><p class="subline">ابدأ بغرفة واحدة، ووسّع عيادتك بخبرتك.</p></div></section>
 <section class="game-frame" aria-label="عالم العيادة">
 <div class="scene-top"><div><span class="scene-kicker">أرضك · مساحة قابلة للتوسع</span><strong id="zone-name">الفرع الأول · أرض البداية</strong></div><div class="scene-stats"><span id="patient-count">0 مرضى</span><span id="reputation">سمعة 50</span><span id="fps">-- FPS</span><span id="save-state">محفوظ</span></div></div>
 <section class="mission-card" id="mission-card" aria-label="مهمتك الحالية">
  <span class="mission-number">01</span>
- <div class="mission-copy"><span>مهمتك الحالية</span><strong id="mission-title">ابنِ الاستقبال</strong><small id="mission-detail">اسحب على الأرض لرسم أول غرفة في عيادتك، ثم جهّزها لاستقبال المرضى.</small></div>
+ <div class="mission-copy"><span>مهمتك الحالية</span><strong id="mission-title">ابنِ الاستقبال</strong><small id="mission-detail">اسحب على الأرض لرسم غرفة الاستقبال، ثم أضف الأثاث والديكور.</small></div>
  <div class="mission-actions"><button id="start-tour" type="button">ابدأ البناء</button><button id="skip-tour" type="button" aria-label="تخطي الجولة">تخطي</button></div>
 </section>
 <div class="stage"><canvas id="scene" aria-label="عالم العيادة ثلاثي الأبعاد"></canvas><div class="loading-cover" id="loading"><span class="loader"></span><b>نجهّز أرض عيادتك...</b><small>نحمّل المشهد الأساسي</small></div><div class="camera-hint" id="camera-hint">اسحب لتحريك المشهد · قرّب بإصبعين</div></div>
@@ -21,7 +21,7 @@
 <section class="management-panel" id="management-panel" hidden aria-label="لوحة إدارة العيادة">
  <div class="management-heading"><div><span class="eyebrow">لوحة الإدارة</span><h2>إدارة THERASON CLINIC</h2><small id="management-date">اليوم الأول · بداية العمل</small></div><button id="management-close" type="button" aria-label="إغلاق">×</button></div>
  <div class="management-stats">
-  <div><small>الرصيد</small><b id="mg-balance">3200</b></div><div><small>المرضى اليوم</small><b id="mg-treated">0</b></div><div><small>السمعة</small><b id="mg-reputation">50%</b></div><div><small>الفريق</small><b id="mg-staff-count">1</b></div>
+  <div><small>الرصيد</small><b id="mg-balance">3200</b></div><div><small>المرضى اليوم</small><b id="mg-treated">0</b></div><div><small>السمعة</small><b id="mg-reputation">50%</b></div><div><small>الحالات المكتملة</small><b id="mg-completed">0</b></div>
  </div>
  <div class="time-controls"><b>وقت المحاكاة</b><div><button data-speed="0" type="button">إيقاف</button><button data-speed="1" class="selected" type="button">1×</button><button data-speed="2" type="button">2×</button><button data-speed="3" type="button">3×</button></div></div>
  <button class="clinic-open-button" id="clinic-open-toggle" type="button">فتح العيادة</button>
