@@ -148,17 +148,12 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
   }
  }
  if(kind==="treatment"){
-  loadTreatmentRoomDecor(root);
+  // Treatment equipment is loaded as individual GLB objects from the physiotherapy kit.
   box("Anatomy chart",2.45,1.6,2.91,.72,.62,.04,M.pale,root);
   box("Anatomy chart accent",2.45,1.6,2.875,.12,.42,.035,trim,root);
  }else if(kind==="reception"){
   loadReceptionDesk(root);
-  // A clean waiting area that leaves the entrance and the shared doorway unobstructed.
-  for(const z of [.55,1.45]){
-   box("Waiting seat",.35,.38,z,.65,.18,.62,M.teal,root);
-   box("Waiting seat back",.35,.75,z+.22,.65,.6,.13,M.blue,root);
-   for(const x of [.10,.60])for(const zz of [z-.2,z+.2])box("Waiting seat leg",x,.18,zz,.055,.36,.055,M.dark,root);
-  }
+  loadWaitingSeats(root);
  }else{
   box("Exercise mat",1.1,.07,1.1,2.7,.08,1.25,M.blue,root);
   box("Parallel bar left",.2,.6,2.45,.1,1.1,.1,M.wood2,root);
@@ -254,12 +249,13 @@ const patientNpc=new pc.Entity("Clinic patient");world.addChild(patientNpc);pati
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>patientFallback.destroy());
 
-let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=3, focus=false, wallRotation:0|90=0;
+let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=5, focus=false, wallRotation:0|90=0;
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v5"; 
 const starterLayout:Placed[]=[
  {id:1,kind:"reception",gx:-2,gz:-4},
  {id:2,kind:"treatment",gx:-2,gz:0},
- {id:3,kind:"asset",gx:-1,gz:1,rot:0,assetKey:"pt-treatment-table"}
+ {id:3,kind:"asset",gx:-1,gz:1,rot:0,assetKey:"pt-treatment-table"},
+ {id:4,kind:"asset",gx:-2,gz:2,rot:0,assetKey:"pt-storage-cabinet"}
 ];
 const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
@@ -282,7 +278,8 @@ const clinicAssetUrls:Record<string,string>={
  "physical-therapy-room-set.glb":new URL("../assets/clinic-kit/hospital/physical-therapy-room-set.glb",import.meta.url).href,
  "hospital-equipment-set.glb":new URL("../assets/clinic-kit/hospital/hospital-equipment-set.glb",import.meta.url).href,
  "hospital-reception-desk.glb":new URL("../assets/clinic-kit/hospital/hospital-reception-desk.glb",import.meta.url).href,
- "hospital-patient-room.glb":new URL("../assets/clinic-kit/hospital/hospital-patient-room.glb",import.meta.url).href
+ "hospital-patient-room.glb":new URL("../assets/clinic-kit/hospital/hospital-patient-room.glb",import.meta.url).href,
+ "hospital-waiting-room.glb":new URL("../assets/clinic-kit/hospital/hospital-waiting-room.glb",import.meta.url).href
 };
 const containerCache=new Map<string,Promise<any>>();
 function getClinicContainer(url:string):Promise<any>{
@@ -318,6 +315,33 @@ function renderBounds(root:pc.Entity){
  for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
  if(!meshes.length||![minX,maxX,minY,maxY,minZ,maxZ].every(Number.isFinite))return null;
  return {minX,maxX,minY,maxY,minZ,maxZ,width:maxX-minX,height:maxY-minY,depth:maxZ-minZ};
+}
+function loadWaitingSeats(parent:pc.Entity){
+ const url=clinicAssetUrls["hospital-waiting-room.glb"];
+ getClinicContainer(url).then(asset=>{
+  const source=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:true});
+  const seats=source.children.find((child:pc.Entity)=>child.name==="ChairRow_4");
+  if(!seats){source.destroy();throw new Error("ChairRow_4 missing from waiting-room asset");}
+  source.removeChild(seats);source.destroy();
+  seats.setLocalPosition(0,0,0);seats.setLocalScale(1,1,1);
+  parent.addChild(seats);seats.syncHierarchy();app.root.syncHierarchy();
+  let bounds=renderBounds(seats);
+  if(!bounds||bounds.width<.1||bounds.depth<.1){seats.destroy();throw new Error("Waiting seats have invalid bounds");}
+  const scale=Math.min(2.2/bounds.width,.95/bounds.depth,1.05/bounds.height);
+  seats.setLocalScale(scale,scale,scale);seats.syncHierarchy();app.root.syncHierarchy();
+  bounds=renderBounds(seats);
+  if(!bounds)throw new Error("Waiting seats have no render meshes");
+  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(1,0,.78),new pc.Vec3());
+  const current=seats.getPosition();
+  seats.setPosition(current.x+target.x-(bounds.minX+bounds.maxX)/2,current.y-bounds.minY,current.z+target.z-(bounds.minZ+bounds.maxZ)/2);
+  seats.syncHierarchy();app.root.syncHierarchy();
+ }).catch(error=>{
+  console.warn("Waiting-room GLB could not load; using compact seats",error);
+  for(const z of [.55,1.45]){
+   box("Waiting seat fallback",.35,.38,z,.65,.18,.62,M.teal,parent);
+   box("Waiting seat back fallback",.35,.75,z+.22,.65,.6,.13,M.blue,parent);
+  }
+ });
 }
 function loadReceptionDesk(parent:pc.Entity){
  const url=clinicAssetUrls["hospital-reception-desk.glb"];
@@ -417,7 +441,7 @@ function validSavedItem(value:any):value is Placed{
  return bounds.x>=-HALF_X&&bounds.z>=-HALF_Z&&bounds.x+bounds.w<=HALF_X&&bounds.z+bounds.d<=HALF_Z;
 }
 function load(){
- const useStarter=()=>{coins=350;xp=0;placed=starterLayout.map(p=>({...p}));nextId=4;for(const p of placed)drawPlaced(p);};
+ const useStarter=()=>{coins=350;xp=0;placed=starterLayout.map(p=>({...p}));nextId=5;for(const p of placed)drawPlaced(p);};
  try{
   const raw=localStorage.getItem(saveKey);if(!raw){useStarter();return;}
   const v=JSON.parse(raw);if(v.v!==3||!Array.isArray(v.placed)){useStarter();return;}
@@ -431,7 +455,7 @@ function load(){
    placed.push(item);ids.add(item.id);
   }
   if(v.placed.length>0&&placed.length===0){useStarter();return;}
-  nextId=Math.max(4,...placed.map(p=>p.id+1));
+  nextId=Math.max(5,...placed.map(p=>p.id+1));
   coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";
   for(const p of placed)drawPlaced(p);
  }catch{useStarter();}
@@ -490,8 +514,8 @@ function canAvatarStand(x:number,z:number){
    if(walls.some(w=>rectanglesOverlap(player,w)))return false;
    const furniture:{x:number;z:number;w:number;d:number}[]=p.kind==="reception"?[
     {x:gx+.3,z:gz+3.025,w:1.8,d:.65},
-    {x:gx+.675,z:gz+1.24,w:.65,d:.62},
-    {x:gx+.675,z:gz+2.14,w:.65,d:.62}
+    {x:gx+1.025,z:gz+.35,w:.65,d:.62},
+    {x:gx+1.025,z:gz+1.25,w:.65,d:.62}
    ]:p.kind==="treatment"?[]:[
     {x:gx+.15,z:gz+2.05,w:.2,d:1.1},
     {x:gx+1.95,z:gz+2.05,w:.2,d:1.1},
