@@ -66,7 +66,7 @@ const light=new pc.Entity("Soft daylight");
 light.addComponent("light",{type:"directional",intensity:1.15,castShadows:false});
 light.setEulerAngles(48,25,0);app.root.addChild(light);
 const world=new pc.Entity("Clinic property · portrait 3/4 world");
-world.setEulerAngles(0,10,0);app.root.addChild(world);world.syncHierarchy();app.root.syncHierarchy();
+world.setEulerAngles(0,10,0);app.root.addChild(world);world.syncHierarchy();
 const worldInverse=new pc.Mat4().invert(world.getWorldTransform() as pc.Mat4);
 const tapMarker=new pc.Entity("Tap destination marker");
 tapMarker.addComponent("model",{type:"cylinder"});
@@ -303,7 +303,7 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
  app.assets.loadFromUrl(url,"container",(err,asset)=>{
   if(err||!asset?.resource){console.error("Character asset failed",url,err);status.textContent="تم تشغيل شخصية بديلة خفيفة؛ تعذر تحميل النموذج الخارجي.";return;}
   const model=asset.resource.instantiateRenderEntity({castShadows:castShadow,receiveShadows:false});
-  model.name="Animated humanoid";parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
+  model.name="Animated humanoid";parent.addChild(model);model.syncHierarchy();
   const meshes=collectRenderMeshes(model);
   if(!meshes.length){console.error("Character GLB has no render meshes",url);model.destroy();return;}
   let minY=Infinity,maxY=-Infinity;
@@ -311,7 +311,7 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
   const measuredHeight=maxY-minY;
   if(!Number.isFinite(measuredHeight)||measuredHeight<.25||measuredHeight>8){console.error("Character asset has implausible dimensions",url,measuredHeight);model.destroy();return;}
   const scale=height/measuredHeight;
-  model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
+  model.setLocalScale(scale,scale,scale);model.syncHierarchy();
   const scaled=collectRenderMeshes(model);
   let scaledMinX=Infinity,scaledMaxX=-Infinity,scaledMinY=Infinity,scaledMinZ=Infinity,scaledMaxZ=-Infinity;
   for(const mesh of scaled){
@@ -468,17 +468,17 @@ function loadWaitingSeats(parent:pc.Entity){
   seats.setLocalPosition(0,0,0);seats.setLocalScale(1,1,1);
   // Rotate the four-seat row along the reception's right wall, preserving a clear central lane to the treatment doorway.
   seats.setLocalEulerAngles(0,90,0);
-  parent.addChild(seats);seats.syncHierarchy();app.root.syncHierarchy();
+  parent.addChild(seats);seats.syncHierarchy();
   let bounds=renderBounds(seats);
   if(!bounds||bounds.width<.1||bounds.depth<.1){seats.destroy();throw new Error("Waiting seats have invalid bounds");}
   const scale=Math.min(.95/bounds.width,2.2/bounds.depth,1.05/bounds.height);
-  seats.setLocalScale(scale,scale,scale);seats.syncHierarchy();app.root.syncHierarchy();
+  seats.setLocalScale(scale,scale,scale);seats.syncHierarchy();
   bounds=renderBounds(seats);
   if(!bounds)throw new Error("Waiting seats have no render meshes");
   const target=parent.getWorldTransform().transformPoint(new pc.Vec3(2.45,0,1.45),new pc.Vec3());
   const current=seats.getPosition();
   seats.setPosition(current.x+target.x-(bounds.minX+bounds.maxX)/2,current.y-bounds.minY,current.z+target.z-(bounds.minZ+bounds.maxZ)/2);
-  seats.syncHierarchy();app.root.syncHierarchy();
+  seats.syncHierarchy();
  }).catch(error=>{
   console.warn("Waiting-room GLB could not load; using compact seats",error);
   for(const z of [.55,1.45]){
@@ -505,17 +505,17 @@ function loadReceptionDesk(parent:pc.Entity){
    if(!keep.test(node.name)){node.destroy();continue;}
    for(const child of node.children as pc.Entity[])stack.push(child);
   }
-  parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
+  parent.addChild(model);model.syncHierarchy();
   let b=renderBounds(model);
   if(!b||b.width<.05||b.depth<.05||b.height<.05){model.destroy();throw new Error("Reception desk subset is empty or has invalid bounds");}
   const scale=Math.min(1.7/b.width,.9/b.depth,1.15/b.height);
-  model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
+  model.setLocalScale(scale,scale,scale);model.syncHierarchy();
   b=renderBounds(model);
   if(!b)throw new Error("Reception desk has no renderable meshes after scaling");
   const target=parent.getWorldTransform().transformPoint(new pc.Vec3(-.15,0,2.0),new pc.Vec3());
   const current=model.getPosition();
   model.setPosition(current.x+target.x-(b.minX+b.maxX)/2,current.y-b.minY,current.z+target.z-(b.minZ+b.maxZ)/2);
-  model.syncHierarchy();app.root.syncHierarchy();
+  model.syncHierarchy();
  }).catch(error=>{
   console.error("Reception desk GLB failed; using graceful fallback",error);
   box("Reception fallback desk",.2,.48,2.35,1.8,.85,.65,M.wood,parent);
@@ -534,17 +534,17 @@ function loadTreatmentRoomDecor(parent:pc.Entity){
   }
   // Reuse detailed licensed room props (cabinet, visitor chair, TV, blinds, curtain,
   // wall outlets and plant) while the clinic's own modular shell controls the doorways.
-  parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
+  parent.addChild(model);model.syncHierarchy();
   let b=renderBounds(model);
   if(!b||b.width<.05||b.depth<.05||b.height<.05){model.destroy();throw new Error("Treatment-room decor has invalid bounds");}
   const scale=Math.min(3.55/b.width,3.55/b.depth,2.0/b.height);
-  model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
+  model.setLocalScale(scale,scale,scale);model.syncHierarchy();
   b=renderBounds(model);
   if(!b)throw new Error("Treatment-room props have no renderable meshes");
   const target=parent.getWorldTransform().transformPoint(new pc.Vec3(1,0,1),new pc.Vec3());
   const current=model.getPosition();
   model.setPosition(current.x+target.x-(b.minX+b.maxX)/2,current.y-b.minY,current.z+target.z-(b.minZ+b.maxZ)/2);
-  model.syncHierarchy();app.root.syncHierarchy();
+  model.syncHierarchy();
  }).catch(error=>{
   console.warn("Treatment-room decorative GLB unavailable; procedural shell remains",error);
  });
@@ -562,15 +562,15 @@ function loadClinicAsset(p:Placed){
   container.destroy();
   const size=spec.footprint,holder=new pc.Entity("3D asset · "+spec.label);
   world.addChild(holder);holder.setLocalPosition(p.gx+size/2,0,p.gz+size/2);holder.addChild(chosen);
-  chosen.setLocalPosition(0,0,0);chosen.setLocalEulerAngles(0,p.rot??0,0);holder.syncHierarchy();app.root.syncHierarchy();
+  chosen.setLocalPosition(0,0,0);chosen.setLocalEulerAngles(0,p.rot??0,0);holder.syncHierarchy();
   const before=renderBounds(chosen);
   if(!before||before.width<.01||before.depth<.01||before.height<.01)throw new Error("Invalid model bounds for "+spec.node);
   const scale=spec.targetSize/Math.max(before.width,before.depth,.01);
-  chosen.setLocalScale(scale,scale,scale);holder.syncHierarchy();app.root.syncHierarchy();
+  chosen.setLocalScale(scale,scale,scale);holder.syncHierarchy();
   const bounds=renderBounds(chosen);if(!bounds)throw new Error("No render meshes in "+spec.node);
   const holderWorld=holder.getPosition(),chosenWorld=chosen.getPosition();
   chosen.setPosition(chosenWorld.x+holderWorld.x-(bounds.minX+bounds.maxX)/2,chosenWorld.y-bounds.minY,chosenWorld.z+holderWorld.z-(bounds.minZ+bounds.maxZ)/2);
-  holder.syncHierarchy();app.root.syncHierarchy();
+  holder.syncHierarchy();
  }).catch(error=>{
   console.error("Clinic store asset failed",spec.label,error);drawAssetFallback(p,spec);
   status.textContent="تعذر تحميل الأصل الحقيقي لـ "+spec.label+"؛ تم استخدام نموذج احتياطي.";
