@@ -173,7 +173,7 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
   if(!Number.isFinite(measuredHeight)||measuredHeight<.25||measuredHeight>8){console.error("Character asset has implausible dimensions",url,measuredHeight);model.destroy();return;}
   const scale=height/measuredHeight;
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
-  const scaled=model.findComponents("render").flatMap(r=>r.meshInstances);
+  const scaled=model.findComponents("render").flatMap((r:any)=>r.meshInstances);
   let scaledMinY=Infinity,scaledCenterX=0,scaledCenterZ=0;
   for(const mesh of scaled){const b=mesh.aabb;scaledMinY=Math.min(scaledMinY,b.center.y-b.halfExtents.y);scaledCenterX+=b.center.x;scaledCenterZ+=b.center.z;}
   const meshCount=Math.max(1,scaled.length);
@@ -272,7 +272,7 @@ function loadReceptionDesk(parent:pc.Entity){
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
   parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
-  const meshes=model.findComponents("render").flatMap(r=>r.meshInstances);
+  const meshes=model.findComponents("render").flatMap((r:any)=>r.meshInstances);
   if(!meshes.length){model.destroy();throw new Error("Reception desk asset has no render meshes");}
   let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
   for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
@@ -280,7 +280,7 @@ function loadReceptionDesk(parent:pc.Entity){
   if(!Number.isFinite(width)||width<.05||depth<.05||height<.05){model.destroy();throw new Error("Reception desk asset has invalid dimensions");}
   const scale=Math.min(1.8/Math.max(width,depth),1.2/height);
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
-  const scaled=model.findComponents("render").flatMap(r=>r.meshInstances);
+  const scaled=model.findComponents("render").flatMap((r:any)=>r.meshInstances);
   minX=Infinity;maxX=-Infinity;minY=Infinity;minZ=Infinity;maxZ=-Infinity;
   for(const mesh of scaled){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
   model.setPosition(parent.getPosition().x+.2-(minX+maxX)/2,-minY,parent.getPosition().z+2.35-(minZ+maxZ)/2);
