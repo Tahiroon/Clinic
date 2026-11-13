@@ -859,6 +859,7 @@ function renderManagement(){
  el("#mg-treated").textContent=String(management.treated);
  el("#mg-reputation").textContent=Math.round(management.reputation)+"%";
  el("#mg-staff-count").textContent=String(management.staff.length);
+ const clinicToggle=el<HTMLButtonElement>("#clinic-open-toggle");clinicToggle.textContent=management.clinicOpen?"إغلاق العيادة":"فتح العيادة";clinicToggle.classList.toggle("closed",!management.clinicOpen);
  el("#management-date").textContent="اليوم "+management.day+" · "+formatGameTime(management)+" · "+(management.speed===0?"متوقفة":management.speed+"×");
  const staffStatus:Record<string,string>={idle:"متاح",working:"يعالج مريضاً",break:"في استراحة"};
  el("#staff-list").innerHTML=management.staff.map(member=>'<div class="management-row"><div><strong>'+member.name+' · '+getRoleLabel(member.role)+'</strong><small>'+staffStatus[member.status]+' · مهارة '+member.skill+' · معنويات '+Math.round(member.morale)+'</small></div><div><small>طاقة '+Math.round(member.energy)+'%</small><div class="meter"><i style="width:'+Math.round(member.energy)+'%"></i></div></div></div>').join("");
@@ -919,7 +920,7 @@ canvas.addEventListener("pointerup",e=>{
    if(!result.ok){status.textContent=result.message;return;}
    coins=management.balance;coinsLabel.textContent=String(coins);
    const item:Placed={id:nextId++,kind:selected,gx:b.x,gz:b.z,width:b.w,depth:b.d,rot:wallRotation};
-   placed.push(item);drawPlaced(item);createLawnGrass();save();status.textContent=result.message+" يمكنك إضافة الأجهزة والأثاث من المتجر.";return;
+   placed.push(item);drawPlaced(item);createLawnGrass();if(missionPhase===0&&selected==="reception")setMissionPhase(1);else if(missionPhase===2&&selected==="assessment")setMissionPhase(3);else if(missionPhase===3&&selected==="treatment")setMissionPhase(4);save();status.textContent=result.message+" يمكنك إضافة الأجهزة والأثاث من المتجر.";return;
   }
  }
  if(!pointerStart){
@@ -979,9 +980,17 @@ document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>but
  const speed=Number(button.dataset.speed) as 0|1|2|3;setSimulationSpeed(management,speed);renderManagement();save();
 }));
 document.querySelectorAll<HTMLButtonElement>("[data-hire]").forEach(button=>button.addEventListener("click",()=>{
- const result=hireStaff(management,button.dataset.hire as StaffRole);
- coins=management.balance;coinsLabel.textContent=String(coins);status.textContent=result.message;save();renderManagement();
+ const role=button.dataset.hire as StaffRole,result=hireStaff(management,role);
+ coins=management.balance;coinsLabel.textContent=String(coins);status.textContent=result.message;
+ if(result.ok&&role==="receptionist"&&missionPhase===1)setMissionPhase(2);
+ save();renderManagement();
 }));
+el<HTMLButtonElement>("#clinic-open-toggle").addEventListener("click",()=>{
+ const result=setClinicOpen(management,!management.clinicOpen);
+ status.textContent=result.message;
+ if(result.ok&&management.clinicOpen&&missionPhase===4)setMissionPhase(5);
+ renderManagement();save();
+});
 function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",assessment:"غرفة تقييم",gym:"صالة تأهيل",staff:"استراحة الفريق",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent=isRoomKind(kind)?"تم اختيار "+names[kind]+". اسحب بإصبعك على الأرض لرسم مساحة الغرفة بالحجم الذي تريده.":"تم اختيار "+names[kind]+". المس خلية فارغة لوضع العنصر، ويمكنك تدوير الحائط من زر التدوير.";}
 function selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));el("#build-hint").textContent="تم اختيار "+spec.label+" من الأصول ثلاثية الأبعاد. يحتاج مساحة "+spec.footprint+"×"+spec.footprint+" خلايا.";}
 moveBtn.addEventListener("click",()=>{updateMode("move");storeBtn.classList.remove("active");});
