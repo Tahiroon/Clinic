@@ -155,6 +155,24 @@ for(const [x,z] of [[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]] as [number,n
   entity.addComponent("model");entity.model!.model=model;world.addChild(entity);
  }
  createLawnGrass();
+// A compact arrival court gives the clinic a readable public entrance without crowding the narrow plot.
+const arrivalStone=material(new pc.Color(.66,.70,.67));
+const arrivalMetal=material(new pc.Color(.20,.31,.38));
+const warmGlass=material(new pc.Color(.96,.76,.40));
+box("Arrival court paving",0,.055,-5.30,2.05,.07,.78,arrivalStone,world);
+for(const x of [-.94,.94]){
+ box("Arrival court edge",x,.105,-5.30,.055,.10,.82,trim,world);
+ cylinder("Entrance bollard",x,.38,-5.20,.10,.66,.10,arrivalMetal,world);
+ cylinder("Bollard warm cap",x,.73,-5.20,.105,.08,.105,warmGlass,world);
+}
+for(const x of [-2.45,2.45]){
+ cylinder("Garden path light base",x,.12,-4.05,.22,.22,.22,arrivalMetal,world);
+ cylinder("Garden path light stem",x,.55,-4.05,.075,.78,.075,arrivalMetal,world);
+ sphere("Garden path light diffuser",x,.98,-4.05,.17,warmGlass,world);
+}
+box("Clinic facade lower accent",0,.28,-4.09,3.85,.12,.10,trim,world);
+box("Clinic facade upper accent",0,2.82,-4.08,4.15,.10,.12,arrivalMetal,world);
+
 // The clinic identity is fixed to the entrance facade, not floating in the middle of the lawn.
 box("THERASON entrance sign",0,2.55,-4.13,2.0,.46,.12,trim,world);
 box("Entrance sign inset",0,2.56,-4.205,1.7,.27,.035,M.white,world);
@@ -618,6 +636,36 @@ function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string
  // Furniture may share a room's floor, but never another prop's physical footprint.
  return placed.some(p=>!isRoomKind(p.kind)&&rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey)));
 }
+
+// Reusable placement ghost: one lightweight mesh, updated in place (never spawned per pointer event).
+const placementPreviewMaterial=material(new pc.Color(.12,.82,.48));
+placementPreviewMaterial.opacity=.42;
+placementPreviewMaterial.blendType=pc.BLEND_NORMAL;
+placementPreviewMaterial.depthWrite=false;
+placementPreviewMaterial.update();
+const placementPreview=box("Placement preview · validity ghost",0,.12,0,1,.035,1,placementPreviewMaterial,world);
+placementPreview.enabled=false;
+let previewValidity:boolean|null=null;
+function updatePlacementPreview(clientX:number,clientY:number){
+ if(mode!=="build"){placementPreview.enabled=false;return;}
+ const point=screenToGround(clientX,clientY);
+ if(!point){placementPreview.enabled=false;previewValidity=null;return;}
+ if(selected==="asset"&&!selectedAssetKey){placementPreview.enabled=false;return;}
+ const gx=Math.floor(point.x),gz=Math.floor(point.z);
+ const bounds=footprintAt(gx,gz,selected,wallRotation,selectedAssetKey??undefined);
+ const cost=selected==="asset"&&selectedAssetKey?storeAssetSpecs[selectedAssetKey].cost:costs[selected];
+ const valid=!occupied(gx,gz,selected,wallRotation,selectedAssetKey??undefined)&&coins>=cost;
+ placementPreview.setLocalPosition(bounds.x+bounds.w/2,.12,bounds.z+bounds.d/2);
+ placementPreview.setLocalScale(Math.max(.08,bounds.w),.035,Math.max(.08,bounds.d));
+ if(previewValidity!==valid){
+  placementPreviewMaterial.diffuse=valid?new pc.Color(.12,.88,.48):new pc.Color(.96,.22,.20);
+  placementPreviewMaterial.emissive=valid?new pc.Color(.025,.16,.07):new pc.Color(.16,.018,.015);
+  placementPreviewMaterial.update();
+  previewValidity=valid;
+ }
+ placementPreview.enabled=true;
+}
+
 function canAvatarStand(x:number,z:number){
  const radius=.28;
  if(x-radius< -HALF_X||x+radius>HALF_X||z-radius< -HALF_Z||z+radius>HALF_Z)return false;
@@ -763,7 +811,7 @@ function moveAvatarSafely(dx:number,dz:number){
  avatar.setLocalPosition(x,0,z);
  return Math.hypot(x-p.x,z-p.z)>.001;
 }
-function updateMode(next:"move"|"build"){mode=next;buildGrid.enabled=mode==="build";if(next==="build"){destination=null;target=null;walkPath=[];setLocomotion(false);tapMarker.enabled=false;}moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"الشبكة ظاهرة الآن: اختر غرفة أو قطعة، ثم ضعها داخل غرفة وبعيداً عن الأثاث.";}
+function updateMode(next:"move"|"build"){mode=next;buildGrid.enabled=mode==="build";placementPreview.enabled=mode==="build";previewValidity=null;if(next==="build"){destination=null;target=null;walkPath=[];setLocomotion(false);tapMarker.enabled=false;}moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"الشبكة ظاهرة الآن: المعاينة الخضراء صالحة، والحمراء غير صالحة. المس لتأكيد المكان.";}
 function screenToGround(clientX:number,clientY:number){
  const rect=canvas.getBoundingClientRect();
  const px=(clientX-rect.left)*(canvas.width/rect.width),py=(clientY-rect.top)*(canvas.height/rect.height);
@@ -777,7 +825,7 @@ function screenToGround(clientX:number,clientY:number){
 }
 let pointerStart:{x:number;y:number;cx:number;cz:number;tx:number;tz:number}|null=null,dragged=false;const activePointers=new Map<number,{x:number;y:number}>();let pinchDistance=0,pinchHeight=0;
 canvas.addEventListener("pointerdown",e=>{activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size===2){const pts=[...activePointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);pinchHeight=desiredOrthoHeight;pointerStart=null;dragged=true;}else{pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraGoal.x,tz:cameraGoal.z};dragged=false;}canvas.setPointerCapture(e.pointerId);});
-canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(7.2,Math.min(14,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraGoal.set(Math.max(-2.2,Math.min(2.2,pointerStart.tx+shiftX)),0,Math.max(-5.8,Math.min(5.8,pointerStart.tz+shiftZ)));}});
+canvas.addEventListener("pointermove",e=>{if(mode==="build"&&activePointers.size<2)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(7.2,Math.min(14,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraGoal.set(Math.max(-2.2,Math.min(2.2,pointerStart.tx+shiftX)),0,Math.max(-5.8,Math.min(5.8,pointerStart.tz+shiftZ)));}});
 canvas.addEventListener("pointerup",e=>{
  activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;
  if(!pointerStart){
@@ -795,7 +843,7 @@ canvas.addEventListener("pointerup",e=>{
   if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}
   coins-=cost;coinsLabel.textContent=String(coins);
   const item:Placed={id:nextId++,kind:selected,gx,gz,rot:wallRotation,assetKey:selected==="asset"?selectedAssetKey??undefined:undefined};
-  placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;
+  placed.push(item);drawPlaced(item);save();updatePlacementPreview(e.clientX,e.clientY);status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;
  }
  const start=avatar.getLocalPosition().clone(),tx=ground.x,tz=ground.z;
  destination=new pc.Vec3(tx,0,tz);
@@ -819,8 +867,8 @@ canvas.addEventListener("pointerup",e=>{
  status.textContent="الأخصائي يلتف حول العائق ويتجه إلى النقطة المحددة.";
 });
 canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;});
-function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}
-function selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));el("#build-hint").textContent="تم اختيار "+spec.label+" من الأصول ثلاثية الأبعاد. يحتاج مساحة "+spec.footprint+"×"+spec.footprint+" خلايا.";}
+function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}
+function selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));el("#build-hint").textContent="تم اختيار "+spec.label+" من الأصول ثلاثية الأبعاد. يحتاج مساحة "+spec.footprint+"×"+spec.footprint+" خلايا.";}
 moveBtn.addEventListener("click",()=>{updateMode("move");storeBtn.classList.remove("active");});
 buildBtn.addEventListener("click",()=>{updateMode(mode==="build"?"move":"build");storeBtn.classList.remove("active");});
 el("#cancel-build").addEventListener("click",()=>{updateMode("move");storeBtn.classList.remove("active");});
@@ -837,7 +885,7 @@ storeBtn.addEventListener("click",()=>{
 document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEventListener("click",()=>selectBuild(b.dataset.build as BuildKind)));
 document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEventListener("click",()=>selectAsset(b.dataset.asset??"")));
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";el("#catalog-furniture").hidden=cat!=="furniture";if(cat==="structure")selectBuild("wall");else if(cat==="rooms")selectBuild("reception");else selectAsset("pt-treatment-table");}));
-el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;status.textContent="اتجاه العنصر الآن "+(wallRotation===0?"0°":"90°")+". سيتم تطبيقه على القطعة التالية.";});
+el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;previewValidity=null;status.textContent="اتجاه العنصر الآن "+(wallRotation===0?"0°":"90°")+". سيتم تطبيقه على القطعة التالية.";});
 viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:(window.innerWidth/window.innerHeight<.48?8.7:9.2);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
 let sessionStep=0,sessionScore=0;
 let sessionPending=false;
