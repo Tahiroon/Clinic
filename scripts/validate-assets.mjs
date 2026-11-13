@@ -48,7 +48,7 @@ try {
     throw new Error("The lawn model graph must never reference its owning entity");
   }
   if (!/model\.graph\s*=\s*grassGraph/.test(lawn) ||
-      !/new pc\.MeshInstance\(mesh,\s*grassMat,\s*grassGraph\)/.test(lawn)) {
+      !/new pc\.MeshInstance\(mesh,\s*lawnGrassMaterial,\s*grassGraph\)/.test(lawn)) {
     throw new Error("The lawn mesh and Model must share a separate GraphNode root");
   }
   if (!/const GRID=1, W=14, D=28, HALF_X=W\/2, HALF_Z=D\/2/.test(source)) {
