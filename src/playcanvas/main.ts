@@ -53,7 +53,7 @@ window.visualViewport?.addEventListener("resize",queueResize,{passive:true});
 window.visualViewport?.addEventListener("scroll",queueResize,{passive:true});
 app.scene.ambientLight=new Color(.72,.75,.78);
 function material(c:Color){const m=new StandardMaterial();m.diffuse=c;m.update();return m;}
-const M={ground:material(new Color(.24,.52,.39)),tile:material(new Color(.34,.66,.48)),grid:material(new Color(.12,.62,.72)),room:material(new Color(.86,.91,.88)),wall:material(new Color(.96,.97,.93)),wallSide:material(new Color(.40,.68,.72)),wood:material(new Color(.54,.34,.23)),wood2:material(new Color(.78,.55,.31)),teal:material(new Color(.02,.64,.70)),blue:material(new Color(.10,.34,.66)),pale:material(new Color(.82,.95,.94)),green:material(new Color(.20,.65,.39)),skin:material(new Color(.72,.49,.36)),dark:material(new Color(.08,.15,.23)),white:material(new Color(.98,.98,.92)),yellow:material(new Color(.98,.73,.23))};
+const M={ground:material(new Color(.24,.52,.39)),tile:material(new Color(.34,.66,.48)),grid:material(new Color(.12,.62,.72)),room:material(new Color(.86,.91,.88)),wall:material(new Color(.96,.97,.93)),wood:material(new Color(.54,.34,.23)),wood2:material(new Color(.78,.55,.31)),teal:material(new Color(.02,.64,.70)),blue:material(new Color(.10,.34,.66)),pale:material(new Color(.82,.95,.94)),green:material(new Color(.20,.65,.39)),skin:material(new Color(.72,.49,.36)),dark:material(new Color(.08,.15,.23)),white:material(new Color(.98,.98,.92)),yellow:material(new Color(.98,.73,.23))};
 type PrimitiveModelType="box"|"capsule"|"cone"|"cylinder"|"plane"|"sphere"|"torus";
 function primitive(name:string,type:PrimitiveModelType,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){
  const e=new Entity(name);e.addComponent("model",{type});parent.addChild(e);e.setLocalPosition(x,y,z);e.setLocalScale(sx,sy,sz);
@@ -86,7 +86,6 @@ const GRID=1, W=14, D=28, HALF_X=W/2, HALF_Z=D/2;
 const grassAlt=material(new Color(.38,.53,.38));
 const pathMat=material(new Color(.67,.62,.49));
 const pathEdge=material(new Color(.43,.48,.37));
-const glass=material(new Color(.28,.67,.76));
 const trim=material(new Color(.10,.39,.47));
 const roofAccent=material(new Color(.16,.28,.38));
 const lawnBase=material(new Color(.25,.39,.24));
@@ -404,7 +403,6 @@ const clinicAssetUrls:Record<string,string>={
  "bedside-cabinet.glb":new URL("../assets/clinic-kit/management-sim/bedside-cabinet.glb",import.meta.url).href,
  "partition-wall.glb":new URL("../assets/clinic-kit/management-sim/partition-wall.glb",import.meta.url).href,
  "partition-wall-1m.glb":new URL("../assets/clinic-kit/management-sim/partition-wall-1m.glb",import.meta.url).href,
- "glazed-partition.glb":new URL("../assets/clinic-kit/management-sim/glazed-partition.glb",import.meta.url).href,
  "door-leaf.glb":new URL("../assets/clinic-kit/management-sim/door-leaf.glb",import.meta.url).href,
  "corridor-floor-tile.glb":new URL("../assets/clinic-kit/management-sim/corridor-floor-tile.glb",import.meta.url).href
 };
