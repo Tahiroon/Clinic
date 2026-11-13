@@ -100,6 +100,11 @@ export function advanceSimulation(s:ManagementState,realSeconds:number){
   }
  }
 }
+export function recoverInterruptedSessions(s:ManagementState){
+ let recovered=0;
+ for(const patient of s.patients){if(patient.stage==="assessment"){patient.stage="waiting";patient.waitMinutes=0;recovered++;}}
+ if(recovered)event(s,"warning","استعدنا "+recovered+" جلسة غير مكتملة وأعدنا المرضى إلى قائمة الانتظار.");
+}
 export function registerPatient(s:ManagementState,patientId:number):{ok:boolean;message:string}{
  if(s.receptionistOwned)return {ok:false,message:"موظف الاستقبال يتولى تسجيل المرضى تلقائياً."};
  const patient=s.patients.find(p=>p.id===patientId&&p.stage==="reception");
