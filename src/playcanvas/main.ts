@@ -224,11 +224,9 @@ function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number
  }else if(kind==="reception"){
   loadReceptionDesk(root);loadWaitingSeats(root);
  }else{
-  box("Exercise mat",0,.09,0,Math.min(width*.68,2.7),.08,Math.min(depth*.42,1.25),M.blue,root);
-  for(const x of [-Math.min(width*.25,.9),Math.min(width*.25,.9)]){
-   box("Parallel bar support",x,.6,depth*.24,.1,1.1,.1,M.wood2,root);
-   box("Parallel bar rail",x,1.08,depth*.24,.08,.08,Math.min(2.2,depth*.5),M.yellow,root);
-  }
+  // Keep the exercise room as an empty, readable build space; the player buys and places its therapy equipment.
+  box("Exercise wall display",0,1.28,halfD-wallThickness-.08,Math.min(1.7,width*.5),.78,.05,M.pale,root);
+  box("Exercise wall display accent",0,1.28,halfD-wallThickness-.12,.12,.62,.025,M.teal,root);
  }
  return root;
 }
