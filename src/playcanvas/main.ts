@@ -113,7 +113,8 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
   box("Window mullion",x,1.42,2.87,.055,.82,.09,M.white,root);
  }
  if(kind==="treatment"){
-  // The treatment table and storage cabinet are loaded from the licensed GLB asset kit below.
+  // Real, licensed hospital-room details are added as a separate lightweight decorative layer.
+  loadTreatmentRoomDecor(root);
   box("Wall chart",2.3,1.65,2.91,.75,.65,.04,M.pale,root);
   box("Anatomy chart accent",2.3,1.65,2.875,.12,.45,.035,trim,root);
  }else if(kind==="reception"){
@@ -246,7 +247,8 @@ const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:n
 const clinicAssetUrls:Record<string,string>={
  "physical-therapy-room-set.glb":new URL("../assets/clinic-kit/hospital/physical-therapy-room-set.glb",import.meta.url).href,
  "hospital-equipment-set.glb":new URL("../assets/clinic-kit/hospital/hospital-equipment-set.glb",import.meta.url).href,
- "hospital-reception-desk.glb":new URL("../assets/clinic-kit/hospital/hospital-reception-desk.glb",import.meta.url).href
+ "hospital-reception-desk.glb":new URL("../assets/clinic-kit/hospital/hospital-reception-desk.glb",import.meta.url).href,
+ "hospital-patient-room.glb":new URL("../assets/clinic-kit/hospital/hospital-patient-room.glb",import.meta.url).href
 };
 const containerCache=new Map<string,Promise<any>>();
 function getClinicContainer(url:string):Promise<any>{
@@ -271,28 +273,74 @@ function drawAssetFallback(p:Placed,spec:{label:string}){
   box("Fallback cabinet door",0,.55,.25,.54,.98,.025,M.wood,root);
  }
 }
+function collectDescendants(root:pc.Entity):pc.Entity[]{
+ const found:pc.Entity[]=[];
+ const visit=(node:pc.Entity)=>{for(const child of node.children as pc.Entity[]){found.push(child);visit(child);}};
+ visit(root);return found;
+}
+function renderBounds(root:pc.Entity){
+ const meshes=root.findComponents("render").flatMap((r:any)=>r.meshInstances);
+ let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
+ for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
+ if(!meshes.length||![minX,maxX,minY,maxY,minZ,maxZ].every(Number.isFinite))return null;
+ return {minX,maxX,minY,maxY,minZ,maxZ,width:maxX-minX,height:maxY-minY,depth:maxZ-minZ};
+}
 function loadReceptionDesk(parent:pc.Entity){
- const url=new URL("../assets/clinic-kit/hospital/hospital-reception-desk.glb",import.meta.url).href;
+ const url=clinicAssetUrls["hospital-reception-desk.glb"];
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
+  const keep=/^(Desk_|Drawer_|Keyboard_|Monitor_|Pedestal_|Screen_)/;
+  // The source GLB is a complete reception scene (desk + chairs + curtains + plant + sanitizer).
+  // Keep only the desk assembly; scaling the entire scene to desk size made the actual counter microscopic.
+  const prune=(node:pc.Entity)=>{
+   for(const child of [...node.children] as pc.Entity[]){
+    if(!keep.test(child.name)){child.destroy();continue;}
+    prune(child);
+   }
+  };
+  prune(model);
   parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
-  const meshes=model.findComponents("render").flatMap((r:any)=>r.meshInstances);
-  if(!meshes.length){model.destroy();throw new Error("Reception desk asset has no render meshes");}
-  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
-  for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
-  const width=maxX-minX,depth=maxZ-minZ,height=maxY-minY;
-  if(!Number.isFinite(width)||width<.05||depth<.05||height<.05){model.destroy();throw new Error("Reception desk asset has invalid dimensions");}
-  const scale=Math.min(3.15/Math.max(width,depth),2.05/height);
+  let b=renderBounds(model);
+  if(!b||b.width<.05||b.depth<.05||b.height<.05){model.destroy();throw new Error("Reception desk subset is empty or has invalid bounds");}
+  const scale=Math.min(2.35/b.width,.95/b.depth,1.18/b.height);
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
-  const scaled=model.findComponents("render").flatMap((r:any)=>r.meshInstances);
-  minX=Infinity;maxX=-Infinity;minY=Infinity;minZ=Infinity;maxZ=-Infinity;
-  for(const mesh of scaled){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
-  model.setPosition(parent.getPosition().x+1-(minX+maxX)/2,-minY,parent.getPosition().z+2-(minZ+maxZ)/2);
+  b=renderBounds(model);
+  if(!b)throw new Error("Reception desk has no renderable meshes after scaling");
+  const target=parent.getPosition().clone().add(new pc.Vec3(.2,0,2.35));
+  const current=model.getPosition();
+  model.setPosition(current.x+target.x-(b.minX+b.maxX)/2,current.y-b.minY,current.z+target.z-(b.minZ+b.maxZ)/2);
+  model.syncHierarchy();app.root.syncHierarchy();
  }).catch(error=>{
-  console.warn("Reception desk GLB unavailable; using lightweight fallback",error);
+  console.error("Reception desk GLB failed; using graceful fallback",error);
   box("Reception fallback desk",.2,.48,2.35,1.8,.85,.65,M.wood,parent);
   box("Reception fallback desk top",.2,.94,2.35,1.9,.1,.72,M.wood2,parent);
   box("Reception fallback monitor",.2,1.18,2.25,.42,.34,.05,M.dark,parent);
+ });
+}
+function loadTreatmentRoomDecor(parent:pc.Entity){
+ const url=clinicAssetUrls["hospital-patient-room.glb"];
+ getClinicContainer(url).then(asset=>{
+  const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
+  const removePrefixes=["Bed_","BedRemote","IV_"];
+  const removeExact=new Set(["Walls","Floor","BathroomDoor","Sign_Bathroom"]);
+  for(const node of collectDescendants(model)){
+   if(removeExact.has(node.name)||removePrefixes.some(prefix=>node.name.startsWith(prefix)))node.destroy();
+  }
+  // Reuse detailed licensed room props (cabinet, visitor chair, TV, blinds, curtain,
+  // wall outlets and plant) while the clinic's own modular shell controls the doorways.
+  parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
+  let b=renderBounds(model);
+  if(!b||b.width<.05||b.depth<.05||b.height<.05){model.destroy();throw new Error("Treatment-room decor has invalid bounds");}
+  const scale=Math.min(3.55/b.width,3.55/b.depth,2.0/b.height);
+  model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
+  b=renderBounds(model);
+  if(!b)throw new Error("Treatment-room props have no renderable meshes");
+  const target=parent.getPosition().clone().add(new pc.Vec3(1,0,1));
+  const current=model.getPosition();
+  model.setPosition(current.x+target.x-(b.minX+b.maxX)/2,current.y-b.minY,current.z+target.z-(b.minZ+b.maxZ)/2);
+  model.syncHierarchy();app.root.syncHierarchy();
+ }).catch(error=>{
+  console.warn("Treatment-room decorative GLB unavailable; procedural shell remains",error);
  });
 }
 function loadClinicAsset(p:Placed){
