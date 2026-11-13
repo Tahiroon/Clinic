@@ -158,4 +158,4 @@ export function advanceSimulation(s:ManagementState,realSeconds:number){
 export function formatGameTime(s:ManagementState){const h=Math.floor(s.minuteOfDay/60),m=Math.floor(s.minuteOfDay%60);return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");}
 export function getRoleLabel(role:StaffRole){return STAFF_BLUEPRINTS[role].label;}
 export function getActivePatientCount(s:ManagementState){return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).length;}
-export function getPatientQueue(s:ManagementState){return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).sort((a,b)=>a.waitMinutes-b.waitMinutes);}
+export function getPatientQueue(s:ManagementState){return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).sort((a,b)=>b.waitMinutes-a.waitMinutes);}
