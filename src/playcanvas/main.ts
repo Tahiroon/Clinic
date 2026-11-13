@@ -336,7 +336,7 @@ function loadWaitingSeats(parent:pc.Entity){
   seats.setLocalScale(scale,scale,scale);seats.syncHierarchy();app.root.syncHierarchy();
   bounds=renderBounds(seats);
   if(!bounds)throw new Error("Waiting seats have no render meshes");
-  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(1,0,.78),new pc.Vec3());
+  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(.2,0,.7),new pc.Vec3());
   const current=seats.getPosition();
   seats.setPosition(current.x+target.x-(bounds.minX+bounds.maxX)/2,current.y-bounds.minY,current.z+target.z-(bounds.minZ+bounds.maxZ)/2);
   seats.syncHierarchy();app.root.syncHierarchy();
@@ -365,11 +365,11 @@ function loadReceptionDesk(parent:pc.Entity){
   parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
   let b=renderBounds(model);
   if(!b||b.width<.05||b.depth<.05||b.height<.05){model.destroy();throw new Error("Reception desk subset is empty or has invalid bounds");}
-  const scale=Math.min(2.35/b.width,.95/b.depth,1.18/b.height);
+  const scale=Math.min(1.7/b.width,.9/b.depth,1.15/b.height);
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
   b=renderBounds(model);
   if(!b)throw new Error("Reception desk has no renderable meshes after scaling");
-  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(.2,0,2.35),new pc.Vec3());
+  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(-.15,0,2.0),new pc.Vec3());
   const current=model.getPosition();
   model.setPosition(current.x+target.x-(b.minX+b.maxX)/2,current.y-b.minY,current.z+target.z-(b.minZ+b.maxZ)/2);
   model.syncHierarchy();app.root.syncHierarchy();
@@ -532,9 +532,9 @@ function canAvatarStand(x:number,z:number){
    ];
    if(walls.some(w=>rectanglesOverlap(player,w)))return false;
    const furniture:{x:number;z:number;w:number;d:number}[]=p.kind==="reception"?[
-    {x:gx+.3,z:gz+3.025,w:1.8,d:.65},
-    // The 4-seat GLB row is centred in the waiting zone; keep side lanes clear.
-    {x:gx+.9,z:gz+1.3,w:2.2,d:.95}
+    {x:gx,z:gz+2.55,w:1.7,d:.9},
+    // Offset the real four-seat row to the left so the right-hand lane stays open to the internal door.
+    {x:gx+.1,z:gz+1.225,w:2.2,d:.95}
    ]:p.kind==="treatment"?[]:[
     {x:gx+.15,z:gz+2.05,w:.2,d:1.1},
     {x:gx+1.95,z:gz+2.05,w:.2,d:1.1},
