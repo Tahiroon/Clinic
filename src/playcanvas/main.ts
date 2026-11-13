@@ -589,8 +589,11 @@ function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:str
  if(kind==="wall")return rot===0?{x:gx,z:gz+.2,w:1,d:2.6}:{x:gx+.2,z:gz,w:2.6,d:1};
  if(kind==="door")return rot===0?{x:gx,z:gz+.41,w:1,d:.18}:{x:gx+.41,z:gz,w:.18,d:1};
  if(isRoomKind(kind))return {x:gx,z:gz,w:size,d:size};
- const clearance=.10;
- const actual=size*(1-clearance*2);
+ // Asset bounds follow their measured design size, with a conservative cell reservation for one-cell props.
+ const spec=kind==="asset"?storeAssetSpecs[assetKey??""]:undefined;
+ const actual=spec
+  ?Math.min(size===1?.84:size-.12,spec.targetSize)
+  :size*.8;
  return {x:gx+(size-actual)/2,z:gz+(size-actual)/2,w:actual,d:actual};
 }
 function rectanglesOverlap(a:{x:number;z:number;w:number;d:number},b:{x:number;z:number;w:number;d:number}){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.z<b.z+b.d&&a.z+a.d>b.z;}
