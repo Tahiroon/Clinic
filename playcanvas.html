@@ -25,10 +25,11 @@
  </div>
  <div class="time-controls"><b>وقت المحاكاة</b><div><button data-speed="0" type="button">إيقاف</button><button data-speed="1" class="selected" type="button">1×</button><button data-speed="2" type="button">2×</button><button data-speed="3" type="button">3×</button></div></div>
  <button class="clinic-open-button" id="clinic-open-toggle" type="button">فتح العيادة</button>
- <div class="management-section"><h3>الفريق والموظفون</h3><div id="staff-list" class="management-list"></div>
-  <div class="hire-grid"><button data-hire="physiotherapist" type="button">＋ أخصائي علاج طبيعي <small>520</small></button><button data-hire="receptionist" type="button">＋ موظف استقبال <small>280</small></button><button data-hire="rehab_assistant" type="button">＋ مساعد تأهيل <small>360</small></button><button data-hire="cleaner" type="button">＋ عامل نظافة <small>220</small></button></div>
+ <div class="management-section receptionist-unlock" id="receptionist-unlock">
+  <h3>تطوير العيادة</h3><p id="receptionist-description">عالج 3 حالات لفتح خيار شراء موظف استقبال.</p>
+  <button id="buy-receptionist" type="button" hidden disabled>شراء موظف استقبال · 280 عملة</button>
  </div>
- <div class="management-section"><h3>حركة المرضى</h3><div id="patient-queue" class="management-list"><p class="empty-management">لم يصل مرضى بعد. ابنِ الاستقبال ووظّف موظف استقبال لفتح العيادة.</p></div></div>
+ <div class="management-section"><h3>حركة المرضى</h3><div id="patient-queue" class="management-list"><p class="empty-management">لا توجد حالات حالياً. افتح العيادة وانتظر وصول المرضى.</p></div></div>
  <div class="management-section"><h3>آخر الأحداث</h3><div id="clinic-events" class="management-events"></div></div>
 </section>
 </section>
