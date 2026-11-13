@@ -543,7 +543,9 @@ const storeAssetSpecs:Record<string,StoreAssetSpec>={
  "clinic-patient-room-suite":{file:"hospital-patient-room.glb",node:"*",label:"طقم غرفة مريض",cost:290,footprint:4,targetSize:3.35,category:"kits",description:"تجهيز غرفة رعاية ومتابعة للحالات التي تحتاج مساحة سريرية.",room:"غرفة مخصصة"},
  "clinic-bed-bay":{file:"hospital-bed-bay.glb",node:"*",label:"وحدة سرير رعاية",cost:220,footprint:4,targetSize:3.2,category:"specialty",description:"تجهيز سرير ومحيطه للاستخدامات السريرية المتخصصة.",room:"غرفة مخصصة"},
  "clinic-lab-suite":{file:"hospital-lab-set.glb",node:"*",label:"وحدة مختبر سريري",cost:420,footprint:4,targetSize:3.4,category:"specialty",description:"تجهيز مختبر توسعي للمنشآت متعددة التخصصات.",room:"غرفة مخصصة"},
- "clinic-imaging-suite":{file:"x-ray-room-set.glb",node:"*",label:"وحدة تصوير طبي",cost:520,footprint:4,targetSize:3.4,category:"specialty",description:"تجهيز تصوير طبي كتوسعة مستقبلية لمركز تأهيل متكامل.",room:"غرفة مخصصة"}
+ "clinic-imaging-suite":{file:"x-ray-room-set.glb",node:"*",label:"وحدة تصوير طبي",cost:520,footprint:4,targetSize:3.4,category:"specialty",description:"تجهيز تصوير طبي كتوسعة مستقبلية لمركز تأهيل متكامل.",room:"غرفة مخصصة"},
+ "clinic-pharmacy-counter":{file:"pharmacy-counter.glb",node:"*",label:"كاونتر مستلزمات طبية",cost:190,footprint:3,targetSize:2.35,category:"specialty",description:"كاونتر لخدمات ومستلزمات المركز الطبية.",room:"منطقة الخدمات"},
+ "clinic-pediatric-suite":{file:"baby-ward-set.glb",node:"*",label:"طقم توسعة تأهيل أطفال",cost:320,footprint:4,targetSize:3.3,category:"specialty",description:"تجهيز توسعة مخصصة لخدمات الأطفال داخل مركز تأهيل متعدد التخصصات.",room:"غرفة أطفال"}
 };
 const clinicAssetUrls:Record<string,string>={
  "physical-therapy-room-set.glb":new URL("../assets/clinic-kit/hospital/physical-therapy-room-set.glb",import.meta.url).href,
@@ -566,7 +568,9 @@ const clinicAssetUrls:Record<string,string>={
  "hospital-gift-shop-set.glb":new URL("../assets/clinic-kit/hospital/hospital-gift-shop-set.glb",import.meta.url).href,
  "hospital-bed-bay.glb":new URL("../assets/clinic-kit/hospital/hospital-bed-bay.glb",import.meta.url).href,
  "hospital-lab-set.glb":new URL("../assets/clinic-kit/hospital/hospital-lab-set.glb",import.meta.url).href,
- "x-ray-room-set.glb":new URL("../assets/clinic-kit/hospital/x-ray-room-set.glb",import.meta.url).href
+ "x-ray-room-set.glb":new URL("../assets/clinic-kit/hospital/x-ray-room-set.glb",import.meta.url).href,
+ "pharmacy-counter.glb":new URL("../assets/clinic-kit/hospital/pharmacy-counter.glb",import.meta.url).href,
+ "baby-ward-set.glb":new URL("../assets/clinic-kit/hospital/baby-ward-set.glb",import.meta.url).href
 };
 const containerCache=new Map<string,Promise<any>>();
 function loadRoomModule(parent:Entity,file:string,x:number,y:number,z:number,rotation:number,scaleX=1,scaleZ=1,fallback:"floor"|"wall"="wall",scaleY=1){
