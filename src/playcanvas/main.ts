@@ -35,7 +35,7 @@ const resize=()=>{
  // Portrait is a spatial advantage: frame the full 14×28 m starter property.
  // Wider screens keep a closer management view instead of stretching the mobile composition.
  const aspect=w/h;
- desiredOrthoHeight=aspect<.9?Math.max(D+3,(W+2)/aspect):aspect<1.2?22:16.5;
+ desiredOrthoHeight=aspect<.9?Math.max(D+8,(W+8)/aspect):aspect<1.2?22:16.5;
  camera.camera!.orthoHeight=desiredOrthoHeight;
 };
 const queueResize=()=>{
@@ -115,162 +115,121 @@ world.addChild(tapMarker);
 
 const GRID=1, W=14, D=28, HALF_X=W/2, HALF_Z=D/2;
 const grassAlt=material(new Color(.38,.53,.38));
-const pathMat=material(new Color(.67,.62,.49));
-const pathEdge=material(new Color(.43,.48,.37));
-const trim=material(new Color(.10,.39,.47));
-const roofAccent=material(new Color(.16,.28,.38));
-const lawnBase=material(new Color(.25,.39,.24));
-const lawnPatchMaterial=material(new Color(.31,.47,.29));
-const outdoorTreePositions:[number,number][]=[[-9.1,-16.1],[9.1,-16.1],[-9.1,16.1],[9.1,16.1],[-9.1,-7.2],[9.1,-7.2],[-9.1,7.2],[9.1,7.2]];
-const outdoorShrubPositions:[number,number][]=[[-8.8,-12.0],[8.8,-12.0],[-8.8,-7.5],[8.8,-4.5],[-8.8,5.2],[8.8,8.0],[-8.8,12.0],[8.8,12.0]];
-// The property is a continuous outdoor lawn. Only constructed rooms receive a finished interior floor.
-box("Surrounding green landscape",0,-.24,0,W+10,.42,D+10,lawnBase,world);
-const landscapeTurfPatches:[number,number,number,number][]=[
- [-9.6,-11.5,1.7,1.05],[9.6,-11.5,1.7,1.05],[-9.5,-3.2,1.5,.95],[9.5,-3.2,1.5,.95],
- [-9.6,5.0,1.7,1.0],[9.6,5.0,1.7,1.0],[-9.5,12.0,1.55,.95],[9.5,12.0,1.55,.95]
-];
-for(const [x,z,rx,rz] of landscapeTurfPatches){
- const patch=sphere("Layered landscape turf island",x,-.012,z,1,lawnPatchMaterial,world);
- patch.setLocalScale(rx,.012,rz);
-}
+const pathMat=material(new Color(.68,.62,.50));
+const pathEdge=material(new Color(.39,.43,.40));
+const trim=material(new Color(.12,.36,.39));
+const roofAccent=material(new Color(.47,.24,.17));
+const lawnBase=material(new Color(.29,.43,.31));
+const lawnPatchMaterial=material(new Color(.34,.48,.33));
+const worldStone=material(new Color(.63,.59,.50));
+const worldPlaster=material(new Color(.78,.70,.57));
+const worldRoof=material(new Color(.48,.27,.20));
+const worldRoad=material(new Color(.24,.28,.29));
+const worldRoadLine=material(new Color(.86,.78,.57));
+const worldWindow=material(new Color(.30,.48,.50));
+const worldTreeA=material(new Color(.23,.43,.29));
+const worldTreeB=material(new Color(.31,.50,.32));
+const worldTreeC=material(new Color(.40,.54,.34));
+const worldWarmGlass=material(new Color(.96,.76,.40));
+// The district is much larger than the separately enclosed clinic property.
+box("District terrain · continuous landscape",0,-.34,0,58,.48,76,lawnBase,world);
 box("Clinic buildable foundation",0,.005,0,W,.08,D,material(new Color(.66,.68,.65)),world);
-box("Main entrance garden path",0,.018,-8.45,1.75,.045,11.0,pathMat,world);
-box("Outdoor approach path",0,.018,-16.2,2.4,.045,4.5,pathMat,world);
-box("Gait garden connecting path",1.9,.025,-16.15,1.6,.05,.72,pathMat,world);
-box("Path west raised curb",-.91,.075,-8.45,.13,.15,11.0,pathEdge,world);
-box("Path east raised curb",.91,.075,-8.45,.13,.15,11.0,pathEdge,world);
-for(let i=0;i<10;i++){
- const z=-13.72+i*1.12;
- box("Entrance path paving joint",0,.044,z,1.62,.012,.035,pathEdge,world);
-}
-for(const x of [-.62,.62]){
- for(let i=0;i<6;i++){
-  const z=-13.3+i*1.72;
-  box("Entrance path inset paver",x,.052,z,.38,.025,.48,grassAlt,world);
- }
-}
-// A low stone garden edge defines the property without turning it into a fenced box.
-const propertyEdges:[number,number,number,number][]=[
- [-4.35,-13.92,5.3,.18],[4.35,-13.92,5.3,.18],[0,13.92,W,.18],
- [-6.92,0,.18,D],[6.92,0,.18,D]
+const terrainIslands:[number,number,number,number,StandardMaterial][]=[
+ [-21,-24,7,5,lawnPatchMaterial],[-10,-28,5,3,grassAlt],[12,-25,8,4,lawnPatchMaterial],[23,-13,6,8,grassAlt],
+ [-23,2,7,9,grassAlt],[22,12,8,7,lawnPatchMaterial],[-12,27,9,5,lawnPatchMaterial],[9,30,8,5,grassAlt],[0,-8,18,8,lawnPatchMaterial]
 ];
-for(const [x,z,sx,sz] of propertyEdges){
- box("Property edge stone footing",x,.075,z,sx,.15,sz,M.wallFrame,world);
- box("Low property boundary",x,.19,z,sx,.20,sz,trim,world);
- box("Property edge coping",x,.305,z,sx+.10,.07,sz+.10,M.wallCap,world);
+for(const [x,z,rx,rz,mat] of terrainIslands){const patch=sphere("Soft terrain colour variation",x,-.085,z,1,mat,world);patch.setLocalScale(rx,.018,rz);}
+box("District access road",0,-.025,-21.0,58,.10,5.8,worldRoad,world);
+box("Road north verge",0,.025,-17.85,58,.12,.34,worldStone,world);
+box("Road south verge",0,.025,-24.15,58,.12,.34,worldStone,world);
+box("District side road",17,-.02,4.0,5.0,.10,48,worldRoad,world);
+box("Side road west curb",14.35,.035,4.0,.30,.14,48,worldStone,world);
+box("Side road east curb",19.65,.035,4.0,.30,.14,48,worldStone,world);
+for(let x=-27;x<=27;x+=5.5)box("Road centre dash",x,.034,-21,2.4,.018,.10,worldRoadLine,world);
+box("Clinic approach promenade",0,.025,-17.55,4.2,.10,6.7,pathMat,world);
+box("Approach promenade left curb",-2.18,.10,-17.55,.16,.20,6.7,pathEdge,world);
+box("Approach promenade right curb",2.18,.10,-17.55,.16,.20,6.7,pathEdge,world);
+box("Clinic arrival path",0,.04,-10.8,2.5,.08,6.6,pathMat,world);
+box("Arrival court stone border",0,.07,-4.25,5.2,.14,3.2,pathEdge,world);
+box("Arrival court paving",0,.15,-4.25,4.95,.06,2.95,pathMat,world);
+for(const x of [-1.6,0,1.6])box("Arrival court paving joint",x,.185,-4.25,.025,.015,2.7,pathEdge,world);
+const wallBaseMat=material(new Color(.47,.43,.36));
+const wallBodyMat=material(new Color(.72,.66,.55));
+const wallCapMat=material(new Color(.84,.78,.66));
+const wallAccentMat=material(new Color(.17,.34,.35));
+function perimeterWall(name:string,x:number,z:number,sx:number,sz:number){
+ box(name+" · footing",x,.16,z,sx+.22,.32,sz+.22,wallBaseMat,world);
+ box(name+" · solid masonry",x,1.72,z,sx,2.85,sz,wallBodyMat,world);
+ box(name+" · stone coping",x,3.20,z,sx+.20,.20,sz+.20,wallCapMat,world);
+ box(name+" · lower plinth",x,.48,z,sx+.05,.22,sz+.05,wallBaseMat,world);
 }
-// The front gate aligns with the approach path; its piers are deliberately low and welcoming.
-for(const x of [-1.62,1.62]){
- box("Garden entrance gate footing",x,.16,-13.92,.66,.32,.72,M.wallFrame,world);
- box("Garden entrance gate pier",x,.78,-13.92,.43,1.24,.48,M.wall,world);
- box("Garden entrance pier inset",x,.80,-14.17,.24,.78,.025,M.wallRecess,world);
- box("Garden entrance pier cap",x,1.43,-13.92,.62,.12,.66,M.wallCap,world);
- box("Garden entrance pier identity tile",x,.88,-14.19,.13,.26,.035,M.wallAccent,world);
+perimeterWall("West clinic boundary",-7.12,0,.42,28.25);
+perimeterWall("East clinic boundary",7.12,0,.42,28.25);
+perimeterWall("Rear clinic boundary",0,14.12,14.65,.42);
+perimeterWall("Front boundary west wing",-4.72,-14.12,4.95,.42);
+perimeterWall("Front boundary east wing",4.72,-14.12,4.95,.42);
+for(const [x,z] of [[-7.12,-14.12],[7.12,-14.12],[-7.12,14.12],[7.12,14.12],[-7.12,-7],[7.12,-7],[-7.12,7],[7.12,7]] as [number,number][]){
+ box("Masonry boundary pier footing",x,.28,z,.78,.56,.78,wallBaseMat,world);
+ box("Masonry boundary pier",x,1.82,z,.56,3.0,.56,wallCapMat,world);
+ box("Masonry pier cap",x,3.42,z,.82,.20,.82,wallBaseMat,world);
+ box("Masonry pier inset",x,1.82,z-.292,.20,1.65,.025,wallAccentMat,world);
 }
-// A wider paved arrival court gives the entrance a deliberate destination, not just a long strip.
-box("Clinic arrival court stone border",0,.035,-4.25,4.65,.07,2.55,pathEdge,world);
-box("Clinic arrival court paving",0,.075,-4.25,4.42,.035,2.34,pathMat,world);
-for(const x of [-1.42,0,1.42])box("Arrival court paving joint",x,.096,-4.25,.025,.012,2.12,pathEdge,world);
-for(const z of [-4.92,-4.25,-3.58])box("Arrival court cross joint",0,.096,z,4.20,.012,.022,pathEdge,world);
-for(const x of [-2.05,2.05])box("Arrival court inset stone",x,.105,-4.25,.22,.025,1.42,M.wallCap,world);
-addContactShadow(world,"Arrival court soft grounding",0,-4.25,2.7,1.55,.052);
-for(const [x,z] of outdoorTreePositions){
- cylinder("Outdoor tree trunk",x,.78,z,.18,1.56,.18,M.wood,world);
- cylinder("Outdoor tree branch",x-.23,1.43,z,.075,.72,.075,M.wood,world).setLocalEulerAngles(0,0,-32);
- cylinder("Outdoor tree branch",x+.23,1.48,z,.07,.66,.07,M.wood,world).setLocalEulerAngles(0,0,29);
- addContactShadow(world,"Tree ground shadow",x,z,.92,.74,-.023);
- const crown=sphere("Outdoor tree crown",x,2.02,z,.72,M.green,world);crown.setLocalScale(1.05,1.12,.96);
- for(const [dx,dy,dz,r] of [[-.43,1.92,.02,.46],[.40,2.02,.08,.48],[0,2.48,.02,.48]] as [number,number,number,number][]){
-  const cluster=sphere("Layered tree foliage",x+dx,dy,z+dz,r,grassAlt,world);cluster.setLocalScale(1.0,1.08,.92);
+for(const x of [-2.22,2.22]){
+ box("Main gate stone footing",x,.30,-14.12,.82,.60,.86,wallBaseMat,world);
+ box("Main gate masonry pier",x,1.92,-14.12,.62,3.15,.66,wallCapMat,world);
+ box("Main gate teal inset",x,1.88,-14.47,.28,1.85,.035,wallAccentMat,world);
+ box("Main gate capstone",x,3.62,-14.12,.94,.22,.98,wallBaseMat,world);
+}
+box("Clinic entrance gate lintel",0,3.48,-14.12,4.9,.30,.72,wallCapMat,world);
+box("Clinic entrance identity plaque",0,3.50,-14.50,2.75,.46,.08,wallAccentMat,world);
+box("Clinic entrance plaque inset",0,3.50,-14.55,2.40,.25,.025,M.white,world);
+function makeDistrictTree(x:number,z:number,scale:number,variant:number){
+ const trunkMat=material(new Color(.37,.25,.17));
+ cylinder("District tree trunk",x,.88*scale,z,.22*scale,1.76*scale,.22*scale,trunkMat,world);
+ cylinder("District tree branch",x-.22*scale,1.48*scale,z,.09*scale,.88*scale,.09*scale,trunkMat,world).setLocalEulerAngles(0,0,-28);
+ cylinder("District tree branch",x+.22*scale,1.52*scale,z,.08*scale,.82*scale,.08*scale,trunkMat,world).setLocalEulerAngles(0,0,27);
+ const crownMat=variant===0?worldTreeA:variant===1?worldTreeB:worldTreeC;
+ const crown=sphere("Rounded sculpted tree crown",x,2.35*scale,z,.90*scale,crownMat,world);crown.setLocalScale(1.18,.92,1.05);
+ for(const [dx,dy,dz,r,mat] of [[-.55,2.20,.10,.58,worldTreeB],[.50,2.32,-.08,.60,crownMat],[.02,2.92,.02,.57,worldTreeA]] as [number,number,number,number,StandardMaterial][]){
+  const cluster=sphere("Layered tree canopy",x+dx*scale,dy*scale,z+dz*scale,r*scale,mat,world);cluster.setLocalScale(1.08,.95,.98);
  }
 }
-for(const [x,z] of outdoorShrubPositions){
- addContactShadow(world,"Garden planter shadow",x,z,.55,.48,-.023);
- box("Outdoor raised planter",x,.17,z,.72,.34,.88,M.wood2,world);
- box("Planter dark inset",x,.355,z,.64,.045,.78,M.wood,world);
- for(const [dx,dz,r] of [[-.2,-.12,.28],[.16,.08,.31],[.02,-.2,.25]] as [number,number,number][]){
-  const shrub=sphere("Layered garden shrub",x+dx,.62,z+dz,r,M.green,world);shrub.setLocalScale(1.18,.82,1.0);
+const districtTrees:[number,number,number,number][]=[
+ [-22,-28,1.25,0],[-13,-29,.92,1],[7,-29,1.10,2],[23,-25,1.35,1],
+ [-24,-8,1.22,2],[24,1,1.25,0],[-22,19,1.35,1],[21,26,1.18,2],[-8,31,.98,0],[9,32,1.20,1]
+];
+for(const [x,z,scale,variant] of districtTrees)makeDistrictTree(x,z,scale,variant);
+function makePlantingBed(x:number,z:number,w:number,d:number){
+ const soil=material(new Color(.34,.27,.19));
+ const bed=box("Irregular planted landscape bed",x,.025,z,w,.10,d,soil,world);
+ bed.setLocalEulerAngles(0,(x*13+z*7)%17-8,0);
+ for(const [dx,dz,r,mat] of [[-.28,-.16,.34,worldTreeA],[.12,.10,.38,worldTreeB],[.36,-.12,.29,worldTreeC],[-.08,.25,.27,worldTreeB]] as [number,number,number,StandardMaterial][]){
+  const shrub=sphere("Rounded low landscape shrub",x+dx*w,.34,z+dz*d,r,mat,world);shrub.setLocalScale(1.25,.78,1.0);
  }
 }
-const outdoorBenchPositions:[number,number][]=[[-8.15,0],[8.15,0]];
-const outdoorFlowerPositions:[number,number][]=[[-8.25,-9.5],[8.25,-9.5],[-8.25,9.5],[8.25,9.5]];
-const outdoorLampPositions:[number,number][]=[[-8.25,-13.5],[8.25,-13.5],[-8.25,13.5],[8.25,13.5]];
-// A compact outdoor gait-training lane sits beyond the property edge, never inside the buildable plot.
-const gaitLaneX=3.25,gaitLaneZ=-16.15;
-box("Outdoor gait training lane",gaitLaneX,.035,gaitLaneZ,1.35,.055,4.2,pathEdge,world);
-box("Outdoor gait lane walking surface",gaitLaneX,.068,gaitLaneZ,1.12,.025,4.0,pathMat,world);
-for(let i=0;i<5;i++){const z=gaitLaneZ-1.55+i*.78;box("Gait lane distance marker",gaitLaneX,.09,z,1.0,.018,.035,M.white,world);}
-for(const x of [gaitLaneX-.72,gaitLaneX+.72]){
- cylinder("Gait lane marker post",x,.48,gaitLaneZ-1.95,.045,.85,.045,M.dark,world);
- sphere("Gait lane marker cap",x,.93,gaitLaneZ-1.95,.11,M.yellow,world);
-}
-
-for(const [x,z] of outdoorBenchPositions){
- addContactShadow(world,"Garden bench shadow",x,z,.95,.48,-.023);
- box("Garden bench seat",x,.38,z,1.55,.16,.52,M.wood2,world);
- box("Garden bench back",x,.78,z+.2,1.55,.62,.12,M.wood,world);
- for(const dx of [-.58,.58])box("Garden bench support",x+dx,.19,z,.09,.38,.42,M.dark,world);
-}
-for(const [x,z] of outdoorFlowerPositions){
- addContactShadow(world,"Flower bed ground shadow",x,z,.62,.42,-.023);
- box("Outdoor flower bed",x,.16,z,1.15,.3,.72,M.wood2,world);
- for(const [dx,dz] of [[-.34,-.12],[0,.08],[.34,-.1]] as [number,number][]){
-  cylinder("Garden flower stem",x+dx,.42,z+dz,.025,.28,.025,M.green,world);
-  sphere("Garden flower bloom",x+dx,.57,z+dz,.13,dx<0?M.yellow:M.pale,world);
+for(const [x,z,w,d] of [[-19,-18,3.2,2.0],[18,-15,3.6,2.2],[-19,10,3.0,2.3],[22,19,3.2,2.1],[-4,30,4.0,2.2]] as [number,number,number,number][])makePlantingBed(x,z,w,d);
+function makeDistrictBuilding(name:string,x:number,z:number,w:number,d:number,height:number,wallMat:StandardMaterial,roofMat:StandardMaterial){
+ box(name+" · stone foundation",x,.16,z,w+.30,.32,d+.30,worldStone,world);
+ box(name+" · plaster walls",x,height/2+.22,z,w,height,d,wallMat,world);
+ box(name+" · pitched roof",x,height+.40,z,w+1.0,.52,d+1.0,roofMat,world);
+ for(const wx of [-.30,.30]){
+  box(name+" · window recess",x+wx*w,height*.60+.22,z-d/2-.025,.78,.92,.06,wallBaseMat,world);
+  box(name+" · window glass",x+wx*w,height*.60+.22,z-d/2-.07,.60,.70,.035,worldWindow,world);
+  box(name+" · window sill",x+wx*w,height*.60-.25,z-d/2-.10,.88,.10,.16,wallCapMat,world);
  }
 }
-for(const [x,z] of outdoorLampPositions){
- addContactShadow(world,"Garden lamp shadow",x,z,.32,.30,-.023);
- cylinder("Garden lamp base",x,.12,z,.22,.24,.22,M.dark,world);
- cylinder("Garden lamp post",x,.92,z,.07,1.6,.07,M.dark,world);
- sphere("Garden lamp globe",x,1.82,z,.2,M.yellow,world);
+makeDistrictBuilding("West neighbourhood clinic",-18,2,6.8,5.2,3.8,worldPlaster,worldRoof);
+makeDistrictBuilding("East neighbourhood house",22,11,6.2,5.4,3.5,worldPlaster,worldRoof);
+makeDistrictBuilding("Distant community building",1,29,8.0,5.8,4.2,worldStone,worldRoof);
+for(const [x,z] of [[-4.5,-18.0],[4.5,-18.0],[-20,-3],[20,-5]] as [number,number][]){
+ cylinder("District lamp base",x,.12,z,.20,.24,.20,M.dark,world);
+ cylinder("District lamp post",x,1.28,z,.065,2.3,.065,M.dark,world);
+ sphere("District lamp diffuser",x,2.48,z,.20,worldWarmGlass,world);
 }
-const lawnGrassMaterial=material(new Color(1,1,1));
-lawnGrassMaterial.diffuseVertexColor=true;lawnGrassMaterial.cull=CULLFACE_NONE;lawnGrassMaterial.update();
-let lawnGrassOwner:Entity|null=null;
-function createLawnGrass(){
- if(lawnGrassOwner){lawnGrassOwner.destroy();lawnGrassOwner=null;}
- const positions:number[]=[],indices:number[]=[],colors:number[]=[];
- let seed=7319;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
- const addTuft=(x:number,z:number)=>{
-  const count=2+Math.floor(rand()*2);
-  for(let n=0;n<count;n++){
-   const angle=rand()*Math.PI,half=.018+rand()*.018,height=.10+rand()*.13;
-   const lean=(rand()-.5)*.08,baseY=.026+rand()*.012,dx=Math.cos(angle)*half,dz=Math.sin(angle)*half;
-   const first=positions.length/3;
-   positions.push(x-dx,baseY,z-dz,x+dx,baseY,z+dz,x+lean,baseY+height,z);
-   const shade=rand(),col=shade>.72?[63,119,66,255]:shade<.2?[91,139,77,255]:[74,130,69,255];
-   for(let k=0;k<3;k++)colors.push(...col);
-   indices.push(first,first+1,first+2);
-  }
- };
- const tuftBudget=highDetailDevice?4200:2400;
- for(let i=0;i<tuftBudget;i++){
-  const x=-HALF_X-4.7+rand()*(W+9.4),z=-HALF_Z-4.7+rand()*(D+9.4);
-  const insideBuildablePlot=x>-HALF_X-.08&&x<HALF_X+.08&&z>-HALF_Z-.08&&z<HALF_Z+.08;
-  if(insideBuildablePlot)continue;
-  const insideAnyRoom=placed.some(p=>isRoomKind(p.kind)&&x>p.gx-.14&&x<p.gx+(p.width??4)+.14&&z>p.gz-.14&&z<p.gz+(p.depth??4)+.14);
-  const onEntrancePath=Math.abs(x)<1.12&&z< -2.1;
-  const nearTree=outdoorTreePositions.some(([tx,tz])=>Math.hypot(x-tx,z-tz)<1.05);
-  const nearShrub=outdoorShrubPositions.some(([sx,sz])=>Math.abs(x-sx)<.52&&Math.abs(z-sz)<.72);
-  const nearBench=outdoorBenchPositions.some(([bx,bz])=>Math.abs(x-bx)<1.0&&Math.abs(z-bz)<.55);
-  const nearFlower=outdoorFlowerPositions.some(([fx,fz])=>Math.abs(x-fx)<.72&&Math.abs(z-fz)<.5);
-  const nearLamp=outdoorLampPositions.some(([lx,lz])=>Math.hypot(x-lx,z-lz)<.32);
-  const nearGaitLane=Math.abs(x-gaitLaneX)<.82&&Math.abs(z-gaitLaneZ)<2.2;
-  if(insideAnyRoom||onEntrancePath||nearTree||nearShrub||nearBench||nearFlower||nearLamp||nearGaitLane)continue;
-  addTuft(x,z);
- }
- const mesh=new Mesh(app.graphicsDevice);
- mesh.setPositions(new Float32Array(positions));
- mesh.setNormals(calculateNormals(positions,indices));
- mesh.setColors32(new Uint8Array(colors));
- mesh.setIndices(indices);mesh.update();
- lawnGrassOwner=new Entity("Outdoor grass mesh owner");
- const grassGraph=new GraphNode("Outdoor grass mesh graph");
- const model=new Model();model.graph=grassGraph;
- model.meshInstances=[new MeshInstance(mesh,lawnGrassMaterial,grassGraph)];
- lawnGrassOwner.addComponent("model");lawnGrassOwner.model!.model=model;world.addChild(lawnGrassOwner);
-}
+const gaitLaneX=4.2,gaitLaneZ=-17.8;
+box("Outdoor physiotherapy gait lane",gaitLaneX,.055,gaitLaneZ,1.55,.08,4.5,pathEdge,world);
+box("Gait lane walking surface",gaitLaneX,.105,gaitLaneZ,1.28,.025,4.25,pathMat,world);
+for(let i=0;i<5;i++)box("Gait lane distance marker",gaitLaneX,.13,gaitLaneZ-1.65+i*.82,.98,.018,.035,M.white,world);
 const arrivalMetal=material(new Color(.20,.31,.38));
 const warmGlass=material(new Color(.96,.76,.40));
 for(const x of [-1.12,1.12]){
@@ -1211,7 +1170,7 @@ canvas.addEventListener("pointerdown",e=>{
  else if(!roomDrawing){pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraGoal.x,tz:cameraGoal.z};dragged=false;}
  canvas.setPointerCapture(e.pointerId);
 });
-canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(roomDrawing&&activePointers.size===1){const point=screenToGround(e.clientX,e.clientY);if(point){roomDrawEnd={x:Math.floor(point.x),z:Math.floor(point.z)};updateRoomDrawPreview();}return;}if(mode==="build"&&activePointers.size<2)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(8,Math.min(42,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;const halfHeight=desiredOrthoHeight*.5,halfWidth=halfHeight*(canvas.clientWidth/Math.max(1,canvas.clientHeight));const maxPanX=Math.max(0,HALF_X+4-halfWidth*.62),maxPanZ=Math.max(0,HALF_Z+4-halfHeight*.62);cameraGoal.set(Math.max(-maxPanX,Math.min(maxPanX,pointerStart.tx+shiftX)),0,Math.max(-maxPanZ,Math.min(maxPanZ,pointerStart.tz+shiftZ)));}});
+canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(roomDrawing&&activePointers.size===1){const point=screenToGround(e.clientX,e.clientY);if(point){roomDrawEnd={x:Math.floor(point.x),z:Math.floor(point.z)};updateRoomDrawPreview();}return;}if(mode==="build"&&activePointers.size<2)updatePlacementPreview(e.clientX,e.clientY);if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(8,Math.min(42,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;const halfHeight=desiredOrthoHeight*.5,halfWidth=halfHeight*(canvas.clientWidth/Math.max(1,canvas.clientHeight));const maxPanX=Math.max(0,HALF_X+19-halfWidth*.62),maxPanZ=Math.max(0,HALF_Z+27-halfHeight*.62);cameraGoal.set(Math.max(-maxPanX,Math.min(maxPanX,pointerStart.tx+shiftX)),0,Math.max(-maxPanZ,Math.min(maxPanZ,pointerStart.tz+shiftZ)));}});
 canvas.addEventListener("pointerup",e=>{
  activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;
  if(roomDrawing){
@@ -1222,7 +1181,7 @@ canvas.addEventListener("pointerup",e=>{
    if(!result.ok){status.textContent=result.message;return;}
    coins=management.balance;coinsLabel.textContent=String(coins);
    const item:Placed={id:nextId++,kind:selected,gx:b.x,gz:b.z,width:b.w,depth:b.d,rot:wallRotation};
-   placed.push(item);drawPlaced(item);createLawnGrass();if(missionPhase===0&&selected==="treatment")setMissionPhase(1);else if(missionPhase===2&&selected==="reception")setMissionPhase(3);else if(missionPhase===4&&selected==="assessment")setMissionPhase(5);save();status.textContent=result.message+" يمكنك إضافة الأجهزة والأثاث من المتجر.";return;
+   placed.push(item);drawPlaced(item);if(missionPhase===0&&selected==="treatment")setMissionPhase(1);else if(missionPhase===2&&selected==="reception")setMissionPhase(3);else if(missionPhase===4&&selected==="assessment")setMissionPhase(5);save();status.textContent=result.message+" يمكنك إضافة الأجهزة والأثاث من المتجر.";return;
   }
  }
  if(!pointerStart){
@@ -1248,7 +1207,7 @@ canvas.addEventListener("pointerup",e=>{
   }
   coinsLabel.textContent=String(coins);
   const item:Placed={id:nextId++,kind:selected,gx,gz,rot:wallRotation,assetKey:selected==="asset"?selectedAssetKey??undefined:undefined};
-  placed.push(item);drawPlaced(item);if(isRoomKind(item.kind))createLawnGrass();else if(item.kind==="asset")updateMissionEquipment();save();updatePlacementPreview(e.clientX,e.clientY);status.textContent=isRoomKind(item.kind)?"تم بناء الغرفة. أضف الأجهزة والأثاث المناسبين.":"تمت إضافة العنصر إلى العيادة.";return;
+  placed.push(item);drawPlaced(item);if(item.kind==="asset")updateMissionEquipment();save();updatePlacementPreview(e.clientX,e.clientY);status.textContent=isRoomKind(item.kind)?"تم بناء الغرفة. أضف الأجهزة والأثاث المناسبين.":"تمت إضافة العنصر إلى العيادة.";return;
  }
  const start=avatar.getLocalPosition().clone(),tx=ground.x,tz=ground.z;
  destination=new Vec3(tx,0,tz);
@@ -1423,7 +1382,7 @@ sessionBtn.addEventListener("click",()=>{
 });
 sessionDialog.addEventListener("close",()=>{if(!sessionCompleted&&activeSessionPatientId)cancelPatientSession(management,activeSessionPatientId);sessionCompleted=false;renderManagement();save();focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=15.5;viewBtn.classList.remove("active");});
 el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionCompleted){sessionDialog.close();return;}if(sessionStep<4){sessionStep++;renderStep();}else{const earned=completePatientSession(management,activeSessionPatientId,sessionScore);sessionCompleted=true;xp=management.experience;coins=management.balance;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";renderManagement();renderMission();save();}});
-load();createLawnGrass();coinsLabel.textContent=String(coins);renderManagement();
+load();coinsLabel.textContent=String(coins);renderManagement();
 let locomotionState="",managementUiTimer=0,managementSaveTimer=0;
 function setLocomotion(moving:boolean){
  if(!playerRig)return;
