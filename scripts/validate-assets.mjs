@@ -215,6 +215,10 @@ try {
     throw new Error("The outdoor gait-training lane must stay outside the buildable plot and clear its grass mesh");
   }
   console.log("✓ One-handed camera controls and outdoor gait-training lane are present");
+  if (!/const tuftBudget=highDetailDevice\?2600:1400/.test(source) || !/for\(let i=0;i<tuftBudget;i\+\+\)/.test(source)) {
+    throw new Error("Outdoor grass mesh density must scale down on entry-level devices");
+  }
+  console.log("✓ Outdoor foliage geometry budget adapts to device capability");
   for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.physiotherapist,avatar", "loadHumanoid(characterAssets.patient,root", "loadHumanoid(characterAssets.receptionist,receptionistNpc", "receptionistNpc.enabled=management.receptionistOwned", "registerPatient(management,Number(button.dataset.registerPatient))", "recoverInterruptedSessions(management)", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
   }
