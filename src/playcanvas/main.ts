@@ -1086,11 +1086,11 @@ document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>but
  const speed=Number(button.dataset.speed) as 0|1|2|3;setSimulationSpeed(management,speed);renderManagement();save();
 }));
 el<HTMLButtonElement>("#buy-receptionist").addEventListener("click",()=>{
- const result=hireReceptionist(management);coins=management.balance;coinsLabel.textContent=String(coins);status.textContent=result.message;if(result.ok)setMissionPhase(6);renderManagement();save();
+ const result=hireReceptionist(management);coins=management.balance;coinsLabel.textContent=String(coins);status.textContent=result.message;renderManagement();save();
 });
 el<HTMLButtonElement>("#clinic-open-toggle").addEventListener("click",()=>{
  if(!management.clinicOpen){
-  const missing:string[]=[];if(!hasAssetInRoom("pt-treatment-table","treatment"))missing.push("سرير العلاج");if(!hasAssetInRoom("pt-storage-cabinet","treatment"))missing.push("خزانة الأدوات");if(!hasAssetInRoom("pt-exam-table","assessment"))missing.push("سرير الفحص");
+  const missing:string[]=[];if(!hasAssetInRoom("pt-treatment-table","treatment"))missing.push("سرير العلاج");if(!hasAssetInRoom("pt-exam-table","assessment"))missing.push("سرير الفحص");
   if(missing.length){status.textContent="لا يمكن فتح العيادة بعد. جهّز: "+missing.join("، ")+" داخل الغرف المناسبة.";return;}
  }
  const result=setClinicOpen(management,!management.clinicOpen);
