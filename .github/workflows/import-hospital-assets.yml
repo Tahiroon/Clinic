@@ -55,6 +55,11 @@ jobs:
           curl --fail --location --retry 3 "$base/23599/v1/model.glb" --output src/assets/clinic-kit/management-sim/privacy-screen.glb
           curl --fail --location --retry 3 "$base/23600/v1/model.glb" --output src/assets/clinic-kit/management-sim/wheelchair.glb
           curl --fail --location --retry 3 "$base/23593/v1/model.glb" --output src/assets/clinic-kit/management-sim/bedside-cabinet.glb
+          curl --fail --location --retry 3 "$base/23654/v1/model.glb" --output src/assets/clinic-kit/management-sim/partition-wall.glb
+          curl --fail --location --retry 3 "$base/23656/v1/model.glb" --output src/assets/clinic-kit/management-sim/partition-wall-1m.glb
+          curl --fail --location --retry 3 "$base/23658/v1/model.glb" --output src/assets/clinic-kit/management-sim/glazed-partition.glb
+          curl --fail --location --retry 3 "$base/23659/v1/model.glb" --output src/assets/clinic-kit/management-sim/door-leaf.glb
+          curl --fail --location --retry 3 "$base/23660/v1/model.glb" --output src/assets/clinic-kit/management-sim/corridor-floor-tile.glb
           curl --fail --location --retry 3 "https://gobkit.com/freebies/human002/Receptionist.glb" --output src/assets/characters/Receptionist.glb
           curl --fail --location --retry 3 "https://gobkit.com/freebies/human005/WhiteCoatDoctor.glb" --output src/assets/characters/Physiotherapist.glb
           test "$(head -c 4 src/assets/characters/Receptionist.glb)" = "glTF"
@@ -81,6 +86,11 @@ jobs:
           - Privacy Screen — https://cdn.3dassets.dev/assets/23599/v1/model.glb
           - Wheelchair — https://cdn.3dassets.dev/assets/23600/v1/model.glb
           - Bedside Cabinet — https://cdn.3dassets.dev/assets/23593/v1/model.glb
+          - Partition Wall (2 m) — https://cdn.3dassets.dev/assets/23654/v1/model.glb
+          - Partition Wall (1 m) — https://cdn.3dassets.dev/assets/23656/v1/model.glb
+          - Glazed Partition — https://cdn.3dassets.dev/assets/23658/v1/model.glb
+          - Door Leaf — https://cdn.3dassets.dev/assets/23659/v1/model.glb
+          - Corridor Floor Tile — https://cdn.3dassets.dev/assets/23660/v1/model.glb
 
           Optional receptionist character:
           - Gobkit Receptionist — https://gobkit.com/freebies/human002/Receptionist.glb
