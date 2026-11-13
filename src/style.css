@@ -150,9 +150,10 @@ button{font:inherit;touch-action:manipulation}
 .panel-hint{margin:5px 0 0;color:#a7bdd8;font-size:9px}
 .progress-card,footer{display:none!important}
 .case-dialog{
-  width:min(470px,calc(100% - 24px));max-height:88dvh;overflow:auto;
-  border:1px solid #315477;border-radius:17px;background:#102342;color:#f3f7ff;
-  padding:0;box-shadow:0 25px 80px #0009;
+  position:fixed;inset:auto 8px calc(58px + env(safe-area-inset-bottom,0px)) 8px;
+  width:min(470px,calc(100% - 16px));max-height:min(54dvh,460px);overflow:auto;
+  margin:0 auto;border:1px solid #315477;border-radius:17px;
+  background:#102342;color:#f3f7ff;padding:0;box-shadow:0 25px 80px #0009;
 }
 .case-dialog::backdrop{background:#020917bb;backdrop-filter:blur(4px)}
 .case-content{position:relative;padding:19px}
