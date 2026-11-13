@@ -1021,7 +1021,7 @@ canvas.addEventListener("pointerup",e=>{
   }
   coinsLabel.textContent=String(coins);
   const item:Placed={id:nextId++,kind:selected,gx,gz,rot:wallRotation,assetKey:selected==="asset"?selectedAssetKey??undefined:undefined};
-  placed.push(item);drawPlaced(item);if(isRoomKind(item.kind))createLawnGrass();else if(item.kind==="asset")updateMissionEquipment();save();updatePlacementPreview(e.clientX,e.clientY);status.textContent=isRoomKind(item.kind)?"تم بناء الغرفة. جهّزها بالمعدات والموظفين المناسبين.":"تمت إضافة العنصر إلى العيادة.";return;
+  placed.push(item);drawPlaced(item);if(isRoomKind(item.kind))createLawnGrass();else if(item.kind==="asset")updateMissionEquipment();save();updatePlacementPreview(e.clientX,e.clientY);status.textContent=isRoomKind(item.kind)?"تم بناء الغرفة. أضف الأجهزة والأثاث المناسبين.":"تمت إضافة العنصر إلى العيادة.";return;
  }
  const start=avatar.getLocalPosition().clone(),tx=ground.x,tz=ground.z;
  destination=new pc.Vec3(tx,0,tz);
