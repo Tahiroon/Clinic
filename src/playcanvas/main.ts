@@ -300,14 +300,11 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
 }
 
  function loadHumanoid(url:string,parent:pc.Entity,height:number,castShadow:boolean,onReady?:(rig:HumanoidRig)=>void){
- // SAFE BOOT: imported character GLBs are isolated until mobile runtime is stable.
- console.warn("Imported humanoid GLB temporarily disabled during startup isolation",url);
- return;
  app.assets.loadFromUrl(url,"container",(err,asset)=>{
   if(err||!asset?.resource){console.error("Character asset failed",url,err);status.textContent="تم تشغيل شخصية بديلة خفيفة؛ تعذر تحميل النموذج الخارجي.";return;}
   const model=asset.resource.instantiateRenderEntity({castShadows:castShadow,receiveShadows:false});
   model.name="Animated humanoid";parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
-  const meshes=model.findComponents("render").flatMap((r:any)=>r.meshInstances);
+  const meshes=collectRenderMeshes(model);
   if(!meshes.length){console.error("Character GLB has no render meshes",url);model.destroy();return;}
   let minY=Infinity,maxY=-Infinity;
   for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);}
@@ -315,7 +312,7 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
   if(!Number.isFinite(measuredHeight)||measuredHeight<.25||measuredHeight>8){console.error("Character asset has implausible dimensions",url,measuredHeight);model.destroy();return;}
   const scale=height/measuredHeight;
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
-  const scaled=model.findComponents("render").flatMap((r:any)=>r.meshInstances);
+  const scaled=collectRenderMeshes(model);
   let scaledMinX=Infinity,scaledMaxX=-Infinity,scaledMinY=Infinity,scaledMinZ=Infinity,scaledMaxZ=-Infinity;
   for(const mesh of scaled){
    const b=mesh.aabb,c=b.center,h=b.halfExtents;
@@ -444,20 +441,24 @@ function collectDescendants(root:pc.Entity):pc.Entity[]{
  }
  return found;
 }
+function collectRenderMeshes(root:pc.Entity):any[]{
+ const meshes:any[]=[];const stack=[root];const seen=new Set<pc.Entity>();
+ while(stack.length){const node=stack.pop()!;if(seen.has(node))continue;seen.add(node);
+  const component=(node as any).render;if(component?.meshInstances?.length)for(const mesh of component.meshInstances)meshes.push(mesh);
+  for(const child of node.children as pc.Entity[])stack.push(child);
+ }return meshes;
+}
+function findEntityByName(root:pc.Entity,name:string):pc.Entity|null{
+ const stack=[root],seen=new Set<pc.Entity>();while(stack.length){const node=stack.pop()!;if(seen.has(node))continue;seen.add(node);if(node.name===name)return node;for(const child of node.children as pc.Entity[])stack.push(child);}return null;
+}
 function renderBounds(root:pc.Entity){
- const meshes=root.findComponents("render").flatMap((r:any)=>r.meshInstances);
+ const meshes=collectRenderMeshes(root);
  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
  for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
  if(!meshes.length||![minX,maxX,minY,maxY,minZ,maxZ].every(Number.isFinite))return null;
  return {minX,maxX,minY,maxY,minZ,maxZ,width:maxX-minX,height:maxY-minY,depth:maxZ-minZ};
 }
 function loadWaitingSeats(parent:pc.Entity){
- // Procedural fallback: avoid imported scene graphs during startup isolation.
- for(const z of [.55,1.45]){
-  box("Waiting seat fallback",.35,.38,z,.65,.18,.62,M.teal,parent);
-  box("Waiting seat back fallback",.35,.75,z+.22,.65,.6,.13,M.blue,parent);
- }
- return;
  const url=clinicAssetUrls["hospital-waiting-room.glb"];
  getClinicContainer(url).then(asset=>{
   const source=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:true});
@@ -487,11 +488,6 @@ function loadWaitingSeats(parent:pc.Entity){
  });
 }
 function loadReceptionDesk(parent:pc.Entity){
- // Procedural fallback during imported-scene isolation.
- box("Reception fallback desk",.2,.48,2.35,1.8,.85,.65,M.wood,parent);
- box("Reception fallback desk top",.2,.94,2.35,1.9,.1,.72,M.wood2,parent);
- box("Reception fallback monitor",.2,1.18,2.25,.42,.34,.05,M.dark,parent);
- return;
  const url=clinicAssetUrls["hospital-reception-desk.glb"];
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
@@ -528,8 +524,6 @@ function loadReceptionDesk(parent:pc.Entity){
  });
 }
 function loadTreatmentRoomDecor(parent:pc.Entity){
- // Disabled during safe boot; the procedural treatment room remains active.
- return;
  const url=clinicAssetUrls["hospital-patient-room.glb"];
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
@@ -558,32 +552,29 @@ function loadTreatmentRoomDecor(parent:pc.Entity){
 function loadClinicAsset(p:Placed){
  const spec=p.assetKey?storeAssetSpecs[p.assetKey]:undefined;
  if(!spec)return;
- // Lightweight procedural replacement while imported GLBs are tested individually.
- drawAssetFallback(p,spec);
- return;
  const url=clinicAssetUrls[spec.file];
+ if(!url){drawAssetFallback(p,spec);return;}
  getClinicContainer(url).then(asset=>{
   const container=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
-  const chosen=container.children.find((child:pc.Entity)=>child.name===spec.node);
+  const chosen=findEntityByName(container,spec.node);
   if(!chosen){container.destroy();throw new Error("Missing model node "+spec.node);}
-  container.removeChild(chosen);container.destroy();
+  const sourceParent=chosen.parent as pc.Entity|null;if(sourceParent)sourceParent.removeChild(chosen);
+  container.destroy();
   const size=spec.footprint,holder=new pc.Entity("3D asset · "+spec.label);
   world.addChild(holder);holder.setLocalPosition(p.gx+size/2,0,p.gz+size/2);holder.addChild(chosen);
-  chosen.setLocalPosition(0,0,0);chosen.setLocalEulerAngles(0,p.rot??0,0);
-  holder.syncHierarchy();app.root.syncHierarchy();
-  const getBounds=()=>{
-   const meshes=chosen.findComponents("render").flatMap((r:any)=>r.meshInstances);
-   let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
-   for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
-   return {minX,maxX,minY,maxY,minZ,maxZ};
-  };
-  const before=getBounds(),scale=spec.targetSize/Math.max(before.maxX-before.minX,before.maxZ-before.minZ,.01);
+  chosen.setLocalPosition(0,0,0);chosen.setLocalEulerAngles(0,p.rot??0,0);holder.syncHierarchy();app.root.syncHierarchy();
+  const before=renderBounds(chosen);
+  if(!before||before.width<.01||before.depth<.01||before.height<.01)throw new Error("Invalid model bounds for "+spec.node);
+  const scale=spec.targetSize/Math.max(before.width,before.depth,.01);
   chosen.setLocalScale(scale,scale,scale);holder.syncHierarchy();app.root.syncHierarchy();
-  const b=getBounds();
+  const bounds=renderBounds(chosen);if(!bounds)throw new Error("No render meshes in "+spec.node);
   const holderWorld=holder.getPosition(),chosenWorld=chosen.getPosition();
-  chosen.setPosition(chosenWorld.x+holderWorld.x-(b.minX+b.maxX)/2,chosenWorld.y-b.minY,chosenWorld.z+holderWorld.z-(b.minZ+b.maxZ)/2);
+  chosen.setPosition(chosenWorld.x+holderWorld.x-(bounds.minX+bounds.maxX)/2,chosenWorld.y-bounds.minY,chosenWorld.z+holderWorld.z-(bounds.minZ+bounds.maxZ)/2);
   holder.syncHierarchy();app.root.syncHierarchy();
- }).catch(error=>{console.error("Clinic store asset failed",spec.label,error);drawAssetFallback(p,spec);status.textContent="تم استخدام نموذج احتياطي لـ "+spec.label+" بسبب تعذر تحميل الأصل.";});
+ }).catch(error=>{
+  console.error("Clinic store asset failed",spec.label,error);drawAssetFallback(p,spec);
+  status.textContent="تعذر تحميل الأصل الحقيقي لـ "+spec.label+"؛ تم استخدام نموذج احتياطي.";
+ });
 }
 
 function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:4,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
