@@ -173,8 +173,9 @@ loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
 const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(1.55,0,1.5);world.addChild(patientNpc);
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false);
 
-let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=2, focus=false, wallRotation:0|90=0;
+let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=3, focus=false, wallRotation:0|90=0;
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v3";const entities:pc.Entity[]=[];
+const starterLayout:Placed[]=[{id:1,kind:"reception",gx:-4,gz:0},{id:2,kind:"treatment",gx:0,gz:0}];
 const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
  "pt-treatment-table":{file:"physical-therapy-room-set.glb",node:"TreatmentTable",label:"سرير علاج طبيعي",cost:90,footprint:3,targetSize:2.15},
