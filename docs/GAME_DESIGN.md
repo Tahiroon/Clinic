@@ -19,6 +19,18 @@ These are design principles to learn from, not assets, characters, UI layouts or
 
 **THERASON's distinction:** the learner is the physiotherapist. The central reward is better clinical reasoning and a better-designed rehabilitation clinic—not managing a large workforce or maximising cures per minute.
 
+## Cross-game design research and THERASON adaptations
+
+The goal is to borrow proven design principles, never protected art, characters, UI layouts, names or assets.
+
+- **Two Point Hospital — handcrafted warmth and readable humor:** use a distinctive, warm visual identity with clear silhouettes and a little personality, while keeping clinical content respectful. The development retrospective describes the team's deliberate handcrafted, clay-like visual direction ([MCV/Develop](https://mcvuk.com/development-news/when-we-made-two-point-hospital/)).
+- **Planet Zoo — readable cause and effect:** every visible problem should communicate what is happening, why it is happening and what the player can do. Patient routes, waiting comfort, room access and rehabilitation equipment should influence the simulation in understandable ways ([GamesRadar developer interview](https://www.gamesradar.com/games/simulation/we-dont-want-to-simplify-it-and-make-it-easy-thats-not-where-were-at-planet-zoo-2-developer-on-approachability-animal-improvements-and-all-new-habitats/); [Game Developer interview](https://www.gamedeveloper.com/game-platforms/designing-the-simulation-of-the-wild-and-wonderful-i-planet-zoo-i-)).
+- **Hay Day — ownership and creative expression:** players should be proud of the clinic they arrange. Decorations, paths, outdoor gardens and themed spaces should support a coherent personal style, not just act as score modifiers ([Supercell decoration guide](https://support.supercell.com/hay-day/en/articles/custom-decorations.html)).
+- **Clash of Clans — interface clarity at scale:** the most-used actions should remain easy to locate, with fewer taps and less visual crowding as systems grow. The 2026 UI refresh explicitly focuses on reducing friction for both new and experienced players ([Supercell UI update, 8 Oct 2026](https://supercell.com/en/games/clashofclans/blog/news/weve-revamped-the-clash-of-clans-user-interface/)).
+- **Two Point console controls — accessible camera and building:** quick, simple room-building actions and smooth camera controls are core interaction goals, especially when adapting management games to touch and controller play ([Push Square developer interview](https://www.pushsquare.com/news/2020/02/interview_two_point_hospital_devs_talk_diseases_dad_jokes_and_dualshock_4)).
+
+**THERASON translation:** the clinic should feel warm and alive, but its signature systems are physiotherapy-specific: patient mobility, functional goals, safe assessment, evidence-informed treatment, progress reassessment and accessible rehabilitation spaces.
+
 ## Core pillars
 1. Build and expand a beautiful clinic and its outdoor property.
 2. Manage appointments, patient flow, money, reputation and equipment.
