@@ -50,9 +50,10 @@ The initial property is a generous development site, not an empty warehouse: lan
 
 ## 5. Land, property and expansion
 
-The clinic sits on a larger property/world tile with outdoor space. Expansion is a progression system:
-- Start with one owned plot and a small clinic.
-- Unlock or purchase adjacent land parcels with in-game currency and progression requirements.
+The clinic sits on a generous 14 m × 28 m starter property with open lawn around its first treatment room. Expansion is a progression system:
+- Start with one owned green property and one treatment room.
+- Use the open property to construct additional rooms and facilities as coins and learning progress allow.
+- Later unlock or purchase adjacent land parcels with in-game currency and progression requirements.
 - Add new rooms, wings or separate buildings as later milestones.
 - Outdoor development can include paths, trees, benches, signs, parking and a rehabilitation garden.
 - Future specialist facilities may include a larger exercise gym, sports rehabilitation, balance/mobility area, hydrotherapy (only when technically and educationally justified), and learning/research spaces.
