@@ -75,7 +75,7 @@ tapMarker.setLocalScale(.34,.035,.34);
 tapMarker.enabled=false;
 world.addChild(tapMarker);
 
-const GRID=1, W=6.5, D=14, HALF_X=W/2, HALF_Z=D/2;
+const GRID=1, W=6.5, D=11.5, HALF_X=W/2, HALF_Z=D/2;
 const floorBase=material(new pc.Color(.34,.49,.35));
 const grassAlt=material(new pc.Color(.38,.53,.38));
 const pathMat=material(new pc.Color(.72,.68,.57));
@@ -85,15 +85,15 @@ const trim=material(new pc.Color(.10,.39,.47));
 const roofAccent=material(new pc.Color(.16,.28,.38));
 // A narrow, deep property is intentionally composed for a portrait isometric camera.
 box("Owned landscaped property",0,-.22,0,W,.42,D,floorBase,world);
-box("Entrance walk",0,.005,-5.75,1.65,.045,2.2,pathMat,world);
-for(let i=0;i<6;i++)box("Entrance stepping stone",0,.055,-6.78+i*.37,1.30,.035,.27,pathEdge,world);
+box("Entrance walk",0,.005,-5.12,1.65,.045,1.15,pathMat,world);
+for(let i=0;i<5;i++)box("Entrance stepping stone",0,.055,-5.48+i*.25,1.30,.035,.23,pathEdge,world);
 box("Entrance apron",0,.045,-4.12,2.8,.08,.65,pathMat,world);
 // Low perimeter edging defines this starter plot while leaving the land visibly expandable.
-for(const [x,z,sx,sz] of [[-2.05,-6.86,2.2,.18],[2.05,-6.86,2.2,.18],[0,6.86,6.3,.18],[-3.17,0,.18,13.7],[3.17,0,.18,13.7]] as [number,number,number,number][]){
+for(const [x,z,sx,sz] of [[-2.05,-5.66,2.2,.18],[2.05,-5.66,2.2,.18],[0,5.66,6.3,.18],[-3.17,0,.18,11.3],[3.17,0,.18,11.3]] as [number,number,number,number][]){
  box("Property boundary edging",x,.17,z,sx,.34,sz,trim,world);
 }
 // Trees and planting remain outdoors; their crowns use layered low-poly cones rather than primitive balls.
-for(const [x,z] of [[-2.72,-6.0],[2.72,-6.0],[-2.72,6.05],[2.72,6.05]] as [number,number][]){
+for(const [x,z] of [[-2.72,-5.02],[2.72,-5.02],[-2.72,5.02],[2.72,5.02]] as [number,number][]){
  cylinder("Garden tree trunk",x,.72,z,.16,1.44,.16,M.wood,world);
  cone("Garden tree lower crown",x,1.48,z,1.02,1.36,1.02,M.green,world);
  cone("Garden tree upper crown",x,2.18,z,.76,1.12,.76,grassAlt,world);
@@ -121,11 +121,11 @@ for(const [x,z] of [[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]] as [number,n
    }
   };
   for(let i=0;i<230;i++){
-   const z=-5.35+rand()*10.7;
+   const z=-4.7+rand()*9.4;
    addTuft(-2.72+rand()*.55,z);addTuft(2.17+rand()*.55,z);
   }
   for(let i=0;i<150;i++){
-   const x=-2.85+rand()*5.7,z=rand()>.5?5.25+rand()*1.25:-6.8+rand()*1.25;
+   const x=-2.85+rand()*5.7,z=rand()>.5?4.82+rand()*.72:-5.52+rand()*.72;
    if(z< -5.35&&Math.abs(x)<1.05)continue;
    addTuft(x,z);
   }
@@ -569,11 +569,11 @@ function canAvatarStand(x:number,z:number){
  if(rectanglesOverlap(player,{x:1.42-.28,z:2.35-.28,w:.56,d:.56}))return false;
  // Perimeter hedge and outdoor props are solid; the lawn is not an infinite walkable plane.
  const outdoorBarriers=[
-  {x:-3.26,z:-6.9,w:.18,d:13.8},
-  {x:3.08,z:-6.9,w:.18,d:13.8},
-  {x:-3.15,z:-6.95,w:2.2,d:.18},
-  {x:.95,z:-6.95,w:2.2,d:.18},
-  {x:-3.15,z:6.77,w:6.3,d:.18}
+  {x:-3.26,z:-5.65,w:.18,d:11.3},
+  {x:3.08,z:-5.65,w:.18,d:11.3},
+  {x:-3.15,z:-5.75,w:2.2,d:.18},
+  {x:.95,z:-5.75,w:2.2,d:.18},
+  {x:-3.15,z:5.57,w:6.3,d:.18}
  ];
  if(outdoorBarriers.some(w=>rectanglesOverlap(player,w)))return false;
  const gardenProps=[
