@@ -79,8 +79,8 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
  const floor=kind==="gym"?material(new pc.Color(.45,.57,.59)):M.room;
  box("Room floor",1,.035,1,3.95,.07,3.95,floor,root);
  // Two full rear/side walls and a low front edge create readable open-top dollhouse view.
- box("Rear wall",1,1.05,3,4,.95,.12,M.wall,root);box("Left wall",-1,1.05,1,.12,.95,4,M.wallSide,root);
- box("Right wall",3,1.05,1,.12,.95,4,M.wall,root);
+ box("Rear wall",1,1.05,3,4,2.1,.12,M.wall,root);if(id!==2)box("Left wall",-1,1.05,1,.12,2.1,4,M.wallSide,root);
+ if(id===1){box("Shared wall front segment",3,1.05,-.35,.12,2.1,1.3,M.wall,root);box("Shared wall rear segment",3,1.05,2.35,.12,2.1,1.3,M.wall,root);box("Shared doorway lintel",3,2.0,1,.12,.16,1.4,M.white,root);}else box("Right wall",3,1.05,1,.12,2.1,4,M.wall,root);
  box("Front wall left",.15,.55,-1,.3,.55,.12,M.wall,root);box("Front wall right",2.35,.55,-1,1.3,.55,.12,M.wall,root);
  box("Door lintel",1.25,1.0,-1,.9,.12,.12,M.wall,root);
  box("Wall base rear",1,.17,2.91,4,.2,.15,M.teal,root);box("Wall base left",-.91,.17,1,.15,.2,4,M.teal,root);
@@ -275,7 +275,7 @@ function canAvatarStand(x:number,z:number){
  return !placed.some(p=>{
   if(p.kind==="treatment"||p.kind==="reception"||p.kind==="gym"){
    const x=p.gx,z=p.gz;
-   const walls=[{x:x,z:z+2.9,w:4,d:.16},{x:x,z:z,w:.16,d:4},{x:x+3.9,z:z,w:.16,d:4},{x:x+.0,z:z-.05,w:.55,d:.14},{x:x+2.05,z:z-.05,w:1.95,d:.14}];
+   const walls=[{x:x,z:z+2.9,w:4,d:.16},...(p.id===2?[]:[{x:x,z:z,w:.16,d:4}]),...(p.id===1?[{x:x+3.9,z:z,w:.16,d:1.3},{x:x+3.9,z:z+2.7,w:.16,d:1.3}]:[{x:x+3.9,z:z,w:.16,d:4}]),{x:x+.0,z:z-.05,w:.55,d:.14},{x:x+2.05,z:z-.05,w:1.95,d:.14}];
    return walls.some(w=>rectanglesOverlap(player,w));
   }
   return rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey));
