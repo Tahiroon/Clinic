@@ -363,6 +363,8 @@ const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>patientFallback.destroy());
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=5, focus=false, wallRotation:0|90=0;
+let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v1")||0);return saved===1?0:Math.max(0,Math.min(4,saved));}catch{return 0;}})();
+
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v8";
 const TRIAL_ACCOUNT_COINS=1000000; 
 const starterLayout:Placed[]=[
@@ -812,6 +814,21 @@ function moveAvatarSafely(dx:number,dz:number){
  return Math.hypot(x-p.x,z-p.z)>.001;
 }
 function updateMode(next:"move"|"build"){mode=next;buildGrid.enabled=mode==="build";placementPreview.enabled=mode==="build";previewValidity=null;if(next==="build"){destination=null;target=null;walkPath=[];setLocomotion(false);tapMarker.enabled=false;}moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"الشبكة ظاهرة الآن: المعاينة الخضراء صالحة، والحمراء غير صالحة. المس لتأكيد المكان.";}
+function renderMission(){
+ const card=el<HTMLElement>("#mission-card"),title=el<HTMLElement>("#mission-title"),detail=el<HTMLElement>("#mission-detail"),button=el<HTMLButtonElement>("#start-tour");
+ card.classList.toggle("mission-done",missionPhase>=4);
+ button.disabled=missionPhase===1||missionPhase>=4;
+ if(missionPhase===0){title.textContent="تفقّد غرفة العلاج";detail.textContent="حرّك الأخصائي إلى غرفة العلاج لتتعرف على المكان.";button.textContent="ابدأ الجولة";}
+ else if(missionPhase===1){title.textContent="في الطريق إلى غرفة العلاج";detail.textContent="الأخصائي يتحرك الآن. انتظر حتى يصل إلى الغرفة.";button.textContent="جاري الوصول...";}
+ else if(missionPhase===2){title.textContent="وصلت إلى غرفة العلاج";detail.textContent="الخطوة التالية: استقبل المريض وابدأ أول جلسة تعليمية.";button.textContent="ابدأ الجلسة";}
+ else if(missionPhase===3){title.textContent="طوّر تجهيزات عيادتك";detail.textContent="افتح المتجر واختر جهازاً طبياً لتجهيز مساحة العلاج.";button.textContent="افتح المتجر";}
+}
+function setMissionPhase(next:number){
+ missionPhase=next;
+ try{localStorage.setItem("therason-clinic-mission-v1",String(next===1?0:next));}catch{}
+ renderMission();
+}
+
 function screenToGround(clientX:number,clientY:number){
  const rect=canvas.getBoundingClientRect();
  const px=(clientX-rect.left)*(canvas.width/rect.width),py=(clientY-rect.top)*(canvas.height/rect.height);
@@ -899,7 +916,7 @@ const steps=[
 function renderStep(){const s=steps[sessionStep];el("#session-step").textContent="الجلسة التعليمية · "+(sessionStep+1)+" من 5";el("#session-title").textContent=s.title;el("#session-intro").textContent=s.intro;el("#session-question").textContent=s.question;el("#session-feedback").textContent="اختر إجابتك لتحصل على تغذية راجعة.";el<HTMLButtonElement>("#session-next").disabled=true;el("#session-next").textContent=sessionStep===4?"إنهاء الجلسة":"التالي";el("#session-options").innerHTML=s.options.map(o=>'<button type="button" data-session-choice="'+o[0]+'">'+o[1]+"</button>").join("");document.querySelectorAll<HTMLButtonElement>("[data-session-choice]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-session-choice]").forEach(x=>{(x as HTMLButtonElement).disabled=true;});b.classList.add("chosen");const option=s.options.find(o=>o[0]===b.dataset.sessionChoice)!;if(option[2])sessionScore++;el("#session-feedback").textContent=option[3] as string;el<HTMLButtonElement>("#session-next").disabled=false;}));}
 sessionBtn.addEventListener("click",()=>{sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();sessionPending=moveAvatarTo(1.35,1.7);if(!sessionPending)sessionDialog.showModal();});
 sessionDialog.addEventListener("close",()=>{focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=window.innerWidth/window.innerHeight<.48?8.7:9.2;viewBtn.classList.remove("active");});
-el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
+el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{if(missionPhase===2)setMissionPhase(3);const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
 load();coinsLabel.textContent=String(coins);
 let locomotionState="";
 function setLocomotion(moving:boolean){
@@ -926,11 +943,21 @@ function moveAvatarTo(tx:number,tz:number){
  target=new pc.Vec3(first.x,0,first.z);setLocomotion(true);return true;
 }
 el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
- el("#mission-card").classList.add("mission-done");
- updateMode("move");
- status.textContent="جولتك بدأت: استكشف غرفة العلاج، ثم جرّب وضع البناء من الشريط السفلي.";
- moveAvatarTo(.35,1.05);
+ if(missionPhase===0){
+  updateMode("move");
+  const started=moveAvatarTo(.35,1.05);
+  if(!started){status.textContent="لم أجد ممراً واضحاً إلى غرفة العلاج. جرّب نقطة أخرى أو أعد المحاولة.";return;}
+  setMissionPhase(1);
+  status.textContent="الأخصائي في طريقه إلى غرفة العلاج.";
+ }else if(missionPhase===2){
+  sessionBtn.click();
+ }else if(missionPhase===3){
+  storeBtn.click();
+  setMissionPhase(4);
+ }
 });
+el<HTMLButtonElement>("#skip-tour").addEventListener("click",()=>setMissionPhase(4));
+renderMission();
 app.on("update",(dt:number)=>{
  if(document.hidden)return;
  // Clamp long frames after tab switches or weak-device stalls to prevent sudden character jumps.
@@ -946,7 +973,7 @@ app.on("update",(dt:number)=>{
  const p=avatar.getLocalPosition().clone(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
  if(d<.10){
   if(walkPath.length){const next=walkPath.shift()!;target=new pc.Vec3(next.x,0,next.z);}
-  else{target=null;destination=null;walkVelocity=0;if(playerRig?.anim)playerRig.anim.speed=1;setLocomotion(false);}
+  else{target=null;destination=null;walkVelocity=0;if(playerRig?.anim)playerRig.anim.speed=1;setLocomotion(false);if(missionPhase===1){setMissionPhase(2);status.textContent="وصل الأخصائي إلى غرفة العلاج. ابدأ جلستك التعليمية الأولى.";}}
  }else{
   setLocomotion(true);
   const desiredYaw=Math.atan2(dx,dz)*180/Math.PI;
