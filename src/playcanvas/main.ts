@@ -343,6 +343,26 @@ let patientFallbackRig:FallbackRig|null=patientFallback,patientRig:HumanoidRig|n
 let patientVisualId=0,patientVisualStage="",patientTarget:pc.Vec3|null=null,patientWalkPath:{x:number;z:number}[]=[];
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,rig=>{patientFallback.entity.destroy();patientFallbackRig=null;patientRig=rig;});
 
+type StaffVisual={root:pc.Entity;fallback:FallbackRig|null;rig:HumanoidRig|null;target:pc.Vec3};
+const staffVisuals=new Map<number,StaffVisual>();
+function syncStaffVisuals(){
+ for(const member of management.staff){
+  if(member.id===1)continue;
+  let visual=staffVisuals.get(member.id);
+  if(!visual){
+   const root=new pc.Entity("Clinic staff · "+member.name);world.addChild(root);root.setLocalPosition(0,0,-4.5);
+   const fallback=createFallbackHumanoid(root,"student");
+   visual={root,fallback,rig:null,target:new pc.Vec3(0,0,-4.5)};staffVisuals.set(member.id,visual);
+   loadHumanoid(characterAssets.student,root,1.72,false,rig=>{visual!.fallback?.entity.destroy();visual!.fallback=null;visual!.rig=rig;});
+  }
+  const assigned=member.assignedRoomId?management.rooms.find(r=>r.id===member.assignedRoomId):null;
+  const desiredType=member.status==="break"?"staff":member.role==="receptionist"?"reception":member.role==="rehab_assistant"?"exercise":member.role==="cleaner"?"staff":"treatment";
+  const room=assigned??management.rooms.find(r=>r.type===desiredType)??management.rooms.find(r=>r.type==="treatment");
+  if(room){const x=room.x+(member.role==="receptionist"?1.15:1.35),z=room.z+(member.role==="receptionist"?1.1:1.35);visual.target.set(x,0,z);}
+  else visual.target.set(0,0,-4.5);
+ }
+}
+
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=3200, xp=0, nextId=1, focus=false, wallRotation:0|90=0;
 let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v3")||0);return Math.max(0,Math.min(5,saved));}catch{return 0;}})();
 
@@ -884,6 +904,7 @@ function renderManagement(){
   }
  }
  el("#patient-queue").innerHTML=queue.length?queue.map(patient=>'<div class="management-row"><div><strong>'+patient.name+' · '+patient.caseLabel+'</strong><small>'+stageLabels[patient.stage]+' · انتظار '+Math.round(patient.waitMinutes)+' دقيقة</small></div><div><small>الصبر '+Math.round(patient.patience)+'%</small><div class="meter"><i style="width:'+Math.round(patient.patience)+'%"></i></div></div></div>').join(""):'<p class="empty-management">لا توجد حالات نشطة حالياً. ابنِ الاستقبال ووظّف موظف استقبال وغرفة تقييم وعلاج.</p>';
+ syncStaffVisuals();
  el("#clinic-events").innerHTML=management.events.slice(0,6).map(item=>'<div class="management-event">'+item.message+'</div>').join("");
  document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>button.classList.toggle("selected",Number(button.dataset.speed)===management.speed));
 }
@@ -1096,6 +1117,16 @@ app.on("update",(dt:number)=>{
  if(managementSaveTimer>=8){managementSaveTimer=0;save();}
  playerFallbackRig?.update(frameDt,!!target);
  patientFallbackRig?.update(frameDt,!!patientTarget||patientWalkPath.length>0);
+ for(const visual of staffVisuals.values()){
+  const p=visual.root.getLocalPosition(),dx=visual.target.x-p.x,dz=visual.target.z-p.z,distance=Math.hypot(dx,dz),moving=distance>.14;
+  visual.fallback?.update(frameDt,moving);
+  if(moving){
+   const yaw=Math.atan2(dx,dz)*180/Math.PI,currentYaw=visual.root.getLocalEulerAngles().y,yawDelta=((yaw-currentYaw+540)%360)-180;
+   visual.root.setLocalEulerAngles(0,currentYaw+Math.max(-frameDt*190,Math.min(frameDt*190,yawDelta)),0);
+   const step=Math.min(distance,frameDt*.78);visual.root.setLocalPosition(p.x+dx/distance*step,0,p.z+dz/distance*step);
+  }
+  transitionHumanoid(visual.rig,moving);
+ }
  if(patientNpc.enabled&&patientTarget){
   const p=patientNpc.getLocalPosition(),waypoint=patientWalkPath.length?patientWalkPath[0]:{x:patientTarget.x,z:patientTarget.z};
   const dx=waypoint.x-p.x,dz=waypoint.z-p.z,distance=Math.hypot(dx,dz);
