@@ -592,10 +592,10 @@ function loadClinicAsset(p:Placed){
  });
 }
 
-function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:5,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
+function save(){try{management.balance=coins;management.experience=xp;localStorage.setItem(saveKey,JSON.stringify({v:10,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function validSavedItem(value:any):value is Placed{
  if(!value||typeof value!=="object")return false;
- const kinds:BuildKind[]=["treatment","reception","gym","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
+ const kinds:BuildKind[]=["treatment","reception","assessment","gym","staff","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
  if(!kinds.includes(value.kind)||!Number.isSafeInteger(value.id)||value.id<1)return false;
  if(!Number.isInteger(value.gx)||!Number.isInteger(value.gz)||![0,90].includes(value.rot??0))return false;
  if(value.kind==="asset"&&(!value.assetKey||!storeAssetSpecs[value.assetKey]))return false;
@@ -604,12 +604,13 @@ function validSavedItem(value:any):value is Placed{
  return bounds.x>=-HALF_X&&bounds.z>=-HALF_Z&&bounds.x+bounds.w<=HALF_X&&bounds.z+bounds.d<=HALF_Z;
 }
 function load(){
- const useStarter=()=>{coins=TRIAL_ACCOUNT_COINS;xp=0;placed=starterLayout.map(p=>({...p}));nextId=4;for(const p of placed)drawPlaced(p);};
+ const useStarter=()=>{management=createInitialManagementState();coins=management.balance;xp=0;placed=starterLayout.map(p=>({...p}));nextId=4;for(const p of placed)drawPlaced(p);};
  try{
   const raw=localStorage.getItem(saveKey);if(!raw){useStarter();return;}
-  const v=JSON.parse(raw);if(v.v!==5||!Array.isArray(v.placed)){useStarter();return;}
-  coins=Math.max(TRIAL_ACCOUNT_COINS,Number.isFinite(v.coins)?Math.max(0,Math.min(10000000,v.coins)):TRIAL_ACCOUNT_COINS);
-  xp=Number.isFinite(v.xp)?Math.max(0,Math.min(1000000000,v.xp)):0;
+  const v=JSON.parse(raw);if(v.v!==10||!Array.isArray(v.placed)){useStarter();return;}
+  try{const savedManagement=JSON.parse(localStorage.getItem(managementSaveKey)||"null");if(savedManagement?.version===1&&Array.isArray(savedManagement.staff)&&Array.isArray(savedManagement.patients)&&Array.isArray(savedManagement.rooms))management=savedManagement;else management=createInitialManagementState();}catch{management=createInitialManagementState();}
+  coins=Math.max(0,Number.isFinite(management.balance)?Math.min(10000000,management.balance):TRIAL_ACCOUNT_COINS);management.balance=coins;
+  xp=Number.isFinite(management.experience)?Math.max(0,Math.min(1000000000,management.experience)):0;
   placed=[];const ids=new Set<number>();
   for(const candidate of v.placed.slice(0,60)){
    if(!validSavedItem(candidate)||ids.has(candidate.id))continue;
@@ -623,7 +624,7 @@ function load(){
   for(const p of placed)drawPlaced(p);
  }catch{useStarter();}
 }
-function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"||p.kind==="gym"||p.kind==="treatment"){const r=makeRoom(p.kind,p.gx,p.gz,p.id); return;}
+function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"gym":p.kind==="staff"?"staff":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"gym"|"staff",p.gx,p.gz,p.id); return;}
  const root=new pc.Entity("Placed "+p.kind);
  world.addChild(root);
  if(p.kind==="wall")root.setLocalPosition(p.rot===90?p.gx+1.5:x,0,p.rot===90?z:p.gz+1.5);
@@ -641,8 +642,8 @@ function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}co
  if(p.kind==="wall"){box("Interior partition",0,1.3,0,1,.12,2.6,M.wall,root);box("Wall teal trim",0,.22,.07,1,.12,.08,M.teal,root);box("Wall cap",0,2.62,0,1.05,.12,.18,M.white,root);}
  if(p.kind==="door"){box("Door left jamb",-.43,1.25,0,.12,2.5,.18,M.white,root);box("Door right jamb",.43,1.25,0,.12,2.5,.18,M.white,root);box("Door lintel",0,2.48,0,1,.16,.18,M.white,root);box("Door leaf",-.22,1.08,.09,.42,2.12,.055,M.wood2,root);}
 }
-function footprint(kind:BuildKind,assetKey?:string){if(kind==="asset")return storeAssetSpecs[assetKey??""]?.footprint??1;return kind==="treatment"||kind==="reception"||kind==="gym"?4:1;}
-function isRoomKind(kind:BuildKind){return kind==="treatment"||kind==="reception"||kind==="gym";}
+function footprint(kind:BuildKind,assetKey?:string){if(kind==="asset")return storeAssetSpecs[assetKey??""]?.footprint??1;return kind==="treatment"||kind==="reception"||kind==="assessment"||kind==="gym"||kind==="staff"?4:1;}
+function isRoomKind(kind:BuildKind){return kind==="treatment"||kind==="reception"||kind==="assessment"||kind==="gym"||kind==="staff";}
 function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string){
  const size=footprint(kind,assetKey);
  // Reserve a full snapped cell block, but leave a small physical clearance around props.
@@ -733,7 +734,7 @@ function canAvatarStand(x:number,z:number){
  const gardenProps=[...outdoorTreePositions.map(([gx,gz])=>({x:gx-.42,z:gz-.42,w:.84,d:.84})),...outdoorShrubPositions.map(([gx,gz])=>({x:gx-.34,z:gz-.48,w:.68,d:.96}))];
  if(gardenProps.some(w=>rectanglesOverlap(player,w)))return false;
  for(const p of placed){
-  const isRoom=p.kind==="treatment"||p.kind==="reception"||p.kind==="gym";
+  const isRoom=isRoomKind(p.kind);
   if(isRoom){
    const gx=p.gx,gz=p.gz;
    // Exact wall footprints match makeRoom(): two side walls, an entrance, and one shared rear doorway.
