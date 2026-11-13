@@ -16,7 +16,7 @@ PlayCanvas is the single selected 3D runtime. Babylon.js remains only as a histo
 ## Character and simulation scope
 Initial release:
 - One player-controlled physiotherapist avatar.
-- One optional receptionist NPC, introduced after the core scene and movement are stable.
+- One optional purchasable receptionist, introduced only after the core scene and movement are stable.
 - Patients as visitors/case characters.
 - No nurses, employed doctors, cleaners, assistants, or large staff/crowd simulation.
 
