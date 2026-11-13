@@ -165,8 +165,8 @@ buildGrid.enabled=false;
 function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:number){
  const root=new pc.Entity("Room "+id);
  world.addChild(root);root.setLocalPosition(gx+1,0,gz+1);
- const floor=kind==="gym"?material(new pc.Color(.40,.55,.58)):material(new pc.Color(.79,.82,.79));
- box("Seamless room floor",1,.035,1,3.95,.07,3.95,material(new pc.Color(.69,.72,.68)),root);
+ const floor=material(new pc.Color(.69,.72,.68));
+ box("Seamless room floor",1,.035,1,3.95,.07,3.95,floor,root);
  // Architectural finish: layered skirting, wall reveals and a restrained medical-grade palette.
  const skirting=material(new pc.Color(.34,.43,.46)), wallPanel=material(new pc.Color(.91,.92,.88)), doorFinish=material(new pc.Color(.72,.77,.75)),metal=material(new pc.Color(.43,.51,.54));
  box("Floor perimeter inlay",1,.078,1,3.78,.018,3.78,skirting,root);
@@ -323,7 +323,7 @@ loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
  avatarAnim=rig.anim;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
-const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.22,0,.72);
+const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.25,0,1.35);
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>patientFallback.destroy());
 
@@ -626,7 +626,7 @@ function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:str
 function rectanglesOverlap(a:{x:number;z:number;w:number;d:number},b:{x:number;z:number;w:number;d:number}){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.z<b.z+b.d&&a.z+a.d>b.z;}
 function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string,requireRoom=true){
  const a=footprintAt(gx,gz,kind,rot,assetKey);
- if(a.x< -HALF_X||a.z< -HALF_Z||a.x+a.w>HALF_X||a.z+a.d>HALF_Z)return true;
+ if(a.x< -HALF_X+.24||a.z< -HALF_Z+.24||a.x+a.w>HALF_X-.24||a.z+a.d>HALF_Z-.24)return true;
  const candidateRoom=isRoomKind(kind);
  if(candidateRoom){
   // A new room may not cover an existing room, wall, doorway or furnishing.
@@ -680,7 +680,7 @@ function canAvatarStand(x:number,z:number){
  if(x-radius< -HALF_X||x+radius>HALF_X||z-radius< -HALF_Z||z+radius>HALF_Z)return false;
  const player={x:x-radius,z:z-radius,w:radius*2,d:radius*2};
  // Patient is a real occupied spot; route to the nearest safe treatment-side approach, never through the body.
- if(rectanglesOverlap(player,{x:1.22-.28,z:.72-.28,w:.56,d:.56}))return false;
+ if(rectanglesOverlap(player,{x:1.25-.28,z:1.35-.28,w:.56,d:.56}))return false;
  // Perimeter hedge and outdoor props are solid; the lawn is not an infinite walkable plane.
  const outdoorBarriers=[
   {x:-HALF_X,z:-HALF_Z,w:.18,d:D},
@@ -916,7 +916,7 @@ const steps=[
 function renderStep(){const s=steps[sessionStep];el("#session-step").textContent="الجلسة التعليمية · "+(sessionStep+1)+" من 5";el("#session-title").textContent=s.title;el("#session-intro").textContent=s.intro;el("#session-question").textContent=s.question;el("#session-feedback").textContent="اختر إجابتك لتحصل على تغذية راجعة.";el<HTMLButtonElement>("#session-next").disabled=true;el("#session-next").textContent=sessionStep===4?"إنهاء الجلسة":"التالي";el("#session-options").innerHTML=s.options.map(o=>'<button type="button" data-session-choice="'+o[0]+'">'+o[1]+"</button>").join("");document.querySelectorAll<HTMLButtonElement>("[data-session-choice]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-session-choice]").forEach(x=>{(x as HTMLButtonElement).disabled=true;});b.classList.add("chosen");const option=s.options.find(o=>o[0]===b.dataset.sessionChoice)!;if(option[2])sessionScore++;el("#session-feedback").textContent=option[3] as string;el<HTMLButtonElement>("#session-next").disabled=false;}));}
 sessionBtn.addEventListener("click",()=>{
  sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();
- sessionPending=moveAvatarTo(.12,.72);
+ sessionPending=moveAvatarTo(1.25,.2);
  if(sessionPending){status.textContent="الأخصائي يتجه إلى المريض. ستبدأ الجلسة بعد الوصول إلى موضع آمن بجانبه.";}
  else{focus=false;cameraGoal.set(0,0,0);viewBtn.classList.remove("active");status.textContent="لا يوجد مسار آمن إلى المريض. افتح الممر أو أعد ترتيب الأثاث قبل بدء الجلسة.";}
 });
@@ -950,7 +950,7 @@ function moveAvatarTo(tx:number,tz:number){
 el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
  if(missionPhase===0){
   updateMode("move");
-  const started=moveAvatarTo(.35,.65);
+  const started=moveAvatarTo(-.5,1.3);
   if(!started){status.textContent="لم أجد ممراً واضحاً إلى غرفة العلاج. جرّب نقطة أخرى أو أعد المحاولة.";return;}
   setMissionPhase(1);
   status.textContent="الأخصائي في طريقه إلى غرفة العلاج.";
