@@ -151,9 +151,16 @@ for(const [x,z] of [[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]] as [number,n
   mesh.setColors32(new Uint8Array(colors));
   mesh.setIndices(indices);mesh.update();
   const grassMat=material(new pc.Color(1,1,1));grassMat.diffuseVertexColor=true;grassMat.cull=pc.CULLFACE_NONE;grassMat.update();
+  // ModelComponent attaches model.graph as a child of its owner.
+  // A shared owner/graph node creates a self-cycle and overflows PlayCanvas.
   const entity=new pc.Entity("Exterior lawn · merged 3D grass");
-  const model=new pc.Model();model.graph=entity;model.meshInstances=[new pc.MeshInstance(mesh,grassMat,entity)];
-  entity.addComponent("model");entity.model!.model=model;world.addChild(entity);
+  const grassGraph=new pc.GraphNode("Exterior lawn mesh graph");
+  const model=new pc.Model();
+  model.graph=grassGraph;
+  model.meshInstances=[new pc.MeshInstance(mesh,grassMat,grassGraph)];
+  entity.addComponent("model");
+  entity.model!.model=model;
+  world.addChild(entity);
  }
  createLawnGrass();
 // A compact arrival court gives the clinic a readable public entrance without crowding the narrow plot.
