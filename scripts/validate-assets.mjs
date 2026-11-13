@@ -51,7 +51,20 @@ try {
       !/new pc\.MeshInstance\(mesh,\s*grassMat,\s*grassGraph\)/.test(lawn)) {
     throw new Error("The lawn mesh and Model must share a separate GraphNode root");
   }
+  if (!/const GRID=1, W=14, D=28, HALF_X=W\/2, HALF_Z=D\/2/.test(source)) {
+    throw new Error("Starter property must remain 14 m × 28 m");
+  }
+  const starter = source.match(/const starterLayout:Placed\[\]=\[([\s\S]*?)\];/);
+  if (!starter) throw new Error("Starter layout definition is missing");
+  const starterRooms = starter[1].match(/kind:"(?:treatment|reception|gym)"/g) ?? [];
+  if (starterRooms.length !== 1 || !/kind:"treatment"/.test(starter[1]) || /kind:"reception"/.test(starter[1])) {
+    throw new Error("A new player must start with one treatment room, not a prebuilt reception clinic");
+  }
+  if (!/Owned green property/.test(source) || !/Main entrance garden path/.test(source) || !/outdoorTreePositions/.test(source)) {
+    throw new Error("The open green property, entrance path and outdoor landscaping must exist");
+  }
   console.log("✓ PlayCanvas model graph has no owner self-reference");
+  console.log("✓ Starter world is a 14×28 m green property with one treatment room"); 
 } catch (error) {
   failed = true;
   console.error("✗ PlayCanvas scene graph regression: " + (error instanceof Error ? error.message : String(error)));
