@@ -101,8 +101,8 @@ try {
     if (!source.includes(required)) throw new Error("The rebuilt district world is missing " + required);
   }
   if (!/Math\.min\(42,pinchHeight/.test(source) || !/Math\.max\(D\+8,\(W\+8\)\/aspect\)/.test(source) ||
-      !/HALF_X\+19-halfWidth/.test(source) || !/HALF_Z\+27-halfHeight/.test(source)) {
-    throw new Error("Portrait camera must frame the clinic and allow exploration into the wider district");
+      !/HALF_X\+10-halfWidth/.test(source) || !/HALF_Z\+14-halfHeight/.test(source)) {
+    throw new Error("Portrait camera must frame the clinic and keep the nearby district within a compact camera pan range");
   }
   console.log("✓ Clinic plot is distinct from a compact, scaled clay neighbourhood with roads and nearby buildings");
   console.log("✓ Clinic property has a continuous 3 m masonry perimeter and a dedicated entrance gate");
