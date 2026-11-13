@@ -54,7 +54,7 @@ window.visualViewport?.addEventListener("resize",queueResize,{passive:true});
 window.visualViewport?.addEventListener("scroll",queueResize,{passive:true});
 // A restrained ambient fill preserves form and lets the soft directional shadows read clearly.
 app.scene.ambientLight=new Color(.62,.66,.69);
-function material(c:Color){const m=new StandardMaterial();m.diffuse=c;m.roughness=.94;m.metalness=0;m.update();return m;}
+function material(c:Color){const m=new StandardMaterial();m.diffuse=c;m.shininess=8;m.metalness=0;m.update();return m;}
 const M={ground:material(new Color(.24,.52,.39)),tile:material(new Color(.34,.66,.48)),grid:material(new Color(.12,.62,.72)),room:material(new Color(.86,.91,.88)),wall:material(new Color(.92,.93,.89)),wallBase:material(new Color(.77,.82,.78)),wallGlass:material(new Color(.64,.83,.84)),wallBlue:material(new Color(.66,.80,.85)),wallFrame:material(new Color(.16,.25,.29)),wallCap:material(new Color(.72,.78,.74)),wallAccent:material(new Color(.10,.55,.60)),wallRecess:material(new Color(.53,.61,.58)),wood:material(new Color(.54,.34,.23)),wood2:material(new Color(.78,.55,.31)),teal:material(new Color(.02,.64,.70)),blue:material(new Color(.10,.34,.66)),pale:material(new Color(.82,.95,.94)),green:material(new Color(.20,.65,.39)),skin:material(new Color(.72,.49,.36)),dark:material(new Color(.08,.15,.23)),white:material(new Color(.98,.98,.92)),yellow:material(new Color(.98,.73,.23))};
 type PrimitiveModelType="box"|"capsule"|"cone"|"cylinder"|"plane"|"sphere"|"torus";
 function primitive(name:string,type:PrimitiveModelType,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:StandardMaterial,parent:Entity=app.root){
