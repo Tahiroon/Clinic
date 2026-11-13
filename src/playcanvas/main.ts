@@ -92,15 +92,19 @@ box("Entrance apron",0,.045,-4.12,2.8,.08,.65,pathMat,world);
 for(const [x,z,sx,sz] of [[-2.05,-5.66,2.2,.18],[2.05,-5.66,2.2,.18],[0,5.66,6.3,.18],[-3.17,0,.18,11.3],[3.17,0,.18,11.3]] as [number,number,number,number][]){
  box("Property boundary edging",x,.17,z,sx,.34,sz,trim,world);
 }
-// Trees and planting remain outdoors; their crowns use layered low-poly cones rather than primitive balls.
+// Outdoor trees use clustered organic crowns rather than the old repeated cone silhouettes.
 for(const [x,z] of [[-2.72,-5.02],[2.72,-5.02],[-2.72,5.02],[2.72,5.02]] as [number,number][]){
  cylinder("Garden tree trunk",x,.72,z,.16,1.44,.16,M.wood,world);
- cone("Garden tree lower crown",x,1.48,z,1.02,1.36,1.02,M.green,world);
- cone("Garden tree upper crown",x,2.18,z,.76,1.12,.76,grassAlt,world);
+ const crown=sphere("Tree foliage core",x,1.78,z,.68,M.green,world);crown.setLocalScale(.82,1.08,.78);
+ const crownTop=sphere("Tree foliage upper",x+.08,2.30,z+.03,.48,grassAlt,world);crownTop.setLocalScale(.82,1.05,.82);
+ for(const [ox,oy,oz,scale] of [[-.38,1.78,.05,.42],[.38,1.72,-.08,.43],[.02,1.56,.38,.40]] as [number,number,number,number][]){
+  const leaf=sphere("Tree foliage cluster",x+ox,oy,z+oz,scale,M.green,world);leaf.setLocalScale(1.05,1.0,.95);
+ }
 }
 for(const [x,z] of [[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]] as [number,number][]){
  box("Outdoor planter",x,.18,z,.48,.36,.78,M.wood2,world);
- cone("Planter shrub",x,.66,z,.40,.82,.40,M.green,world);
+ const shrub=sphere("Planter shrub",x,.63,z,.34,M.green,world);shrub.setLocalScale(1.1,.78,.9);
+ const shrubTop=sphere("Planter shrub highlight",x+.08,.82,z-.04,.22,grassAlt,world);shrubTop.setLocalScale(1.2,.85,1.0);
 }
  // One merged mesh gives the exterior lawn real 3D grass blades without hundreds of draw calls.
  function createLawnGrass(){
