@@ -631,8 +631,31 @@ let storePreviewRoot:Entity|null=null;
 let storePreviewModel:Entity|null=null;
 let storePreviewGeneration=0;
 const storeThumbnailCache=new Map<string,string>();
+let pendingStoreThumbnail:{key:string;generation:number;readyAt:number}|null=null;
+const storeThumbnailCanvas=document.createElement("canvas");
+storeThumbnailCanvas.width=240;storeThumbnailCanvas.height=180;
+const storeThumbnailContext=storeThumbnailCanvas.getContext("2d");
+app.on("postrender",()=>{
+ const pending=pendingStoreThumbnail;
+ if(!pending||Date.now()<pending.readyAt||pending.generation!==storePreviewGeneration||!storeThumbnailContext)return;
+ pendingStoreThumbnail=null;
+ try{
+  const width=canvas.width,height=canvas.height;
+  if(width<2||height<2)return;
+  // Crop the centered product stage from the live WebGL frame, then downsample once.
+  storeThumbnailContext.clearRect(0,0,240,180);
+  storeThumbnailContext.drawImage(canvas,width*.12,height*.18,width*.76,height*.62,0,0,240,180);
+  const image=storeThumbnailCanvas.toDataURL("image/webp",.72);
+  if(image.length<1200)return;
+  storeThumbnailCache.set(pending.key,image);
+  const card=document.querySelector<HTMLButtonElement>('[data-asset="'+pending.key+'"]');
+  const thumb=card?.querySelector<HTMLImageElement>(".store-item-thumb");
+  const hint=card?.querySelector<HTMLElement>(".store-item-type");
+  if(thumb){thumb.src=image;thumb.hidden=false;}if(hint)hint.hidden=true;
+ }catch(error){console.warn("Store thumbnail capture unavailable",pending.key,error);}
+});
 function clearStorePreview(){
- storePreviewGeneration++;
+ storePreviewGeneration++;pendingStoreThumbnail=null;
  if(storePreviewRoot){storePreviewRoot.destroy();storePreviewRoot=null;}storePreviewModel=null;
 }
 function showStorePreview(key:string){
@@ -666,19 +689,8 @@ function showStorePreview(key:string){
   root.syncHierarchy();
   el("#store-preview-detail").textContent=spec.description+" المكان المقترح: "+spec.room+". مساحة الحجز: "+spec.footprint+" م² تقريباً. السعر: "+spec.cost+" عملة.";
   el<HTMLButtonElement>("#store-place-selected").disabled=false;
-  // Capture a real in-engine render only after the player inspects this model.
-  window.setTimeout(()=>{
-   if(generation!==storePreviewGeneration||storePreviewRoot!==root)return;
-   try{
-    const image=canvas.toDataURL("image/webp",.68);
-    if(image.length<1800)return;
-    storeThumbnailCache.set(key,image);
-    const card=document.querySelector<HTMLButtonElement>('[data-asset="'+key+'"]');
-    const thumb=card?.querySelector<HTMLImageElement>(".store-item-thumb");
-    const hint=card?.querySelector<HTMLElement>(".store-item-type");
-    if(thumb){thumb.src=image;thumb.hidden=false;}if(hint)hint.hidden=true;
-   }catch(error){console.warn("Store thumbnail capture unavailable",key,error);}
-  },1050);
+  // Wait for the focused model to render, then capture one downsampled real frame.
+  pendingStoreThumbnail={key,generation,readyAt:Date.now()+1050};
  }).catch(error=>{
   if(generation!==storePreviewGeneration)return;
   console.error("Real store preview failed",key,error);
