@@ -166,6 +166,19 @@ try {
   }
   console.log("✓ Player physiotherapist, patient flow, optional receptionist upgrade, economy and simulation controls are wired");
   console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
+  if (!/Room identity signboard/.test(source) || !/Left wall crown/.test(source) || !/Right wall skirting/.test(source)) {
+    throw new Error("Room architecture is missing its THERASON colour trim and readable entrance signage");
+  }
+  if (!/p\.kind==="assessment"[\s\S]*?assetKey:"pt-exam-table"[\s\S]*?assetKey:"pt-privacy-screen"/.test(source) ||
+      !/p\.kind==="gym"[\s\S]*?assetKey:"pt-parallel-bars"[\s\S]*?assetKey:"pt-exercise-ball"/.test(source)) {
+    throw new Error("Assessment and exercise rooms must be furnished with their matching 3D equipment");
+  }
+  if (!/highDetailDevice=deviceMemory>=4&&cpuCores>=6/.test(source) ||
+      !/maxPixelRatio=highDetailDevice\?Math\.min\(window\.devicePixelRatio\|\|1,1\.25\):1\.0/.test(source)) {
+    throw new Error("Adaptive rendering quality is missing for high-end and low-end devices");
+  }
+  console.log("✓ Room cutaway architecture, THERASON identity and room-specific 3D equipment are wired");
+  console.log("✓ Adaptive rendering preserves low-end performance and sharpens capable devices");
   for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.physiotherapist,avatar", "loadHumanoid(characterAssets.patient,root", "loadHumanoid(characterAssets.receptionist,receptionistNpc", "receptionistNpc.enabled=management.receptionistOwned", "registerPatient(management,Number(button.dataset.registerPatient))", "recoverInterruptedSessions(management)", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
   }
