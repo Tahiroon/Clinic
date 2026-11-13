@@ -14,22 +14,29 @@ The broad inspiration is the readable isometric management experience of Two Poi
 4. Learn through justified decisions, evidence, feedback and reassessment.
 5. Progress through new spaces, equipment, case series and challenges.
 
-## Workforce and character simulation
-The player is the clinic owner-manager and can personally treat patients. Staff management is part of the first playable game, with four physiotherapy-appropriate roles: physiotherapists, rehabilitation assistants, receptionists and cleaners. Each staff member has a visible character, skill, energy, morale, wage, task and room assignment. The player recruits, assigns, trains and manages breaks. Patients are independent visitors with needs, patience, mood and a multi-stage clinic journey. Avoid hospital roles that do not belong in a physiotherapy clinic.
+## Characters and clinic roles
+
+- One player-controlled physiotherapist is the clinic's only clinical worker.
+- Patients are visitors with needs, patience, mood and individual fictional cases.
+- One receptionist may be purchased after the player completes three patient sessions. This upgrade improves registration and queue flow.
+- No additional hireable physiotherapists, nurses, rehabilitation assistants, cleaners, doctors, payroll, energy, morale, staff schedules or staff rooms.
 
 ## Starter property and player-built clinic
-All players begin with a generous 14 m × 28 m property, starter capital and a guided campaign. The main campaign begins with open landscaped land: the player draws/builds reception, assessment and treatment rooms, places required furniture and equipment, hires the first team, then opens the clinic. A separate tutorial can pre-place one room to teach movement. Room floors and walls belong only to constructed rooms; unbuilt land remains outdoor lawn.
+
+Every new clinic begins on a 14 m × 28 m landscaped plot with one 4 m × 4 m treatment room, one treatment table and one storage unit. The player builds the reception, assessment room, exercise space and additional treatment rooms as the clinic grows. Unbuilt land remains outdoor grass; room floors and walls exist only inside constructed rooms.
 
 ## Core management loop
-1. Plan room layout and corridors; build rooms from functional blueprints.
-2. Furnish rooms with required equipment and optional prestige/comfort items.
-3. Recruit staff with different skill levels, wages, energy and morale.
-4. Open the clinic; patients arrive, register, wait, receive assessment, treatment and discharge.
-5. Watch queues, staff workload, patient patience, comfort, reputation, income and expenses.
-6. Resolve bottlenecks by adding rooms, staff, equipment, seating, amenities or training.
-7. Complete campaign objectives and unlock specialist rehabilitation services.
 
-Patient journey must be visible in the world and represented in management data. Patients can become dissatisfied or leave if waiting too long. Staff need breaks; low energy reduces performance. Room prestige and comfort affect patient satisfaction and staff morale. The simulation must continue at controllable 1×/2×/3× speed and pause instantly.
+1. Inspect the property and plan the room layout, doors and patient corridors.
+2. Draw rooms with adjustable rectangular dimensions; furnish each room with required equipment.
+3. Add optional decoration, windows, lighting, plants, wall art and comfort items to improve room quality and visual appeal.
+4. Open the clinic; patients arrive, register, wait and move through the clinic.
+5. The player physiotherapist personally starts and completes each clinical encounter.
+6. Track queues, patient patience, reputation, income and clinic progression.
+7. Resolve bottlenecks by changing room layout, adding equipment/seating or buying the optional receptionist.
+8. Unlock specialist rehabilitation spaces and new decoration/equipment collections.
+
+The game must feel alive through patient movement, animated characters, visible room activities, status indicators and small events—not through a complex staff roster. The simulation runs at pause/1×/2×/3× speed. Patient journeys are visible in the world and management panel.
 
 ## World and expansion
 The clinic begins on an open 14 m × 28 m property with substantial lawn around the first treatment room. Players first construct rooms and facilities within this property, then may unlock or purchase adjacent land parcels using in-game progression and currency. Expansion can add rooms, wings or separate buildings, plus outdoor paths, trees, benches, signs, parking and a rehabilitation garden. Later specialist spaces may include a larger exercise gym, sports rehabilitation, balance/mobility facilities, and other justified facilities.
@@ -37,13 +44,15 @@ The clinic begins on an open 14 m × 28 m property with substantial lawn around 
 Expansion is optional and meaningful; it must not block the core clinical loop.
 
 ## Camera and visual direction
-- Portrait-first Android; no forced landscape rotation.
-- Isometric-style orthographic camera inspired by management games.
-- Smooth, bounded touch pan and pinch zoom.
-- Management overview, closer build mode, and a controlled close clinical-session camera.
-- Smooth transitions between modes; no scene reload for every activity.
-- Original THERASON visual identity: modern stylized realism, believable proportions, readable equipment, calm medical architecture and consistent materials.
-- Prefer clarity and stable performance over photorealism.
+
+- Portrait-first Android; no forced landscape.
+- Readable isometric/three-quarter orthographic view with room interiors visible from above.
+- Stylized 3D management-game art: rounded silhouettes, clean geometry, friendly proportions, bright room identities, soft daylight and playful but professional props.
+- Strong visual hierarchy like a polished theme-park/hospital management game: compact HUD, objective card, contextual build/store catalog, readable room labels and patient status.
+- THERASON palette: navy interface framing, cyan/teal accents, aqua details, warm white architecture and selective cheerful accent colors.
+- Rooms need visible floors, wall trims, windows, doors, lighting, furniture, signage and decorative items. Avoid empty box rooms.
+- Management overview, closer build mode and smooth clinical-session camera.
+- Learn from Two Point Hospital's readability and presentation patterns without copying its assets, characters, exact UI, room layouts or branding.
 
 ## Core loops
 **Clinic day:** open clinic → review appointments/status → receive patient → player performs session → receive appropriate revenue/reputation/progression → resolve a small operational decision → improve clinic.
@@ -55,17 +64,17 @@ Expansion is optional and meaningful; it must not block the core clinical loop.
 **Long-term progression:** improve clinic and clinical capability as two distinct progress tracks.
 
 ## Economy
-Keep the visible economy to three primary resources:
-- Coins: clinic revenue and spending.
-- Reputation: reflects service quality, patient experience and clinic standards.
-- Research/learning points: unlock educational content and advanced equipment through validated milestones.
 
-The management dashboard tracks care quality, patient satisfaction, staff wellbeing, cleanliness and financial health. Essential roles must be staffed before the clinic opens; later hires improve capacity and resilience.
-
-No energy lockouts, loot boxes, pay-to-win clinical advantage, coercive streaks or rewards for unsafe speed/overtreatment. Taking a break must not punish the player.
+- Coins buy rooms, furniture, equipment, decoration and later land.
+- Reputation reflects patient experience and clinic quality.
+- XP records learning progress and unlocks.
+- The optional receptionist is a one-time purchase unlocked after three completed clinical sessions. No recurring wages.
+- No staff energy, morale, payroll, breaks, staff-room requirements or recruitment roster.
+- No pay-to-win clinical advantages or rewards for unsafe speed/overtreatment.
 
 ## Patients and movement
-Begin with a small number of visible patients and a compact team. Patients move through reception, waiting, assessment, treatment and discharge; staff move between assigned rooms, breaks and tasks. Use authored animation states, obstacle-aware pathfinding and a finite-state simulation. Nearby characters receive full updates; distant/off-screen activity is simplified or paused.
+
+Patients arrive only after the clinic opens. Without a receptionist, the player handles basic registration; after the receptionist upgrade, registration is faster and queues are easier to manage. Patients wait, lose patience over time, move to the assessment/treatment area, then leave after the player completes the case. The player physiotherapist is the only worker character. Use a small active patient cap, authored animations and obstacle-aware pathfinding; simplify distant characters for mobile performance.
 
 ## Clinical cases
 Cases are versioned data packages independent of PlayCanvas. Each contains learner level, objectives, fictional patient profile, history, safety logic, assessment choices/findings, acceptable reasoning pathways, goals, interventions, simulated response, reassessment, scoring rubric, references, review date and reviewer history.
@@ -100,15 +109,16 @@ First milestone is read-only clinic visits. No chat, trading, shared editing or 
 Arabic-first, readable UI with English medical terminology where useful, strong contrast, scalable text, large touch targets, non-color-only feedback, reduced motion and low-graphics mode.
 
 ## First playable vertical slice
-- Landscaped starter plot with player-built reception, assessment and treatment rooms.
-- Hireable physiotherapists, receptionists, rehabilitation assistants and cleaners.
-- Live patient arrival-to-discharge simulation with visible queues.
-- Management, build and close clinical camera modes.
-- Pause and 1×/2×/3× time controls, staff needs, patient patience and basic finances.
-- Small object catalog, grid placement, rotation and collision/path checks.
-- One purchase and a basic coin loop.
-- Local save/reload.
-- Stable touch interaction on a low-end Android device.
+
+- Generous landscaped property with one starter treatment room.
+- Variable-size reception, assessment, treatment and exercise rooms.
+- Furnishing and decoration store using licensed GLB equipment assets.
+- One animated physiotherapist controlled by the player.
+- Patient arrival, registration, waiting, player-led clinical session and discharge.
+- One optional receptionist purchase unlocked after three completed sessions.
+- Coins, reputation, XP, patient patience and clinic events.
+- Isometric overview, build mode and close clinical-session transition.
+- Grid placement, collision/path checks and local save/reload.
 
 ## Acceptance gates
 Do not expand content until:
@@ -124,4 +134,6 @@ Do not expand content until:
 10. Startup, frame-time distribution, memory, transfer size and touch latency are recorded.
 
 ## Explicit first-release non-goals
-No unrelated acute-hospital departments, surgery, emergency medicine, real patient records, photorealism, multiplayer editing, chat, trading, real-world clinical decision support or coercive monetization.
+
+No staff roster, recruitable physiotherapists, nurses, employed doctors, rehabilitation assistants, cleaners, payroll, staff energy/morale/break systems, staff rooms, large crowd simulation, multiplayer editing, chat, trading, real patient records, photorealism or unrelated hospital departments.
+
