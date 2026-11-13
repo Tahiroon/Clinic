@@ -169,7 +169,7 @@ for(let i=0;i<=D;i++){
  box("Property grid horizontal",0,.035,z,W,.012,.012,gridMaterial,buildGrid);
 }
 buildGrid.enabled=false;
-function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:number){
+function makeRoom(kind:"treatment"|"reception"|"assessment"|"gym"|"staff",gx:number,gz:number,id:number){
  const root=new pc.Entity("Room "+id);
  world.addChild(root);root.setLocalPosition(gx+1,0,gz+1);
  const floor=material(new pc.Color(.69,.72,.68));
@@ -226,13 +226,17 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
    box("Window centre rail",x,1.42,2.86,1.16,.045,.10,metal,root);
   }
  }
- if(kind==="treatment"){
-  // Treatment equipment is loaded as individual GLB objects from the physiotherapy kit.
-  box("Anatomy chart",2.45,1.6,2.91,.72,.62,.04,M.pale,root);
+ if(kind==="treatment"||kind==="assessment"){
+  box(kind==="assessment"?"Assessment anatomy chart":"Treatment anatomy chart",2.45,1.6,2.91,.72,.62,.04,M.pale,root);
   box("Anatomy chart accent",2.45,1.6,2.875,.12,.42,.035,trim,root);
  }else if(kind==="reception"){
   loadReceptionDesk(root);
   loadWaitingSeats(root);
+ }else if(kind==="staff"){
+  box("Staff rest sofa seat",1,.38,1.6,2.1,.34,.82,M.teal,root);
+  box("Staff rest sofa back",1,.82,1.95,2.1,.62,.18,M.blue,root);
+  box("Staff table",1,.38,.65,.95,.12,.65,M.wood2,root);
+  box("Staff notice board",2.45,1.55,2.91,.72,.62,.05,M.pale,root);
  }else{
   box("Exercise mat",1.1,.07,1.1,2.7,.08,1.25,M.blue,root);
   box("Parallel bar left",.2,.6,2.45,.1,1.1,.1,M.wood2,root);
