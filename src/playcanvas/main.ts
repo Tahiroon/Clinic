@@ -1064,8 +1064,10 @@ const steps=[
 ];
 function renderStep(){const s=steps[sessionStep];el("#session-step").textContent="الجلسة التعليمية · "+(sessionStep+1)+" من 5";el("#session-title").textContent=s.title;el("#session-intro").textContent=s.intro;el("#session-question").textContent=s.question;el("#session-feedback").textContent="اختر إجابتك لتحصل على تغذية راجعة.";el<HTMLButtonElement>("#session-next").disabled=true;el("#session-next").textContent=sessionStep===4?"إنهاء الجلسة":"التالي";el("#session-options").innerHTML=s.options.map(o=>'<button type="button" data-session-choice="'+o[0]+'">'+o[1]+"</button>").join("");document.querySelectorAll<HTMLButtonElement>("[data-session-choice]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-session-choice]").forEach(x=>{(x as HTMLButtonElement).disabled=true;});b.classList.add("chosen");const option=s.options.find(o=>o[0]===b.dataset.sessionChoice)!;if(option[2])sessionScore++;el("#session-feedback").textContent=option[3] as string;el<HTMLButtonElement>("#session-next").disabled=false;}));}
 sessionBtn.addEventListener("click",()=>{
- if(!management.clinicOpen){status.textContent="أكمل بناء الاستقبال وغرفة التقييم والعلاج، ووظّف موظف استقبال، ثم افتح العيادة أولاً.";return;}
- if(getActivePatientCount(management)===0){status.textContent="لا توجد حالة جاهزة حالياً. انتظر وصول المريض القادم أو راجع لوحة الإدارة.";return;}
+ if(!management.clinicOpen){status.textContent="أكمل بناء الاستقبال وغرفة التقييم والعلاج وتجهيز المعدات، ثم افتح العيادة.";return;}
+ const started=beginPatientSession(management);
+ if(!started.ok){status.textContent=started.message;return;}
+ activeSessionPatientId=started.patient!.id;renderManagement();save();
  sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();
  const patientPosition=patientNpc.getLocalPosition();sessionPending=moveAvatarTo(patientPosition.x-.72,patientPosition.z-.1);
  if(sessionPending){status.textContent="الأخصائي يتجه إلى المريض. ستبدأ الجلسة بعد الوصول إلى موضع آمن بجانبه.";}
@@ -1103,11 +1105,11 @@ el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
   managementPanel.hidden=true;buildPanel.hidden=false;updateMode("build");
   selectBuild(missionPhase===0?"reception":missionPhase===1?"assessment":"treatment");
   status.textContent="اسحب بإصبعك على الأرض لرسم مساحة الغرفة، ثم ارفع إصبعك لتأكيد البناء.";
- }else if(missionPhase===4){
+ }else if(missionPhase===3){
   storeBtn.click();status.textContent="اشترِ المعدات الأساسية ثم ضع كل قطعة داخل غرفتها المناسبة.";
  }else if(missionPhase===4||missionPhase===5){
   managementPanel.hidden=false;buildPanel.hidden=true;updateMode("move");renderManagement();
-  status.textContent=missionPhase===4?"تحقق من المتطلبات واضغط فتح العيادة.":"تابع المرضى من اللوحة، وعالج ثلاث حالات لفتح ترقية الاستقبال.";
+  status.textContent=missionPhase===4?"تحقق من المتطلبات واضغط فتح العيادة.":"تابع المرضى، وابدأ الجلسات مع الحالات المنتظرة.";
  }
 });
 el<HTMLButtonElement>("#skip-tour").addEventListener("click",()=>setMissionPhase(6));
