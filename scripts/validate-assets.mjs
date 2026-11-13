@@ -48,7 +48,7 @@ try {
     throw new Error("The lawn model graph must never reference its owning entity");
   }
   if (!/model\.graph\s*=\s*grassGraph/.test(lawn) ||
-      !/new pc\.MeshInstance\\(mesh,\s*grassMat,\s*grassGraph\\)/.test(lawn)) {
+      !/new pc\.MeshInstance\(mesh,\s*grassMat,\s*grassGraph\)/.test(lawn)) {
     throw new Error("The lawn mesh and Model must share a separate GraphNode root");
   }
   console.log("✓ PlayCanvas model graph has no owner self-reference");
