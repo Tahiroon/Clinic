@@ -96,6 +96,7 @@ box("Surrounding green landscape",0,-.24,0,W+10,.42,D+10,lawnBase,world);
 box("Clinic buildable foundation",0,.005,0,W,.08,D,material(new Color(.66,.68,.65)),world);
 box("Main entrance garden path",0,.018,-8.45,1.75,.045,11.0,pathMat,world);
 box("Outdoor approach path",0,.018,-16.2,2.4,.045,4.5,pathMat,world);
+box("Gait garden connecting path",1.9,.025,-16.15,1.6,.05,.72,pathMat,world);
 box("Path west edging",-.91,.045,-8.45,.055,.06,11.0,pathEdge,world);
 box("Path east edging",.91,.045,-8.45,.055,.06,11.0,pathEdge,world);
 for(const [x,z,sx,sz] of [[0,-13.92,W,.16],[0,13.92,W,.16],[-6.92,0,.16,D],[6.92,0,.16,D]] as [number,number,number,number][]){
@@ -114,7 +115,7 @@ const outdoorBenchPositions:[number,number][]=[[-8.15,0],[8.15,0]];
 const outdoorFlowerPositions:[number,number][]=[[-8.25,-9.5],[8.25,-9.5],[-8.25,9.5],[8.25,9.5]];
 const outdoorLampPositions:[number,number][]=[[-8.25,-13.5],[8.25,-13.5],[-8.25,13.5],[8.25,13.5]];
 // A compact outdoor gait-training lane sits beyond the property edge, never inside the buildable plot.
-const gaitLaneX=3.25,gaitLaneZ=-16.05;
+const gaitLaneX=3.25,gaitLaneZ=-16.15;
 box("Outdoor gait training lane",gaitLaneX,.035,gaitLaneZ,1.35,.055,4.2,pathEdge,world);
 box("Outdoor gait lane walking surface",gaitLaneX,.068,gaitLaneZ,1.12,.025,4.0,pathMat,world);
 for(let i=0;i<5;i++){const z=gaitLaneZ-1.55+i*.78;box("Gait lane distance marker",gaitLaneX,.09,z,1.0,.018,.035,M.white,world);}
