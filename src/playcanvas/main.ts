@@ -356,12 +356,12 @@ for(let i=0;i<2;i++){
 
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:Vec3|null=null, coins=3200, xp=0, nextId=1, focus=false, wallRotation:0|90=0;
-let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v3")||0);return Math.max(0,Math.min(6,saved));}catch{return 0;}})();
+let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v4")||0);return Math.max(0,Math.min(7,saved));}catch{return 0;}})();
 
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:Vec3|null=null;const saveKey="therason-clinic-world-v12";
-const managementSaveKey="therason-clinic-management-v4";
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:Vec3|null=null;const saveKey="therason-clinic-world-v13";
+const managementSaveKey="therason-clinic-management-v5";
 const TRIAL_ACCOUNT_COINS=3200; 
-const starterLayout:Placed[]=[{id:1,kind:"treatment",gx:-2,gz:-2,width:4,depth:4}];
+const starterLayout:Placed[]=[];
 const costs:Record<BuildKind,number>={treatment:720,reception:420,assessment:620,gym:980,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
  "pt-treatment-table":{file:"examination-couch.glb",node:"*",label:"سرير علاج طبيعي",cost:90,footprint:2,targetSize:2.3},
@@ -613,7 +613,7 @@ function loadClinicAsset(p:Placed){
  });
 }
 
-function save(){try{management.balance=coins;management.experience=xp;el("#store-coins").textContent=String(coins);localStorage.setItem(saveKey,JSON.stringify({v:12,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
+function save(){try{management.balance=coins;management.experience=xp;el("#store-coins").textContent=String(coins);localStorage.setItem(saveKey,JSON.stringify({v:13,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function validSavedItem(value:any):value is Placed{
  if(!value||typeof value!=="object")return false;
  const kinds:BuildKind[]=["treatment","reception","assessment","gym","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
@@ -626,10 +626,10 @@ function validSavedItem(value:any):value is Placed{
  return bounds.x>=-HALF_X&&bounds.z>=-HALF_Z&&bounds.x+bounds.w<=HALF_X&&bounds.z+bounds.d<=HALF_Z;
 }
 function load(){
- const useStarter=()=>{management=createInitialManagementState();coins=management.balance;xp=0;placed=starterLayout.map(p=>({...p}));nextId=2;for(const p of placed)drawPlaced(p);};
+ const useStarter=()=>{management=createInitialManagementState();coins=management.balance;xp=0;placed=starterLayout.map(p=>({...p}));nextId=1;for(const p of placed)drawPlaced(p);};
  try{
   const raw=localStorage.getItem(saveKey);if(!raw){useStarter();return;}
-  const v=JSON.parse(raw);if(v.v!==12||!Array.isArray(v.placed)){useStarter();return;}
+  const v=JSON.parse(raw);if(v.v!==13||!Array.isArray(v.placed)){useStarter();return;}
   try{const savedManagement=JSON.parse(localStorage.getItem(managementSaveKey)||"null");if(savedManagement?.version===3&&Array.isArray(savedManagement.patients)&&Array.isArray(savedManagement.rooms))management=savedManagement;else management=createInitialManagementState();recoverInterruptedSessions(management);}catch{management=createInitialManagementState();}
   coins=Math.max(0,Number.isFinite(management.balance)?Math.min(10000000,management.balance):TRIAL_ACCOUNT_COINS);management.balance=coins;
   xp=Number.isFinite(management.experience)?Math.max(0,Math.min(1000000000,management.experience)):0;
@@ -890,22 +890,25 @@ function hasAssetInRoom(assetKey:string,roomType:ClinicRoomType){
  })());
 }
 function updateMissionEquipment(){
- if(missionPhase===3&&hasAssetInRoom("pt-exam-table","assessment")&&hasAssetInRoom("pt-patient-chair","assessment"))setMissionPhase(4);
+ if(missionPhase===1&&hasAssetInRoom("pt-treatment-table","treatment"))setMissionPhase(2);
+ else if(missionPhase===3&&hasAssetInRoom("pt-reception-desk","reception")&&hasAssetInRoom("pt-waiting-bench","reception"))setMissionPhase(4);
+ else if(missionPhase===5&&hasAssetInRoom("pt-exam-table","assessment")&&hasAssetInRoom("pt-patient-chair","assessment"))setMissionPhase(6);
 }
 function renderMission(){
  const card=el<HTMLElement>("#mission-card"),title=el<HTMLElement>("#mission-title"),detail=el<HTMLElement>("#mission-detail"),button=el<HTMLButtonElement>("#start-tour");
- card.classList.toggle("mission-done",missionPhase>=6);button.disabled=missionPhase>=6;
- if(missionPhase===0){title.textContent="ابنِ الاستقبال";detail.textContent="ارسم غرفة استقبال واسعة، ثم أضف مكتب الاستقبال ومقاعد الانتظار.";button.textContent="ابدأ البناء";}
- else if(missionPhase===1){title.textContent="أنشئ غرفة التقييم";detail.textContent="ارسم غرفة مخصصة للتاريخ المرضي والفحص الوظيفي.";button.textContent="ابنِ غرفة التقييم";}
- else if(missionPhase===2){title.textContent="أنشئ صالة التأهيل";detail.textContent="أضف مساحة للتمارين والتأهيل الحركي، مع ممر واضح لحركة المرضى.";button.textContent="ابنِ صالة التأهيل";}
- else if(missionPhase===3){title.textContent="جهّز غرفة التقييم";detail.textContent="ضع سرير الفحص وكرسي المريض داخل غرفة التقييم. غرفة العلاج الأساسية مجهزة بالفعل.";button.textContent="افتح المتجر";}
- else if(missionPhase===4){title.textContent="افتح أبواب العيادة";detail.textContent="الغرف الأساسية جاهزة. افتح العيادة واستقبل أول مريض.";button.textContent="لوحة العيادة";}
- else if(missionPhase===5){title.textContent="طوّر عيادتك";detail.textContent=management.treated<3?"عالج 3 حالات لفتح خيار شراء موظف استقبال.":"أصبح موظف الاستقبال متاحاً للشراء من لوحة العيادة.";button.textContent="عرض المرضى";}
- else{title.textContent="عيادتك بدأت تنمو";detail.textContent="واصل علاج المرضى، ووسّع الغرف، وحسّن الأثاث والديكور.";button.textContent="متابعة اللعب";}
+ card.classList.toggle("mission-done",missionPhase>=7);button.disabled=missionPhase>=7;
+ if(missionPhase===0){title.textContent="ابنِ غرفة العلاج الأولى";detail.textContent="ابدأ من أرض فارغة. اسحب لتحديد مساحة غرفة العلاج الطبيعي ثم أكّد البناء.";button.textContent="ابدأ البناء";}
+ else if(missionPhase===1){title.textContent="جهّز غرفة العلاج";detail.textContent="افتح المتجر واشترِ سرير علاج طبيعي، ثم ضعه داخل الغرفة.";button.textContent="افتح متجر الأجهزة";}
+ else if(missionPhase===2){title.textContent="ابنِ منطقة الاستقبال";detail.textContent="أنشئ غرفة استقبال متصلة بمساحة العيادة وممرات الحركة.";button.textContent="ابنِ الاستقبال";}
+ else if(missionPhase===3){title.textContent="جهّز الاستقبال";detail.textContent="اشترِ مكتب الاستقبال ومقاعد الانتظار وضعها بنفسك.";button.textContent="افتح متجر الأثاث";}
+ else if(missionPhase===4){title.textContent="أنشئ غرفة التقييم";detail.textContent="ابنِ غرفة مستقلة لأخذ التاريخ المرضي والفحص الوظيفي.";button.textContent="ابنِ غرفة التقييم";}
+ else if(missionPhase===5){title.textContent="جهّز غرفة التقييم";detail.textContent="اشترِ سرير الفحص وكرسي المريض وضعهما داخل الغرفة.";button.textContent="افتح متجر التقييم";}
+ else if(missionPhase===6){title.textContent="افتح أبواب العيادة";detail.textContent="تأكد من جاهزية الغرف والمعدات، ثم افتح العيادة لاستقبال أول حالة.";button.textContent="لوحة الإدارة";}
+ else{title.textContent="عيادتك بدأت تنمو";detail.textContent="عالج المرضى، طوّر المساحات، واشترِ أجهزة جديدة من المتجر.";button.textContent="متابعة اللعب";}
 }
 function setMissionPhase(next:number){
  missionPhase=next;
- try{localStorage.setItem("therason-clinic-mission-v3",String(next));}catch{}
+ try{localStorage.setItem("therason-clinic-mission-v4",String(next));}catch{}
  renderMission();
 }
 
@@ -1017,7 +1020,7 @@ canvas.addEventListener("pointerup",e=>{
    if(!result.ok){status.textContent=result.message;return;}
    coins=management.balance;coinsLabel.textContent=String(coins);
    const item:Placed={id:nextId++,kind:selected,gx:b.x,gz:b.z,width:b.w,depth:b.d,rot:wallRotation};
-   placed.push(item);drawPlaced(item);createLawnGrass();if(missionPhase===0&&selected==="reception")setMissionPhase(1);else if(missionPhase===1&&selected==="assessment")setMissionPhase(2);else if(missionPhase===2&&selected==="gym")setMissionPhase(3);save();status.textContent=result.message+" يمكنك إضافة الأجهزة والأثاث من المتجر.";return;
+   placed.push(item);drawPlaced(item);createLawnGrass();if(missionPhase===0&&selected==="treatment")setMissionPhase(1);else if(missionPhase===2&&selected==="reception")setMissionPhase(3);else if(missionPhase===4&&selected==="assessment")setMissionPhase(5);save();status.textContent=result.message+" يمكنك إضافة الأجهزة والأثاث من المتجر.";return;
   }
  }
  if(!pointerStart){
@@ -1092,7 +1095,7 @@ el<HTMLButtonElement>("#clinic-open-toggle").addEventListener("click",()=>{
  }
  const result=setClinicOpen(management,!management.clinicOpen);
  status.textContent=result.message;
- if(result.ok&&management.clinicOpen&&missionPhase===4)setMissionPhase(5);
+ if(result.ok&&management.clinicOpen&&missionPhase===6)setMissionPhase(7);
  renderManagement();save();
 });
 function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",assessment:"غرفة تقييم",gym:"صالة تأهيل",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent=isRoomKind(kind)?"تم اختيار "+names[kind]+". اسحب بإصبعك على الأرض لرسم مساحة الغرفة بالحجم الذي تريده.":"تم اختيار "+names[kind]+". المس خلية فارغة لوضع العنصر، ويمكنك تدوير الحائط من زر التدوير.";}
@@ -1166,18 +1169,21 @@ function moveAvatarTo(tx:number,tz:number){
  target=new Vec3(first.x,0,first.z);setLocomotion(true);return true;
 }
 el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
- if(missionPhase===0||missionPhase===1||missionPhase===2){
-  managementPanel.hidden=true;buildPanel.hidden=false;updateMode("build");
-  selectBuild(missionPhase===0?"reception":missionPhase===1?"assessment":"gym");
-  status.textContent="اسحب بإصبعك على الأرض لرسم مساحة الغرفة، ثم ارفع إصبعك لتأكيد البناء.";
- }else if(missionPhase===3){
-  storeBtn.click();status.textContent="اشترِ المعدات الأساسية ثم ضع كل قطعة داخل غرفتها المناسبة.";
- }else if(missionPhase===4||missionPhase===5){
-  managementPanel.hidden=false;buildPanel.hidden=true;updateMode("move");renderManagement();
-  status.textContent=missionPhase===4?"تحقق من المتطلبات واضغط فتح العيادة.":"تابع المرضى، وابدأ الجلسات مع الحالات المنتظرة.";
+ if(missionPhase===0||missionPhase===2||missionPhase===4){
+  storePanel.hidden=true;managementPanel.hidden=true;buildPanel.hidden=false;updateMode("build");
+  selectBuild(missionPhase===0?"treatment":missionPhase===2?"reception":"assessment");
+  status.textContent="اسحب بإصبعك على أرض العيادة لرسم الغرفة، ثم ارفع إصبعك لتأكيد البناء.";
+ }else if(missionPhase===1||missionPhase===3||missionPhase===5){
+  storeBtn.click();
+  if(missionPhase===3)el<HTMLButtonElement>('[data-store-category="furnishing"]').click();
+  else if(missionPhase===5)el<HTMLButtonElement>('[data-store-category="assessment"]').click();
+  status.textContent="اختر الجهاز المناسب، ثم المس موضعه داخل الغرفة لإتمام الشراء.";
+ }else if(missionPhase===6||missionPhase===7){
+  managementPanel.hidden=false;storePanel.hidden=true;buildPanel.hidden=true;updateMode("move");renderManagement();
+  status.textContent=missionPhase===6?"راجع متطلبات التشغيل ثم افتح العيادة.":"تابع المرضى ووسّع عيادتك.";
  }
 });
-el<HTMLButtonElement>("#skip-tour").addEventListener("click",()=>setMissionPhase(6));
+el<HTMLButtonElement>("#skip-tour").addEventListener("click",()=>setMissionPhase(7));
 renderMission();
 app.on("update",(dt:number)=>{
  if(document.hidden)return;
