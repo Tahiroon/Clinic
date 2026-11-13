@@ -15,10 +15,10 @@
 2. Patients appear as visitors/case characters.
 3. One optional receptionist may be hired later; no receptionist NPC is required for the first playable slice.
 4. No nurses, employed doctors, cleaners, assistants or staff roster in the first release.
-5. Every fresh account receives the same portrait-oriented starter property, approximately 6.5 m × 14 m, with one reception room at the front, one treatment room behind it, a direct internal doorway and an outdoor lawn/path around the building.
-6. Trees, planters and shrubs remain outdoors, outside the building walls and away from the entrance and main walking route.
-7. Starter reception includes a real licensed reception desk and a four-seat GLB waiting row, with procedural fallback seats if the asset fails.
-8. Starter treatment room loads the individual licensed physiotherapy treatment-table and storage-cabinet GLB objects; it must not scale an entire hospital-room scene into a single prop.
+5. Every fresh account receives a 14 m × 28 m portrait-oriented green property with one 4 m × 4 m treatment room only, one treatment table and one storage unit. The rest of the property remains open for player-built expansion.
+6. Grass covers the unbuilt outdoor land around the clinic; no grass, trees or shrubs may appear inside any constructed room.
+7. Do not prebuild reception/waiting rooms or pave the entire property. The player builds these facilities as the clinic grows.
+8. The starter treatment room loads the individual licensed physiotherapy treatment-table and storage-cabinet GLB objects; it must not scale an entire hospital-room scene into a single prop.
 9. Equipment can be placed inside room footprints without treating the room floor itself as an obstacle.
 10. Room wall rendering and navigation collision must derive from the same wall/door dimensions.
 11. The outside property hedge, trees and planters are collision obstacles; the avatar cannot pass through the plot boundary.
