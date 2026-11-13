@@ -112,6 +112,17 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
  world.addChild(root);root.setLocalPosition(gx+1,0,gz+1);
  const floor=kind==="gym"?material(new pc.Color(.40,.55,.58)):material(new pc.Color(.79,.82,.79));
  box("Room floor",1,.035,1,3.95,.07,3.95,floor,root);
+ // Architectural finish: layered skirting, wall reveals and a restrained medical-grade palette.
+ const skirting=material(new pc.Color(.34,.43,.46)), wallPanel=material(new pc.Color(.91,.92,.88)), doorFinish=material(new pc.Color(.72,.77,.75)),metal=material(new pc.Color(.43,.51,.54));
+ box("Floor perimeter inlay",1,.078,1,3.78,.018,3.78,skirting,root);
+ for(const x of [-.91,2.91])box("Wall skirting",x,.16,1,.045,.20,3.82,skirting,root);
+ box("Rear wall skirting",1,.16,2.91,3.82,.20,.045,skirting,root);
+ // Subtle wall panels and a continuous upper reveal make the room read as built architecture.
+ for(const x of [-.55,.35,1.25,2.15])box("Interior wall panel",x,1.12,2.905,.72,1.62,.025,wallPanel,root);
+ box("Rear wall upper reveal",1,2.31,2.89,3.9,.055,.055,metal,root);
+ // Recessed ceiling light housings sit just above the open cutaway wall line.
+ for(const x of [.25,1.75])box("Ceiling light housing",x,2.34,.15,.72,.055,.22,M.white,root);
+ for(const x of [.25,1.75])box("Ceiling light diffuser",x,2.305,.15,.58,.018,.14,M.pale,root);
  // Modular 4×4 m room shell. Every wall segment has a matching navigation rectangle.
  box("Left exterior wall",-1,1.12,1,.16,2.24,4,M.wallSide,root);
  box("Right exterior wall",3,1.12,1,.16,2.24,4,M.wallSide,root);
@@ -127,6 +138,11 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
  box("Front wall left",-.3,1.12,-1,1.4,2.24,.16,M.wall,root);
  box("Front wall right",2.3,1.12,-1,1.4,2.24,.16,M.wall,root);
  box("Front doorway lintel",1,2.18,-1,1.2,.16,.18,M.white,root);
+ // Real door leaf, recessed frame and hardware; the leaf is left ajar so the passage stays usable.
+ box("Door frame left",.34,1.10,-1.06,.075,2.20,.12,M.white,root);
+ box("Door frame right",1.66,1.10,-1.06,.075,2.20,.12,M.white,root);
+ box("Door leaf ajar",.48,1.04,-.88,.075,2.02,.92,doorFinish,root);
+ cylinder("Door handle",.48,1.05,-.39,.035,.035,.035,metal,root);
  // Coloured plinths emphasize room edges without cluttering the walking space.
  for(const x of [-1,3]){
   box("Side wall teal plinth",x,.18,1,.18,.24,4,trim,root);
@@ -145,6 +161,9 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
    box("Window top frame",x,1.89,2.88,1.24,.07,.09,M.white,root);
    box("Window bottom frame",x,.95,2.88,1.24,.07,.09,M.white,root);
    box("Window mullion",x,1.42,2.87,.055,.86,.09,M.white,root);
+   box("Window left jamb",x-.61,1.42,2.87,.065,1.02,.10,metal,root);
+   box("Window right jamb",x+.61,1.42,2.87,.065,1.02,.10,metal,root);
+   box("Window centre rail",x,1.42,2.86,1.16,.045,.10,metal,root);
   }
  }
  if(kind==="treatment"){
@@ -265,6 +284,12 @@ const starterLayout:Placed[]=[
 const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
  "pt-treatment-table":{file:"physical-therapy-room-set.glb",node:"TreatmentTable",label:"سرير علاج طبيعي",cost:90,footprint:2,targetSize:1.9},
+ "pt-exam-table":{file:"doctors-office-set.glb",node:"ExamTable",label:"سرير فحص سريري",cost:95,footprint:2,targetSize:1.9},
+ "pt-patient-chair":{file:"doctors-office-set.glb",node:"Chair_Patient",label:"كرسي المريض",cost:45,footprint:1,targetSize:0.9},
+ "pt-doctor-desk":{file:"doctors-office-set.glb",node:"Desk_Doctor",label:"مكتب الأخصائي",cost:65,footprint:2,targetSize:1.35},
+ "pt-privacy-screen":{file:"doctors-office-set.glb",node:"PrivacyCurtain",label:"حاجز خصوصية طبي",cost:60,footprint:2,targetSize:1.8},
+ "pt-clinical-sink":{file:"doctors-office-set.glb",node:"Sink_Cabinet",label:"حوض غسل طبي",cost:50,footprint:1,targetSize:0.95},
+ "pt-wall-chart":{file:"doctors-office-set.glb",node:"Wall_Chart",label:"لوحة فحص سريري",cost:25,footprint:1,targetSize:0.85},
  "pt-parallel-bars":{file:"physical-therapy-room-set.glb",node:"ParallelBars",label:"جهاز المتوازي",cost:100,footprint:3,targetSize:2.8},
  "pt-band-rack":{file:"physical-therapy-room-set.glb",node:"BandRack",label:"حامل أحزمة المقاومة",cost:35,footprint:2,targetSize:1.5},
  "pt-exercise-ball":{file:"physical-therapy-room-set.glb",node:"ExerciseBall",label:"كرة علاجية",cost:20,footprint:1,targetSize:.72},
@@ -284,7 +309,8 @@ const clinicAssetUrls:Record<string,string>={
  "hospital-equipment-set.glb":new URL("../assets/clinic-kit/hospital/hospital-equipment-set.glb",import.meta.url).href,
  "hospital-reception-desk.glb":new URL("../assets/clinic-kit/hospital/hospital-reception-desk.glb",import.meta.url).href,
  "hospital-patient-room.glb":new URL("../assets/clinic-kit/hospital/hospital-patient-room.glb",import.meta.url).href,
- "hospital-waiting-room.glb":new URL("../assets/clinic-kit/hospital/hospital-waiting-room.glb",import.meta.url).href
+ "hospital-waiting-room.glb":new URL("../assets/clinic-kit/hospital/hospital-waiting-room.glb",import.meta.url).href,
+ "doctors-office-set.glb":new URL("../assets/clinic-kit/hospital/doctors-office-set.glb",import.meta.url).href
 };
 const containerCache=new Map<string,Promise<any>>();
 function getClinicContainer(url:string):Promise<any>{
