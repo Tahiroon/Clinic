@@ -130,4 +130,4 @@ export function formatGameTime(s:ManagementState){
  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
 }
 export function getActivePatientCount(s:ManagementState){return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).length;}
-export function getPatientQueue(s:ManagementState){return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).sort((a,b)=>b.waitMinutes-a.waitMinutes);}
+export function getPatientQueue(s:ManagementState){const priority:Record<PatientStage,number>={assessment:0,treatment:1,reception:2,waiting:3,arriving:4,discharged:5,left:6};return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).sort((a,b)=>priority[a.stage]-priority[b.stage]||b.waitMinutes-a.waitMinutes);}
