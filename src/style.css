@@ -326,3 +326,9 @@ button{font:inherit;touch-action:manipulation}
 #buy-receptionist{width:100%;min-height:42px;border:1px solid #68e5d3;border-radius:10px;background:linear-gradient(100deg,#0e9c94,#17b7a5);color:#fff;font-weight:850;font-size:12px}
 #buy-receptionist:disabled{opacity:.45}
 @media(max-width:380px){.management-panel{padding:10px}.management-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+.room-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.room-summary-item{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;padding:8px 9px;border:1px solid #ffffff18;border-radius:9px;background:linear-gradient(130deg,#123e5b,#0d304d)}
+.room-summary-item strong{font-size:11px;color:#e9fbff;font-weight:800}
+.room-summary-item small{font-size:10px;color:#a7d8df;white-space:nowrap}
