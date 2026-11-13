@@ -44,11 +44,11 @@ for (const [file, nodeNames, animationNames] of required) {
 try {
   const source = await readFile(resolve(root, "src/playcanvas/main.ts"), "utf8");
   const lawn = source.slice(source.indexOf("function createLawnGrass"), source.indexOf("createLawnGrass();"));
-  if (!lawn || /model\\.graph\\s*=\\s*entity/.test(lawn)) {
+  if (!lawn || /model\.graph\s*=\s*entity/.test(lawn)) {
     throw new Error("The lawn model graph must never reference its owning entity");
   }
-  if (!/model\\.graph\\s*=\\s*grassGraph/.test(lawn) ||
-      !/new pc\\.MeshInstance\\(mesh,\\s*grassMat,\\s*grassGraph\\)/.test(lawn)) {
+  if (!/model\.graph\s*=\s*grassGraph/.test(lawn) ||
+      !/new pc\.MeshInstance\\(mesh,\s*grassMat,\s*grassGraph\\)/.test(lawn)) {
     throw new Error("The lawn mesh and Model must share a separate GraphNode root");
   }
   console.log("✓ PlayCanvas model graph has no owner self-reference");
