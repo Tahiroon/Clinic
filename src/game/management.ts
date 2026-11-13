@@ -1,4 +1,4 @@
-export type PatientStage = "arriving" | "reception" | "waiting" | "assessment" | "treatment" | "discharged" | "left";
+export type PatientStage = "arriving" | "reception" | "waiting" | "assessment" | "treatment" | "departing" | "discharged" | "left";
 export type ClinicRoomType = "reception" | "assessment" | "treatment" | "exercise";
 export interface ClinicPatient {
   id:number; name:string; caseLabel:string; need:"pain"|"mobility"|"post_op"|"sports";
@@ -88,6 +88,7 @@ export function advanceSimulation(s:ManagementState,realSeconds:number){
   for(const p of s.patients){
    if(p.stage==="discharged"||p.stage==="left")continue;
    p.waitMinutes+=step;
+   if(p.stage==="departing"){if(p.waitMinutes>=10){p.stage="discharged";event(s,"income",p.name+" غادر العيادة بعد انتهاء الجلسة.");}continue;}
    if(p.stage==="reception"){
     if(s.receptionistOwned&&p.waitMinutes>=1){p.stage="waiting";p.waitMinutes=0;}
     else if(!s.receptionistOwned){p.patience=Math.max(0,p.patience-step*.22);if(p.patience<=0){p.stage="left";s.reputation=Math.max(0,s.reputation-1.2);event(s,"warning",p.name+" غادر قبل تسجيله.");}}
@@ -117,7 +118,7 @@ export function cancelPatientSession(s:ManagementState,patientId:number){const p
 export function completePatientSession(s:ManagementState,patientId:number,score:number):number{
  const p=s.patients.find(x=>x.id===patientId&&x.stage==="assessment");if(!p)return 0;
  const quality=Math.max(0,Math.min(100,score*20));
- p.stage="discharged";p.satisfaction=Math.max(45,Math.min(100,quality*.65+p.patience*.35));
+ p.stage="departing";p.waitMinutes=0;p.satisfaction=Math.max(45,Math.min(100,quality*.65+p.patience*.35));
  s.treated++;s.experience+=score*10;
  const income=90+Math.round(p.satisfaction*.9);s.balance+=income;
  s.reputation=Math.min(100,s.reputation+(p.satisfaction>=70?.8:.2));
@@ -130,4 +131,4 @@ export function formatGameTime(s:ManagementState){
  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
 }
 export function getActivePatientCount(s:ManagementState){return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).length;}
-export function getPatientQueue(s:ManagementState){const priority:Record<PatientStage,number>={assessment:0,treatment:1,reception:2,waiting:3,arriving:4,discharged:5,left:6};return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).sort((a,b)=>priority[a.stage]-priority[b.stage]||b.waitMinutes-a.waitMinutes);}
+export function getPatientQueue(s:ManagementState){const priority:Record<PatientStage,number>={assessment:0,treatment:1,departing:2,reception:3,waiting:4,arriving:5,discharged:6,left:7};return s.patients.filter(p=>!["discharged","left"].includes(p.stage)).sort((a,b)=>priority[a.stage]-priority[b.stage]||b.waitMinutes-a.waitMinutes);}
