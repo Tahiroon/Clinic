@@ -216,7 +216,7 @@ try {
       !/Outdoor physiotherapy gait lane/.test(source) || !/Gait lane walking surface/.test(source)) {
     throw new Error("The outdoor gait-training lane must be a real part of the district landscape");
   }
-  if (!/Clinic entrance gate lintel/.test(source) || !/Clinic arrival court paving/.test(source) ||
+  if (!/Clinic entrance gate lintel/.test(source) || !/Arrival court paving/.test(source) ||
       !/West clinic boundary/.test(source) || !/East clinic boundary/.test(source) ||
       !/Rear clinic boundary/.test(source) || !/Main gate masonry pier/.test(source)) {
     throw new Error("The clinic must be enclosed by substantial masonry walls with a readable public gate");
