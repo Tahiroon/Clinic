@@ -192,11 +192,11 @@ button{font:inherit;touch-action:manipulation}
 .case-done:disabled{opacity:.4}
 @media(min-width:700px){
   .app-header{height:48px;min-height:48px}
-  .tool-dock,.build-panel{display:none!important}
+
 }
 @media(max-height:520px){
   .app-header{height:36px;min-height:36px}
-  .tool-dock,.build-panel{display:none!important}
+
   .scene-top{top:calc(env(safe-area-inset-top,0px) + 39px)}
 }
 @media(prefers-reduced-motion:reduce){
