@@ -428,9 +428,18 @@ function drawAssetFallback(p:Placed,spec:{label:string}){
  }
 }
 function collectDescendants(root:pc.Entity):pc.Entity[]{
+ // Imported GLB hierarchies can be unusually deep. Traverse iteratively so a
+ // vendor model can never exhaust the browser's JavaScript call stack.
  const found:pc.Entity[]=[];
- const visit=(node:pc.Entity)=>{for(const child of node.children as pc.Entity[]){found.push(child);visit(child);}};
- visit(root);return found;
+ const stack=[...(root.children as pc.Entity[])];
+ const seen=new Set<pc.Entity>();
+ while(stack.length){
+  const node=stack.pop()!;
+  if(seen.has(node))continue;
+  seen.add(node);found.push(node);
+  for(const child of node.children as pc.Entity[])stack.push(child);
+ }
+ return found;
 }
 function renderBounds(root:pc.Entity){
  const meshes=root.findComponents("render").flatMap((r:any)=>r.meshInstances);
@@ -475,13 +484,17 @@ function loadReceptionDesk(parent:pc.Entity){
   const keep=/^(Desk_|Drawer_|Keyboard_|Monitor_|Pedestal_|Screen_)/;
   // The source GLB is a complete reception scene (desk + chairs + curtains + plant + sanitizer).
   // Keep only the desk assembly; scaling the entire scene to desk size made the actual counter microscopic.
-  const prune=(node:pc.Entity)=>{
-   for(const child of [...node.children] as pc.Entity[]){
-    if(!keep.test(child.name)){child.destroy();continue;}
-    prune(child);
-   }
-  };
-  prune(model);
+  // Avoid recursive descent: some downloaded GLB scene graphs contain
+  // thousands of nested nodes and can overflow the JS call stack.
+  const stack=[...(model.children as pc.Entity[])];
+  const visited=new Set<pc.Entity>();
+  while(stack.length){
+   const node=stack.pop()!;
+   if(visited.has(node))continue;
+   visited.add(node);
+   if(!keep.test(node.name)){node.destroy();continue;}
+   for(const child of node.children as pc.Entity[])stack.push(child);
+  }
   parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
   let b=renderBounds(model);
   if(!b||b.width<.05||b.depth<.05||b.height<.05){model.destroy();throw new Error("Reception desk subset is empty or has invalid bounds");}
