@@ -484,7 +484,7 @@ function ensureReceptionistModel(){
  loadHumanoid(characterAssets.receptionist,receptionistNpc,1.62,false,rig=>{fallback.entity.destroy();receptionistFallbackRig=null;receptionistRig=rig;});
 }
 let patientFallbackRig:FallbackRig|null=patientFallback,patientRig:HumanoidRig|null=null;
-let patientVisualId=0,patientVisualStage="",patientTarget:Vec3|null=null,patientWalkPath:{x:number;z:number}[]=[];
+let patientVisualId=0,patientVisualStage="",patientTarget:Vec3|null=null,patientStepTarget:Vec3|null=null,patientWalkPath:{x:number;z:number}[]=[],patientWalkVelocity=0;
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,rig=>{patientFallback.entity.destroy();patientFallbackRig=null;patientRig=rig;});
 
 type WaitingPatientVisual={root:Entity;fallback:FallbackRig|null;rig:HumanoidRig|null};
@@ -787,7 +787,7 @@ function loadClinicAsset(p:Placed){
  const spec=p.assetKey?storeAssetSpecs[p.assetKey]:undefined;
  if(!spec)return;
  const url=clinicAssetUrls[spec.file];
- if(!url){drawAssetFallback(p,spec);return;}
+ if(!url){status.textContent="الأصل الحقيقي غير متاح: "+spec.label+". لم يتم وضع بديل وهمي.";return;}
  getClinicContainer(url).then(asset=>{
   const container=asset.resource.instantiateRenderEntity({castShadows:highDetailDevice,receiveShadows:highDetailDevice});
   const chosen=spec.node==="*"?container:findEntityByName(container,spec.node);
@@ -807,8 +807,8 @@ function loadClinicAsset(p:Placed){
   chosen.setPosition(chosenWorld.x+holderWorld.x-(bounds.minX+bounds.maxX)/2,chosenWorld.y-bounds.minY,chosenWorld.z+holderWorld.z-(bounds.minZ+bounds.maxZ)/2);
   holder.syncHierarchy();
  }).catch(error=>{
-  console.error("Clinic store asset failed",spec.label,error);drawAssetFallback(p,spec);
-  status.textContent="تعذر تحميل الأصل الحقيقي لـ "+spec.label+"؛ تم استخدام نموذج احتياطي.";
+  console.error("Clinic store asset failed",spec.label,error);
+  status.textContent="تعذر تحميل الجهاز الحقيقي: "+spec.label+". لم نعرض مجسماً بديلاً مضللاً؛ تحقق من الاتصال ثم حاول مجدداً.";
  });
 }
 
@@ -1152,7 +1152,7 @@ function renderManagement(){
   visual.root.enabled=show;
   if(show&&receptionRoom){const centerX=receptionRoom.x+receptionRoom.width/2,centerZ=receptionRoom.z+receptionRoom.depth/2;visual.root.setLocalPosition(centerX+.75,0,centerZ-.35+i*1.22);visual.root.setLocalEulerAngles(0,180,0);visual.fallback?.update(0,false);transitionHumanoid(visual.rig,false);}
  }
- if(!visiblePatient){patientNpc.enabled=false;patientVisualId=0;patientVisualStage="";patientTarget=null;patientWalkPath=[];}
+ if(!visiblePatient){patientNpc.enabled=false;patientVisualId=0;patientVisualStage="";patientTarget=null;patientStepTarget=null;patientWalkPath=[];patientWalkVelocity=0;}
  else{
   patientNpc.enabled=true;
   if(patientVisualId!==visiblePatient.id||patientVisualStage!==visiblePatient.stage){
@@ -1161,9 +1161,9 @@ function renderManagement(){
    const room=management.rooms.find(r=>r.type===roomType)??management.rooms.find(r=>r.type==="treatment");
    const goal=room?patientGoalFor(room,visiblePatient.stage):new Vec3(0,0,-4.55);
    const current=patientNpc.getLocalPosition();patientNpc.enabled=false;
-   if(canWalkSegment(current.x,current.z,goal.x,goal.z)){patientWalkPath=[];patientTarget=goal;}
-   else{const route=findWalkPath(current.x,current.z,goal.x,goal.z);patientWalkPath=route?simplifyWalkRoute(route,current.x,current.z):[];patientTarget=goal;}
-   patientNpc.enabled=true;
+   if(canWalkSegment(current.x,current.z,goal.x,goal.z)){patientWalkPath=[];patientTarget=goal;patientStepTarget=goal.clone();}
+   else{const route=findWalkPath(current.x,current.z,goal.x,goal.z);patientWalkPath=route?simplifyWalkRoute(route,current.x,current.z):[];patientTarget=goal;const first=patientWalkPath.shift();patientStepTarget=first?new Vec3(first.x,0,first.z):null;}
+   patientWalkVelocity=0;patientNpc.enabled=true;
   }
  }
  el("#patient-queue").innerHTML=queue.length?queue.map(patient=>'<div class="management-row"><div><strong>'+patient.name+' · '+patient.caseLabel+'</strong><small>'+stageLabels[patient.stage]+' · انتظار '+Math.round(patient.waitMinutes)+' دقيقة</small></div><div><small>الصبر '+Math.round(patient.patience)+'%</small><div class="meter"><i style="width:'+Math.round(patient.patience)+'%"></i></div>'+(patient.stage==="reception"&&!management.receptionistOwned?'<button class="register-patient-button" type="button" data-register-patient="'+patient.id+'">تسجيل المريض</button>':"")+'</div></div>').join(""):'<p class="empty-management">لا توجد حالات نشطة حالياً. افتح العيادة وانتظر وصول المرضى.</p>';
@@ -1438,8 +1438,40 @@ app.on("update",(dt:number)=>{
  if(managementUiTimer>=.45){managementUiTimer=0;renderManagement();}
  if(managementSaveTimer>=8){managementSaveTimer=0;save();}
  playerFallbackRig?.update(frameDt,!!target);
- patientFallbackRig?.update(frameDt,!!patientTarget||patientWalkPath.length>0);
+ patientFallbackRig?.update(frameDt,!!patientStepTarget);
  receptionistFallbackRig?.update(frameDt,false);
+ // Execute patient routes with the same collision grid used by the physiotherapist.
+ // Temporarily disable the moving patient during its own collision queries.
+ if(patientNpc.enabled&&patientTarget&&patientStepTarget){
+  const current=patientNpc.getLocalPosition().clone(),dx=patientStepTarget.x-current.x,dz=patientStepTarget.z-current.z,distance=Math.hypot(dx,dz);
+  if(distance<.10){
+   if(patientWalkPath.length){const next=patientWalkPath.shift()!;patientStepTarget=new Vec3(next.x,0,next.z);}
+   else{patientNpc.setLocalPosition(patientTarget.x,0,patientTarget.z);patientStepTarget=null;patientWalkVelocity=0;transitionHumanoid(patientRig,false);}
+  }else{
+   const desiredYaw=Math.atan2(dx,dz)*180/Math.PI,currentYaw=patientNpc.getLocalEulerAngles().y;
+   let yawDelta=((desiredYaw-currentYaw+540)%360)-180;const maxTurn=Math.max(1,frameDt*220);
+   patientNpc.setLocalEulerAngles(0,currentYaw+Math.max(-maxTurn,Math.min(maxTurn,yawDelta)),0);
+   const desiredSpeed=Math.min(1.05,Math.max(.25,distance*1.5));
+   patientWalkVelocity+=(desiredSpeed-patientWalkVelocity)*(1-Math.exp(-frameDt*3.8));
+   const step=Math.min(distance,frameDt*patientWalkVelocity),steps=Math.max(1,Math.ceil(step/.04));
+   let x=current.x,z=current.z,moved=false;patientNpc.enabled=false;
+   const avatarPosition=avatar.getLocalPosition();
+   for(let i=1;i<=steps;i++){
+    const nx=current.x+dx/distance*step*i/steps,nz=current.z+dz/distance*step*i/steps;
+    if(Math.hypot(nx-avatarPosition.x,nz-avatarPosition.z)<.60)break;
+    if(canAvatarStand(nx,nz)){x=nx;z=nz;moved=true;continue;}
+    const canX=canAvatarStand(nx,z),canZ=canAvatarStand(x,nz);
+    if(canX){x=nx;moved=true;}if(canZ){z=nz;moved=true;}if(!canX&&!canZ)break;
+   }
+   patientNpc.setLocalPosition(x,0,z);patientNpc.enabled=true;
+   if(!moved){
+    const retry=findWalkPath(x,z,patientTarget.x,patientTarget.z);
+    patientWalkPath=retry?simplifyWalkRoute(retry,x,z):[];const next=patientWalkPath.shift();
+    patientStepTarget=next?new Vec3(next.x,0,next.z):null;
+    if(!patientStepTarget){patientTarget=null;patientWalkVelocity=0;transitionHumanoid(patientRig,false);}
+   }
+  }
+ }
  // Smooth camera follow/pan/zoom instead of snapping the camera on every touch event.
  const cameraAlpha=1-Math.exp(-frameDt*11);
  cameraTarget.x+=(cameraGoal.x-cameraTarget.x)*cameraAlpha;
