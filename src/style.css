@@ -529,3 +529,10 @@ body.store-previewing .mission-card,body.store-previewing .scene-top{opacity:0;p
  .store-preview-copy small{font-size:8px}
  #store-place-selected{max-width:102px;font-size:9px;padding:6px}
 }
+
+.camera-controls{position:absolute;z-index:8;left:max(10px,env(safe-area-inset-left));bottom:calc(145px + env(safe-area-inset-bottom));display:grid;gap:7px;pointer-events:auto}
+.camera-controls button{width:39px;height:39px;border:1px solid #d9f5ff55;border-radius:12px;background:linear-gradient(145deg,#153c5eef,#0b2039ed);color:#effaff;font-size:22px;font-weight:800;line-height:1;box-shadow:0 5px 16px #06132766,inset 0 1px #ffffff20;touch-action:manipulation;user-select:none}
+.camera-controls button:active{transform:scale(.94);background:#1a6680}
+#camera-reset{font-size:20px;color:#80e8e9}
+@media(max-width:380px){.camera-controls{left:7px;bottom:calc(139px + env(safe-area-inset-bottom));gap:5px}.camera-controls button{width:35px;height:35px;border-radius:10px}}
+@media(max-height:560px){.camera-controls{bottom:calc(105px + env(safe-area-inset-bottom))}}
