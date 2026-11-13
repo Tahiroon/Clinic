@@ -228,7 +228,11 @@ try {
       !/Outdoor gait training lane/.test(source) || !/nearGaitLane/.test(source)) {
     throw new Error("The outdoor gait-training lane must stay outside the buildable plot and clear its grass mesh");
   }
-  console.log("✓ One-handed camera controls and outdoor gait-training lane are present");
+  if (!/Garden entrance gate pier/.test(source) || !/Clinic arrival court paving/.test(source) ||
+      !/Property edge coping/.test(source) || !/propertyEdges/.test(source)) {
+    throw new Error("Outdoor arrival must include an open gate, layered property edge and paved entrance court");
+  }
+  console.log("✓ Portrait arrival sequence, open garden gate and layered stone edge are present");
   if (!/const tuftBudget=highDetailDevice\?4200:2400/.test(source) || !/for\(let i=0;i<tuftBudget;i\+\+\)/.test(source) ||
       !/Layered landscape turf island/.test(source)) {
     throw new Error("Outdoor grass density and layered lawn treatment must adapt to device capability");
