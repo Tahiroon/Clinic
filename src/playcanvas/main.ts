@@ -501,6 +501,8 @@ function canAvatarStand(x:number,z:number){
  const radius=.28;
  if(x-radius< -HALF_X||x+radius>HALF_X||z-radius< -HALF_Z||z+radius>HALF_Z)return false;
  const player={x:x-radius,z:z-radius,w:radius*2,d:radius*2};
+ // Patient is a real occupied spot; route to the nearest safe treatment-side approach, never through the body.
+ if(rectanglesOverlap(player,{x:1.42-.28,z:2.35-.28,w:.56,d:.56}))return false;
  // Perimeter hedge and outdoor props are solid; the lawn is not an infinite walkable plane.
  const outdoorBarriers=[
   {x:-3.26,z:-6.9,w:.18,d:13.8},
