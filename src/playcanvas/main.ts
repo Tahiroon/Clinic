@@ -1,6 +1,6 @@
 import * as pc from "playcanvas";
 import "../style.css";
-import { createInitialManagementState, advanceSimulation, hireStaff, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, getRoleLabel, ROOM_BLUEPRINTS, type ManagementState, type StaffRole, type ClinicRoomType } from "../game/management";
+import { createInitialManagementState, advanceSimulation, hireStaff, buildRoom, setSimulationSpeed, formatGameTime, getActivePatientCount, getPatientQueue, getRoleLabel, setClinicOpen, ROOM_BLUEPRINTS, type ManagementState, type StaffRole, type ClinicRoomType } from "../game/management";
 
 type BuildKind = "treatment" | "reception" | "assessment" | "gym" | "staff" | "chair" | "plant" | "cabinet" | "parallel" | "bike" | "treadmill" | "wallbars" | "lamp" | "rug" | "wall" | "door" | "asset";
 type Placed = { id:number; kind:BuildKind; gx:number; gz:number; rot?:0|90; assetKey?:string; width?:number; depth?:number };
@@ -341,16 +341,12 @@ let patientFallbackRig:FallbackRig|null=patientFallback;
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>{patientFallback.entity.destroy();patientFallbackRig=null;});
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=3200, xp=0, nextId=4, focus=false, wallRotation:0|90=0;
-let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v2")||0);return saved===1?0:Math.max(0,Math.min(4,saved));}catch{return 0;}})();
+let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v3")||0);return Math.max(0,Math.min(5,saved));}catch{return 0;}})();
 
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v10";
-const managementSaveKey="therason-clinic-management-v1";
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v11";
+const managementSaveKey="therason-clinic-management-v2";
 const TRIAL_ACCOUNT_COINS=3200; 
-const starterLayout:Placed[]=[
- {id:1,kind:"treatment",gx:-2,gz:-2},
- {id:2,kind:"asset",gx:-1,gz:-1,rot:0,assetKey:"pt-treatment-table"},
- {id:3,kind:"asset",gx:-2,gz:1,rot:0,assetKey:"pt-storage-cabinet"}
-];
+const starterLayout:Placed[]=[];
 const costs:Record<BuildKind,number>={treatment:720,reception:420,assessment:620,gym:980,staff:360,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
  "pt-treatment-table":{file:"physical-therapy-room-set.glb",node:"TreatmentTable",label:"سرير علاج طبيعي",cost:90,footprint:2,targetSize:1.9},
@@ -573,7 +569,7 @@ function loadClinicAsset(p:Placed){
  });
 }
 
-function save(){try{management.balance=coins;management.experience=xp;localStorage.setItem(saveKey,JSON.stringify({v:10,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
+function save(){try{management.balance=coins;management.experience=xp;localStorage.setItem(saveKey,JSON.stringify({v:11,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function validSavedItem(value:any):value is Placed{
  if(!value||typeof value!=="object")return false;
  const kinds:BuildKind[]=["treatment","reception","assessment","gym","staff","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
@@ -586,10 +582,10 @@ function validSavedItem(value:any):value is Placed{
  return bounds.x>=-HALF_X&&bounds.z>=-HALF_Z&&bounds.x+bounds.w<=HALF_X&&bounds.z+bounds.d<=HALF_Z;
 }
 function load(){
- const useStarter=()=>{management=createInitialManagementState();coins=management.balance;xp=0;placed=starterLayout.map(p=>({...p}));nextId=4;for(const p of placed)drawPlaced(p);};
+ const useStarter=()=>{management=createInitialManagementState();coins=management.balance;xp=0;placed=[];nextId=1;};
  try{
   const raw=localStorage.getItem(saveKey);if(!raw){useStarter();return;}
-  const v=JSON.parse(raw);if(v.v!==10||!Array.isArray(v.placed)){useStarter();return;}
+  const v=JSON.parse(raw);if(v.v!==11||!Array.isArray(v.placed)){useStarter();return;}
   try{const savedManagement=JSON.parse(localStorage.getItem(managementSaveKey)||"null");if(savedManagement?.version===1&&Array.isArray(savedManagement.staff)&&Array.isArray(savedManagement.patients)&&Array.isArray(savedManagement.rooms))management=savedManagement;else management=createInitialManagementState();}catch{management=createInitialManagementState();}
   coins=Math.max(0,Number.isFinite(management.balance)?Math.min(10000000,management.balance):TRIAL_ACCOUNT_COINS);management.balance=coins;
   xp=Number.isFinite(management.experience)?Math.max(0,Math.min(1000000000,management.experience)):0;
@@ -841,12 +837,13 @@ function moveAvatarSafely(dx:number,dz:number){
 function updateMode(next:"move"|"build"){mode=next;buildGrid.enabled=mode==="build";placementPreview.enabled=mode==="build";previewValidity=null;if(next==="build"){destination=null;target=null;walkPath=[];setLocomotion(false);tapMarker.enabled=false;}moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"الشبكة ظاهرة الآن: المعاينة الخضراء صالحة، والحمراء غير صالحة. المس لتأكيد المكان.";}
 function renderMission(){
  const card=el<HTMLElement>("#mission-card"),title=el<HTMLElement>("#mission-title"),detail=el<HTMLElement>("#mission-detail"),button=el<HTMLButtonElement>("#start-tour");
- card.classList.toggle("mission-done",missionPhase>=4);
- button.disabled=missionPhase===1||missionPhase>=4;
- if(missionPhase===0){title.textContent="تفقّد غرفة العلاج";detail.textContent="حرّك الأخصائي إلى غرفة العلاج لتتعرف على المكان.";button.textContent="ابدأ الجولة";}
- else if(missionPhase===1){title.textContent="في الطريق إلى غرفة العلاج";detail.textContent="الأخصائي يتحرك الآن. انتظر حتى يصل إلى الغرفة.";button.textContent="جاري الوصول...";}
- else if(missionPhase===2){title.textContent="وصلت إلى غرفة العلاج";detail.textContent="الخطوة التالية: استقبل المريض وابدأ أول جلسة تعليمية.";button.textContent="ابدأ الجلسة";}
- else if(missionPhase===3){title.textContent="طوّر تجهيزات عيادتك";detail.textContent="افتح المتجر واختر جهازاً طبياً لتجهيز مساحة العلاج.";button.textContent="افتح المتجر";}
+ card.classList.toggle("mission-done",missionPhase>=5);
+ button.disabled=missionPhase>=5;
+ if(missionPhase===0){title.textContent="ابنِ الاستقبال";detail.textContent="اسحب على الأرض لرسم غرفة الاستقبال. اختر الحجم المناسب لمساحتك.";button.textContent="ابدأ البناء";}
+ else if(missionPhase===1){title.textContent="كوّن فريقك الأول";detail.textContent="وظّف موظف استقبال حتى يتمكن المرضى من التسجيل عند وصولهم.";button.textContent="فتح الإدارة";}
+ else if(missionPhase===2){title.textContent="أنشئ غرفة التقييم";detail.textContent="ارسم غرفة للتاريخ المرضي والفحص الوظيفي قبل العلاج.";button.textContent="ابنِ غرفة التقييم";}
+ else if(missionPhase===3){title.textContent="أنشئ غرفة العلاج";detail.textContent="جهّز غرفة العلاج الطبيعي لاستقبال الحالات بعد التقييم.";button.textContent="ابنِ غرفة العلاج";}
+ else if(missionPhase===4){title.textContent="افتح أبواب العيادة";detail.textContent="تأكد من اكتمال الغرف والفريق، ثم افتح العيادة لاستقبال أول المرضى.";button.textContent="فتح لوحة الإدارة";}
 }
 function setMissionPhase(next:number){
  missionPhase=next;
@@ -1049,20 +1046,16 @@ function moveAvatarTo(tx:number,tz:number){
  target=new pc.Vec3(first.x,0,first.z);setLocomotion(true);return true;
 }
 el<HTMLButtonElement>("#start-tour").addEventListener("click",()=>{
- if(missionPhase===0){
-  updateMode("move");
-  const started=moveAvatarTo(1.25,.2);
-  if(!started){status.textContent="لم أجد ممراً واضحاً إلى غرفة العلاج. جرّب نقطة أخرى أو أعد المحاولة.";return;}
-  setMissionPhase(1);
-  status.textContent="الأخصائي في طريقه إلى غرفة العلاج.";
- }else if(missionPhase===2){
-  sessionBtn.click();
- }else if(missionPhase===3){
-  storeBtn.click();
-  setMissionPhase(4);
+ if(missionPhase===0||missionPhase===2||missionPhase===3){
+  managementPanel.hidden=true;buildPanel.hidden=false;updateMode("build");
+  selectBuild(missionPhase===0?"reception":missionPhase===2?"assessment":"treatment");
+  status.textContent="اسحب بإصبعك على الأرض لرسم مساحة الغرفة، ثم ارفع إصبعك لتأكيد البناء.";
+ }else if(missionPhase===1||missionPhase===4){
+  managementPanel.hidden=false;buildPanel.hidden=true;updateMode("move");renderManagement();
+  status.textContent=missionPhase===1?"وظّف موظف استقبال من لوحة الإدارة.":"تحقق من المتطلبات واضغط فتح العيادة.";
  }
 });
-el<HTMLButtonElement>("#skip-tour").addEventListener("click",()=>setMissionPhase(4));
+el<HTMLButtonElement>("#skip-tour").addEventListener("click",()=>setMissionPhase(5));
 renderMission();
 app.on("update",(dt:number)=>{
  if(document.hidden)return;
