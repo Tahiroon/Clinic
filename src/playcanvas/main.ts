@@ -897,6 +897,7 @@ function setMissionPhase(next:number){
 
 function patientGoalFor(room:{x:number;z:number;width:number;depth:number},stage:string){
  const centerX=room.x+room.width/2,centerZ=room.z+room.depth/2;
+ if(stage==="departing")return new pc.Vec3(0,0,-4.55);
  if(stage==="reception")return new pc.Vec3(centerX-.12,0,centerZ+.22);
  if(stage==="waiting")return new pc.Vec3(centerX+1.0,0,centerZ-.35);
  return new pc.Vec3(centerX+Math.min(.95,room.width*.24),0,centerZ+.2);
@@ -926,7 +927,7 @@ function renderManagement(){
   receptionistNpc.setLocalPosition(receptionistRoom.x+receptionistRoom.width/2-.12,0,receptionistRoom.z+receptionistRoom.depth/2+1.62);
   receptionistNpc.setLocalEulerAngles(0,180,0);transitionHumanoid(receptionistRig,false);
  }
- const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"بانتظار التسجيل",waiting:"ينتظر الأخصائي",assessment:"جلسة التقييم",treatment:"جلسة العلاج"};
+ const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"بانتظار التسجيل",waiting:"ينتظر الأخصائي",assessment:"جلسة التقييم",treatment:"جلسة العلاج",departing:"يغادر العيادة"};
  const queue=getPatientQueue(management),visiblePatient=queue[0],receptionRoom=management.rooms.find(r=>r.type==="reception");
  for(let i=0;i<waitingPatientVisuals.length;i++){
   const visual=waitingPatientVisuals[i],queued=queue[i+1],show=!!queued&&!!receptionRoom&&(queued.stage==="reception"||queued.stage==="waiting");
