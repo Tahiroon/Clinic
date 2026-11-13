@@ -165,7 +165,7 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
   if(err||!asset?.resource){console.error("Character asset failed",url,err);status.textContent="تم تشغيل شخصية بديلة خفيفة؛ تعذر تحميل النموذج الخارجي.";return;}
   const model=asset.resource.instantiateRenderEntity({castShadows:castShadow,receiveShadows:false});
   model.name="Animated humanoid";parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
-  const meshes=model.findComponents("render").flatMap(r=>r.meshInstances);
+  const meshes=model.findComponents("render").flatMap((r:any)=>r.meshInstances);
   if(!meshes.length){console.error("Character GLB has no render meshes",url);model.destroy();return;}
   let minY=Infinity,maxY=-Infinity;
   for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minY=Math.min(minY,c.y-h.y);maxY=Math.max(maxY,c.y+h.y);}
@@ -274,7 +274,7 @@ function loadReceptionDesk(parent:pc.Entity){
   parent.addChild(model);model.syncHierarchy();app.root.syncHierarchy();
   const meshes=model.findComponents("render").flatMap(r=>r.meshInstances);
   if(!meshes.length){model.destroy();throw new Error("Reception desk asset has no render meshes");}
-  let minX=Infinity,maxX=-Infinity,minY=Infinity,minZ=Infinity,maxZ=-Infinity;
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
   for(const mesh of meshes){const b=mesh.aabb,c=b.center,h=b.halfExtents;minX=Math.min(minX,c.x-h.x);maxX=Math.max(maxX,c.x+h.x);minY=Math.min(minY,c.y-h.y);minZ=Math.min(minZ,c.z-h.z);maxZ=Math.max(maxZ,c.z+h.z);}
   const width=maxX-minX,depth=maxZ-minZ,height=maxY-minY;
   if(!Number.isFinite(width)||width<.05||depth<.05||height<.05){model.destroy();throw new Error("Reception desk asset has invalid dimensions");}
