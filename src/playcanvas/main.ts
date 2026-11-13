@@ -116,7 +116,7 @@ const outdoorLampPositions:[number,number][]=[[-8.25,-13.5],[8.25,-13.5],[-8.25,
 for(const [x,z] of outdoorBenchPositions){
  box("Garden bench seat",x,.38,z,1.55,.16,.52,M.wood2,world);
  box("Garden bench back",x,.78,z+.2,1.55,.62,.12,M.wood,world);
- for(const dx of [-.58,.58])box("Garden bench support",x+dx,.19,z,.09,.38,.42,arrivalMetal,world);
+ for(const dx of [-.58,.58])box("Garden bench support",x+dx,.19,z,.09,.38,.42,M.dark,world);
 }
 for(const [x,z] of outdoorFlowerPositions){
  box("Outdoor flower bed",x,.16,z,1.15,.3,.72,M.wood2,world);
@@ -126,9 +126,9 @@ for(const [x,z] of outdoorFlowerPositions){
  }
 }
 for(const [x,z] of outdoorLampPositions){
- cylinder("Garden lamp base",x,.12,z,.22,.24,.22,arrivalMetal,world);
- cylinder("Garden lamp post",x,.92,z,.07,1.6,.07,arrivalMetal,world);
- sphere("Garden lamp globe",x,1.82,z,.2,warmGlass,world);
+ cylinder("Garden lamp base",x,.12,z,.22,.24,.22,M.dark,world);
+ cylinder("Garden lamp post",x,.92,z,.07,1.6,.07,M.dark,world);
+ sphere("Garden lamp globe",x,1.82,z,.2,M.yellow,world);
 }
 const lawnGrassMaterial=material(new Color(1,1,1));
 lawnGrassMaterial.diffuseVertexColor=true;lawnGrassMaterial.cull=CULLFACE_NONE;lawnGrassMaterial.update();
