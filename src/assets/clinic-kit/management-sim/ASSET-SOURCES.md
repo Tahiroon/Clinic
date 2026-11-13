@@ -15,7 +15,6 @@ Imported individual assets:
 - Bedside Cabinet — https://cdn.3dassets.dev/assets/23593/v1/model.glb
 - Partition Wall (2 m) — https://cdn.3dassets.dev/assets/23654/v1/model.glb
 - Partition Wall (1 m) — https://cdn.3dassets.dev/assets/23656/v1/model.glb
-- Glazed Partition — https://cdn.3dassets.dev/assets/23658/v1/model.glb
 - Door Leaf — https://cdn.3dassets.dev/assets/23659/v1/model.glb
 - Corridor Floor Tile — https://cdn.3dassets.dev/assets/23660/v1/model.glb
 
