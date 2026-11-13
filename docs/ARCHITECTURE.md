@@ -19,11 +19,15 @@ The first playable release is a management simulation, not a single-avatar walki
 ## Logical layers
 - **App/UI:** portrait navigation, HUD, menus, accessibility and feedback. Prefer lightweight DOM/CSS for interface elements when appropriate; keep 3D interaction in the canvas.
 - **Simulation runtime:** PlayCanvas lifecycle, scene, camera modes, touch, avatar animation/navigation, environment rendering and asset loading.
-- **Clinic domain:** starter plot, parcels, rooms, layout, grid, footprints, placement constraints, object catalog and expansion.
-- **Game domain:** clock, speed controls, patient journey/queues, staff scheduling and tasks, energy/morale, appointments, finances, reputation, campaign objectives and events.
+- **Clinic domain:** starter plot, parcels, variable-size room blueprints, drag-to-draw construction, layout, grid, footprints, placement constraints, required room equipment and expansion.
+- **Game domain:** deterministic clock and speed controls, patient journey/queues, staff hiring/assignment/tasks, energy/morale, appointments, payroll, finances, reputation, campaign objectives and events.
 - **Clinical domain:** versioned cases, actions, findings, reasoning, safety rules, rubrics and feedback. No dependency on PlayCanvas.
 - **Persistence:** versioned local saves first; remote sync later behind a queue/retry/conflict interface.
 - **THERASON bridge (future):** narrow identity and approved progress-summary adapter. No second game password.
+
+## Simulation contracts
+
+The management domain is engine-independent. Its versioned state contains the clinic clock, pause/speed, wallet, reputation, staff roster, patient records, room definitions, event feed and progression counters. Simulation advances in bounded game-minute steps. Character rendering consumes state; it does not own or mutate management rules. Room construction accepts grid-aligned rectangle dimensions and validates plot bounds, overlap and area-based costs before committing. Save data is local-first and versioned.
 
 ## Proposed code organization
 - `src/app` — entry and screen composition
