@@ -160,6 +160,18 @@ box("THERASON entrance sign",0,2.55,-4.13,2.0,.46,.12,trim,world);
 box("Entrance sign inset",0,2.56,-4.205,1.7,.27,.035,M.white,world);
 box("Entrance canopy",0,2.15,-4.28,2.3,.16,.78,roofAccent,world);
 const roomRoot=new pc.Entity("Starter clinic rooms");world.addChild(roomRoot);
+// Build-mode grid: a light, temporary construction overlay like modern tycoon/building games.
+const buildGrid=new pc.Entity("Construction grid overlay");world.addChild(buildGrid);
+const gridMaterial=material(new pc.Color(.20,.57,.65));
+for(let i=0;i<=4;i++){
+ const x=-2+i;
+ box("Build grid vertical",x,.087,0,.012,.012,8,gridMaterial,buildGrid);
+}
+for(let i=0;i<=8;i++){
+ const z=-4+i;
+ box("Build grid horizontal",0,.087,z,4,.012,.012,gridMaterial,buildGrid);
+}
+buildGrid.enabled=false;
 function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:number){
  const root=new pc.Entity("Room "+id);
  world.addChild(root);root.setLocalPosition(gx+1,0,gz+1);
@@ -570,18 +582,35 @@ function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}co
  if(p.kind==="door"){box("Door left jamb",-.43,1.25,0,.12,2.5,.18,M.white,root);box("Door right jamb",.43,1.25,0,.12,2.5,.18,M.white,root);box("Door lintel",0,2.48,0,1,.16,.18,M.white,root);box("Door leaf",-.22,1.08,.09,.42,2.12,.055,M.wood2,root);}
 }
 function footprint(kind:BuildKind,assetKey?:string){if(kind==="asset")return storeAssetSpecs[assetKey??""]?.footprint??1;return kind==="treatment"||kind==="reception"||kind==="gym"?4:1;}
+function isRoomKind(kind:BuildKind){return kind==="treatment"||kind==="reception"||kind==="gym";}
 function footprintAt(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string){
  const size=footprint(kind,assetKey);
- if(kind==="wall")return rot===0?{x:gx+.42,z:gz,w:.16,d:3}:{x:gx,z:gz+1.42,w:3,d:.16};
- if(kind==="door")return rot===0?{x:gx+.08,z:gz,w:.84,d:.22}:{x:gx,z:gz+.08,w:.22,d:.84};
- return {x:gx,z:gz,w:size,d:size};
+ // Reserve a full snapped cell block, but leave a small physical clearance around props.
+ if(kind==="wall")return rot===0?{x:gx,z:gz+.2,w:1,d:2.6}:{x:gx+.2,z:gz,w:2.6,d:1};
+ if(kind==="door")return rot===0?{x:gx,z:gz+.41,w:1,d:.18}:{x:gx+.41,z:gz,w:.18,d:1};
+ if(isRoomKind(kind))return {x:gx,z:gz,w:size,d:size};
+ const clearance=.10;
+ const actual=size*(1-clearance*2);
+ return {x:gx+(size-actual)/2,z:gz+(size-actual)/2,w:actual,d:actual};
 }
 function rectanglesOverlap(a:{x:number;z:number;w:number;d:number},b:{x:number;z:number;w:number;d:number}){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.z<b.z+b.d&&a.z+a.d>b.z;}
- function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string){
+function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string){
  const a=footprintAt(gx,gz,kind,rot,assetKey);
  if(a.x< -HALF_X||a.z< -HALF_Z||a.x+a.w>HALF_X||a.z+a.d>HALF_Z)return true;
-  const isRoom=(k:BuildKind)=>k==="treatment"||k==="reception"||k==="gym";
- return placed.some(p=>{const existingRoom=isRoom(p.kind),candidateRoom=isRoom(kind);if(existingRoom&&!candidateRoom)return false;return rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey));});
+ const candidateRoom=isRoomKind(kind);
+ if(candidateRoom){
+  // A new room may not cover an existing room, wall, doorway or furnishing.
+  return placed.some(p=>rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey)));
+ }
+ // Every furnishing and partition must belong to a room's usable interior.
+ const insideRoom=placed.some(p=>{
+  if(!isRoomKind(p.kind))return false;
+  const left=p.gx+.08,right=p.gx+3.92,front=p.gz+.08,back=p.gz+3.92;
+  return a.x>=left&&a.z>=front&&a.x+a.w<=right&&a.z+a.d<=back;
+ });
+ if(!insideRoom)return true;
+ // Furniture may share a room's floor, but never another prop's physical footprint.
+ return placed.some(p=>!isRoomKind(p.kind)&&rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey)));
 }
 function canAvatarStand(x:number,z:number){
  const radius=.28;
@@ -728,7 +757,7 @@ function moveAvatarSafely(dx:number,dz:number){
  avatar.setLocalPosition(x,0,z);
  return Math.hypot(x-p.x,z-p.z)>.001;
 }
-function updateMode(next:"move"|"build"){mode=next;if(next==="build"){destination=null;target=null;walkPath=[];setLocomotion(false);tapMarker.enabled=false;}moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"اختر غرفة أو قطعة ثم المس خلية فارغة في الشبكة.";}
+function updateMode(next:"move"|"build"){mode=next;buildGrid.enabled=mode==="build";if(next==="build"){destination=null;target=null;walkPath=[];setLocomotion(false);tapMarker.enabled=false;}moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"الشبكة ظاهرة الآن: اختر غرفة أو قطعة، ثم ضعها داخل غرفة وبعيداً عن الأثاث.";}
 function screenToGround(clientX:number,clientY:number){
  const rect=canvas.getBoundingClientRect();
  const px=(clientX-rect.left)*(canvas.width/rect.width),py=(clientY-rect.top)*(canvas.height/rect.height);
