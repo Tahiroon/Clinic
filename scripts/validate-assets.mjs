@@ -175,6 +175,7 @@ try {
   }
   if (!/SHADOW_PCSS_32F/.test(source) || !/shadowResolution=2048/.test(source) ||
       !/shadowSamples=12/.test(source) || !/shadowBlockerSamples=6/.test(source) ||
+      !/intensity:1\.16/.test(source) || !/ambientLight=new Color\(\.62,\.66,\.69\)/.test(source) ||
       !/addContactShadow/.test(source) || !/avatarContactShadow/.test(source) ||
       !/Clinical equipment contact shadow/.test(source) || !/Placed furnishing contact shadow/.test(source) ||
       !/castShadows=highDetailDevice/.test(source) || !/receiveShadows=highDetailDevice/.test(source) ||
