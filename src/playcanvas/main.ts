@@ -59,9 +59,9 @@ const pathEdge=material(new pc.Color(.52,.62,.52));
 const glass=material(new pc.Color(.35,.72,.79));
 box("Owned clinic lawn",0,-.22,0,W,.42,D,floorBase,world);
 // A simple, readable approach path leads from the property edge to the standardized starter reception.
-box("Front garden path",-2.7,.005,-4.4,1.8,.035,6.8,pathMat,world);
-box("Path left edging",-3.68,.025,-4.4,.09,.06,6.8,pathEdge,world);
-box("Path right edging",-1.72,.025,-4.4,.09,.06,6.8,pathEdge,world);
+box("Front garden path",-2.0,.005,-4.4,1.8,.035,6.8,pathMat,world);
+box("Path left edging",-2.98,.025,-4.4,.09,.06,6.8,pathEdge,world);
+box("Path right edging",-1.02,.025,-4.4,.09,.06,6.8,pathEdge,world);
 // Low landscaping frames the property without hiding the clinic or consuming many draw calls.
 for(const [x,z] of [[-6,-5],[5,-5],[6,3],[-6,4]] as [number,number][]){
  const trunk=box("Garden tree trunk",x,.55,z,.22,1.1,.22,M.wood,world);
@@ -71,8 +71,8 @@ for(const [x,z] of [[-5,-2],[4,-3],[5,1],[-6,1]] as [number,number][]){
  box("Garden planter",x,.18,z,.8,.36,.8,M.wood2,world);
  sphere("Garden shrub",x,.72,z,.55,M.green,world);
 }
-box("THERASON clinic sign",-2.7,2.65,-1.05,2.2,.34,.12,M.teal,world);
-box("Clinic sign face",-2.7,2.67,-1.13,1.8,.22,.035,M.white,world);
+box("THERASON clinic sign",-2.0,2.65,-1.05,2.2,.34,.12,M.teal,world);
+box("Clinic sign face",-2.0,2.67,-1.13,1.8,.22,.035,M.white,world);
 const roomRoot=new pc.Entity("Open clinic interior");world.addChild(roomRoot);
 function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:number){
  const root=new pc.Entity("Room "+id);root.setPosition(gx+1,0,gz+1);world.addChild(root);
@@ -89,8 +89,8 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
   for(const x of [1.12,2.78])for(const z of [1.12,1.78])box("Bed leg",x,.08,z,.08,.35,.08,M.dark,root);
   box("Therapy cabinet",.25,.55,2.4,.55,1.1,.55,M.wood2,root);box("Wall chart",2.3,1.65,2.91,.75,.65,.04,M.pale,root);
  }else if(kind==="reception"){
-  box("Reception desk",1.1,.48,.25,2.2,.85,.65,M.wood,root);box("Desk top",1.1,.94,.25,2.3,.1,.72,M.wood2,root);box("Desk panel",1.1,.45,-.09,1.6,.6,.03,M.teal,root);
-  for(const x of [.25,2.65]){box("Waiting chair",x,.38,1.8,.65,.18,.62,M.teal,root);box("Chair back",x,.75,2.02,.65,.6,.13,M.blue,root);}
+  box("Reception desk",.2,.48,2.35,1.8,.85,.65,M.wood,root);box("Desk top",.2,.94,2.35,1.9,.1,.72,M.wood2,root);box("Desk panel",.2,.45,2.01,1.4,.6,.03,M.teal,root);
+  for(const z of [1.2,2.15]){box("Waiting chair",.5,.38,z,.65,.18,.62,M.teal,root);box("Chair back",.5,.75,z+.22,.65,.6,.13,M.blue,root);}
  }else{
   box("Exercise mat",1.1,.07,1.1,2.7,.08,1.25,M.blue,root);box("Parallel bar",.2,.6,2.45,.1,1.1,.1,M.wood2,root);box("Parallel bar",2,.6,2.45,.1,1.1,.1,M.wood2,root);box("Bar rail",1.1,1.08,2.45,1.9,.08,.08,M.yellow,root);
  }
@@ -117,7 +117,7 @@ function loadClinicModel(url:string,name:string,centerX:number,centerZ:number,ta
  });
 }
 // The starter clinic is intentionally an open, empty architectural shell; students design their own rooms.
-const avatar=new pc.Entity("Student avatar");avatar.setPosition(-2.7,0,.55);world.addChild(avatar);
+const avatar=new pc.Entity("Student avatar");avatar.setPosition(-2.0,0,.55);world.addChild(avatar);
 let avatarAnim:any=null;let avatarClipNames:string[]=[];let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
  student:new URL("../assets/characters/Student.glb",import.meta.url).href,
