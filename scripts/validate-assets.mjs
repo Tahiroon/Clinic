@@ -130,7 +130,7 @@ try {
   }
   console.log("✓ Starter entrance-to-patient navigation is connected");
   const management = await readFile(resolve(root, "src/game/management.ts"), "utf8");
-  for (const required of ["export function advanceSimulation", "export function hireReceptionist", "export function beginPatientSession", "export function completePatientSession", "export function buildRoom", "export function setSimulationSpeed", "export const ROOM_BLUEPRINTS"]) {
+  for (const required of ["export function advanceSimulation", "export function hireReceptionist", "export function registerPatient", "export function beginPatientSession", "export function completePatientSession", "export function buildRoom", "export function setSimulationSpeed", "export const ROOM_BLUEPRINTS"]) {
     if (!management.includes(required)) throw new Error("Management simulation is missing " + required);
   }
   if (/hireStaff|StaffRole|rehab_assistant|payroll|morale|staffRoom/i.test(management)) throw new Error("The initial game must not contain a staff-management system");
@@ -139,7 +139,7 @@ try {
   }
   console.log("✓ Player physiotherapist, patient flow, optional receptionist upgrade, economy and simulation controls are wired");
   console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
-  for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.physiotherapist,avatar", "loadHumanoid(characterAssets.patient,root", "loadHumanoid(characterAssets.receptionist,receptionistNpc", "receptionistNpc.enabled=management.receptionistOwned", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
+  for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.physiotherapist,avatar", "loadHumanoid(characterAssets.patient,root", "loadHumanoid(characterAssets.receptionist,receptionistNpc", "receptionistNpc.enabled=management.receptionistOwned", "registerPatient(management,Number(button.dataset.registerPatient))", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
   }
   console.log("✓ Player physiotherapist and waiting patients have visible character instances");
