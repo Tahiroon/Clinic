@@ -300,6 +300,9 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
 }
 
  function loadHumanoid(url:string,parent:pc.Entity,height:number,castShadow:boolean,onReady?:(rig:HumanoidRig)=>void){
+ // SAFE BOOT: imported character GLBs are isolated until mobile runtime is stable.
+ console.warn("Imported humanoid GLB temporarily disabled during startup isolation",url);
+ return;
  app.assets.loadFromUrl(url,"container",(err,asset)=>{
   if(err||!asset?.resource){console.error("Character asset failed",url,err);status.textContent="تم تشغيل شخصية بديلة خفيفة؛ تعذر تحميل النموذج الخارجي.";return;}
   const model=asset.resource.instantiateRenderEntity({castShadows:castShadow,receiveShadows:false});
@@ -449,6 +452,12 @@ function renderBounds(root:pc.Entity){
  return {minX,maxX,minY,maxY,minZ,maxZ,width:maxX-minX,height:maxY-minY,depth:maxZ-minZ};
 }
 function loadWaitingSeats(parent:pc.Entity){
+ // Procedural fallback: avoid imported scene graphs during startup isolation.
+ for(const z of [.55,1.45]){
+  box("Waiting seat fallback",.35,.38,z,.65,.18,.62,M.teal,parent);
+  box("Waiting seat back fallback",.35,.75,z+.22,.65,.6,.13,M.blue,parent);
+ }
+ return;
  const url=clinicAssetUrls["hospital-waiting-room.glb"];
  getClinicContainer(url).then(asset=>{
   const source=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:true});
@@ -478,6 +487,11 @@ function loadWaitingSeats(parent:pc.Entity){
  });
 }
 function loadReceptionDesk(parent:pc.Entity){
+ // Procedural fallback during imported-scene isolation.
+ box("Reception fallback desk",.2,.48,2.35,1.8,.85,.65,M.wood,parent);
+ box("Reception fallback desk top",.2,.94,2.35,1.9,.1,.72,M.wood2,parent);
+ box("Reception fallback monitor",.2,1.18,2.25,.42,.34,.05,M.dark,parent);
+ return;
  const url=clinicAssetUrls["hospital-reception-desk.glb"];
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
@@ -514,6 +528,8 @@ function loadReceptionDesk(parent:pc.Entity){
  });
 }
 function loadTreatmentRoomDecor(parent:pc.Entity){
+ // Disabled during safe boot; the procedural treatment room remains active.
+ return;
  const url=clinicAssetUrls["hospital-patient-room.glb"];
  getClinicContainer(url).then(asset=>{
   const model=asset.resource.instantiateRenderEntity({castShadows:true,receiveShadows:true});
@@ -542,6 +558,9 @@ function loadTreatmentRoomDecor(parent:pc.Entity){
 function loadClinicAsset(p:Placed){
  const spec=p.assetKey?storeAssetSpecs[p.assetKey]:undefined;
  if(!spec)return;
+ // Lightweight procedural replacement while imported GLBs are tested individually.
+ drawAssetFallback(p,spec);
+ return;
  const url=clinicAssetUrls[spec.file];
  getClinicContainer(url).then(asset=>{
   const container=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:false});
