@@ -15,7 +15,7 @@ Build and expand a rehabilitation clinic, manage its small economy and patient f
 
 ## Starter clinic
 
-Every learner begins with the same compact, polished clinic and initial property footprint: reception/waiting area, one treatment room, clear circulation, a modest outdoor green area and visible room/land expansion opportunities. Personalization begins with equipment, furniture and decor; larger spaces unlock progressively.
+Every learner begins on a generous 14 m × 28 m green property with one treatment room and essential equipment. The surrounding land stays open for player-built expansion: additional treatment rooms, reception, waiting and exercise facilities are added gradually. Outdoor grass surrounds the building; the whole property is never paved or tiled.
 
 ## Technical direction
 
