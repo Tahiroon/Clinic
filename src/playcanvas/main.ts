@@ -85,11 +85,11 @@ const trim=material(new pc.Color(.10,.39,.47));
 const roofAccent=material(new pc.Color(.16,.28,.38));
 // A narrow, deep property is intentionally composed for a portrait isometric camera.
 box("Owned landscaped property",0,-.22,0,W,.42,D,floorBase,world);
-box("Entrance walk",0,.005,-5.95,1.65,.045,2.65,pathMat,world);
+box("Entrance walk",0,.005,-5.75,1.65,.045,2.2,pathMat,world);
 for(let i=0;i<6;i++)box("Entrance stepping stone",0,.055,-6.78+i*.37,1.30,.035,.27,pathEdge,world);
 box("Entrance apron",0,.045,-4.12,2.8,.08,.65,pathMat,world);
 // Low perimeter edging defines this starter plot while leaving the land visibly expandable.
-for(const [x,z,sx,sz] of [[0,-6.86,6.3,.18],[0,6.86,6.3,.18],[-3.17,0,.18,13.7],[3.17,0,.18,13.7]] as [number,number,number,number][]){
+for(const [x,z,sx,sz] of [[-2.05,-6.86,2.2,.18],[2.05,-6.86,2.2,.18],[0,6.86,6.3,.18],[-3.17,0,.18,13.7],[3.17,0,.18,13.7]] as [number,number,number,number][]){
  box("Property boundary edging",x,.17,z,sx,.34,sz,trim,world);
 }
 // Trees and planting remain outdoors; their crowns use layered low-poly cones rather than primitive balls.
@@ -505,7 +505,8 @@ function canAvatarStand(x:number,z:number){
  const outdoorBarriers=[
   {x:-3.26,z:-6.9,w:.18,d:13.8},
   {x:3.08,z:-6.9,w:.18,d:13.8},
-  {x:-3.15,z:-6.95,w:6.3,d:.18},
+  {x:-3.15,z:-6.95,w:2.2,d:.18},
+  {x:.95,z:-6.95,w:2.2,d:.18},
   {x:-3.15,z:6.77,w:6.3,d:.18}
  ];
  if(outdoorBarriers.some(w=>rectanglesOverlap(player,w)))return false;
