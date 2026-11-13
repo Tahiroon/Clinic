@@ -75,7 +75,7 @@ box("THERASON clinic sign",-2.7,2.65,-1.05,2.2,.34,.12,M.teal,world);
 box("Clinic sign face",-2.7,2.67,-1.13,1.8,.22,.035,M.white,world);
 const roomRoot=new pc.Entity("Open clinic interior");world.addChild(roomRoot);
 function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:number){
- const root=new pc.Entity("Room "+id);root.setPosition(gx,0,gz);world.addChild(root);
+ const root=new pc.Entity("Room "+id);root.setPosition(gx+1,0,gz+1);world.addChild(root);
  const floor=kind==="gym"?material(new pc.Color(.45,.57,.59)):M.room;
  box("Room floor",1,.035,1,3.95,.07,3.95,floor,root);
  // Two full rear/side walls and a low front edge create readable open-top dollhouse view.
@@ -276,7 +276,7 @@ function canAvatarStand(x:number,z:number){
  return !placed.some(p=>{
   if(p.kind==="treatment"||p.kind==="reception"||p.kind==="gym"){
    const x=p.gx,z=p.gz;
-   const walls=[{x:x,z:z+2.9,w:4,d:.16},...(p.id===2?[]:[{x:x,z:z,w:.16,d:4}]),...(p.id===1?[{x:x+3.9,z:z,w:.16,d:1.3},{x:x+3.9,z:z+2.7,w:.16,d:1.3}]:[{x:x+3.9,z:z,w:.16,d:4}]),{x:x+.0,z:z-.05,w:.55,d:.14},{x:x+2.05,z:z-.05,w:1.95,d:.14}];
+   const walls=[{x:x,z:z+2.9,w:4,d:.16},...(p.id===2?[]:[{x:x,z:z,w:.16,d:4}]),...(p.id===1?[{x:x+3.9,z:z,w:.16,d:1.3},{x:x+3.9,z:z+2.7,w:.16,d:1.3}]:[{x:x+3.9,z:z,w:.16,d:4}]),{x:x+1,z:z-.05,w:.3,d:.14},{x:x+2.7,z:z-.05,w:1.3,d:.14}];
    return walls.some(w=>rectanglesOverlap(player,w));
   }
   return rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey));
