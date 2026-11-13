@@ -430,3 +430,68 @@ button{font:inherit;touch-action:manipulation}
  .catalog{gap:5px}
  .catalog-item{min-height:72px}
 }
+
+
+/* Mobile management-sim presentation: clear shop hierarchy, solid-room architecture and readable controls. */
+.store-panel{
+ position:absolute;z-index:24;left:7px;right:7px;bottom:calc(82px + env(safe-area-inset-bottom,0px));
+ max-height:min(58dvh,540px);overflow:auto;overscroll-behavior:contain;
+ padding:12px 11px 10px;border:1px solid #47718a;border-radius:17px 17px 13px 13px;
+ background:linear-gradient(160deg,#102c43f8,#091b30fa);box-shadow:0 -15px 42px #020b18a8;
+ scrollbar-width:thin;
+}
+.store-panel[hidden]{display:none!important}
+.store-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.store-heading h2{margin:2px 0;color:#f5fbff;font-size:17px;letter-spacing:-.2px}
+.store-heading p{margin:3px 0 0;color:#a9c3d8;font-size:10px}
+.store-balance{display:flex;align-items:center;gap:5px;padding:6px 7px;border:1px solid #826b39;border-radius:11px;background:#332b1b;color:#ffdc87;font-size:12px;white-space:nowrap}
+.store-balance button{width:25px;height:25px;margin-inline-start:3px;border:0;border-radius:7px;background:#ffffff16;color:#fff;font-size:19px;line-height:1}
+.store-categories{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:11px 0 8px}
+.store-category{min-width:0;min-height:34px;padding:5px 3px;border:1px solid #294e69;border-radius:9px;background:#0b2036;color:#aac2d5;font-size:10px;font-weight:750}
+.store-category.active{border-color:#3ac8d2;background:linear-gradient(145deg,#14677c,#12445f);color:#fff;box-shadow:inset 0 0 0 1px #49d5dc35}
+.store-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.store-item{display:flex;align-items:center;gap:8px;min-width:0;min-height:73px;padding:7px;border:1px solid #284b67;border-radius:11px;background:linear-gradient(145deg,#142f49,#0d233a);color:#f3f8fc;text-align:right;transition:border-color .15s,background .15s,transform .15s}
+.store-item:active{transform:scale(.985)}
+.store-item.selected{border-color:#55d7dc;background:linear-gradient(145deg,#18506a,#12384e)}
+.store-item-art{position:relative;display:block;flex:none;width:52px;height:48px;border-radius:9px;background:radial-gradient(circle at 50% 38%,#3d6e82,#17364c 72%);overflow:hidden}
+.store-item-art:before,.store-item-art:after{content:"";position:absolute;display:block}
+.art-bed:before,.art-exam:before{left:8px;right:8px;top:19px;height:10px;border-radius:4px;background:#d7e2e3;border:2px solid #8baab3;box-shadow:0 11px 0 -4px #6b8793}
+.art-bed:after,.art-exam:after{left:12px;top:12px;width:13px;height:7px;border-radius:3px;background:#f5f7ed}
+.art-bars:before{left:9px;right:9px;top:13px;height:3px;background:#d2bd8a;box-shadow:0 18px #d2bd8a}
+.art-bars:after{left:12px;top:12px;width:3px;height:25px;background:#c5d3d1;box-shadow:24px 0 #c5d3d1}
+.art-rack:before{left:12px;top:8px;width:28px;height:33px;border:3px solid #b4c9c7;border-bottom:0}
+.art-rack:after{left:16px;top:17px;width:20px;height:3px;background:#f0c66e;box-shadow:0 8px #59c6c4,0 16px #e4a5a2}
+.art-ball:before{width:28px;height:28px;left:12px;top:10px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8be2d9,#168f9c 65%,#0b5066)}
+.art-mat:before{left:10px;top:12px;width:32px;height:23px;border-radius:5px;background:#3a9db5;transform:skewY(-12deg);box-shadow:0 4px #173f59}
+.art-weights:before{left:9px;top:21px;width:34px;height:5px;background:#d1d9d7}
+.art-weights:after{left:7px;top:15px;width:7px;height:17px;border-radius:3px;background:#b6c6c8;box-shadow:31px 0 #b6c6c8}
+.art-chart:before{left:13px;top:6px;width:27px;height:36px;border:3px solid #dce7e5;background:repeating-linear-gradient(0deg,#d9e7e6 0 2px,#47758a 2px 5px)}
+.art-screen:before{left:8px;top:8px;width:36px;height:29px;background:#c9d6d5;border:2px solid #9db9bf}
+.art-screen:after{left:9px;top:38px;width:34px;height:3px;background:#d7bd86}
+.art-chair:before{left:16px;top:10px;width:20px;height:15px;border-radius:4px;background:#59b9bd;box-shadow:0 17px 0 -3px #438b9c}
+.art-chair:after{left:17px;top:24px;width:4px;height:16px;background:#c2d2d2;box-shadow:15px 0 #c2d2d2}
+.art-wheelchair:before{left:12px;top:12px;width:24px;height:19px;border:3px solid #b8d1d1;border-bottom:0;border-radius:7px 7px 0 0}
+.art-wheelchair:after{left:9px;top:25px;width:31px;height:17px;border:3px solid #63c4c6;border-radius:50%}
+.art-crutch:before{left:15px;top:7px;width:3px;height:34px;background:#d4c59e;transform:rotate(12deg);box-shadow:14px 0 #d4c59e}
+.art-crutch:after{left:10px;top:12px;width:14px;height:3px;background:#d4c59e;box-shadow:14px 0 #d4c59e}
+.art-walker:before{left:9px;top:10px;width:34px;height:29px;border:3px solid #b7cece;border-top:0}
+.art-walker:after{left:12px;top:8px;width:28px;height:3px;background:#b7cece}
+.art-cabinet:before{left:14px;top:7px;width:25px;height:35px;border-radius:3px;background:linear-gradient(90deg,#b18a5d,#d2ad7d);border:2px solid #e3c89b}
+.art-cabinet:after{left:32px;top:23px;width:3px;height:3px;border-radius:50%;background:#4e3b2c}
+.art-desk:before{left:7px;top:24px;width:38px;height:7px;background:#bd986b;border-radius:2px;box-shadow:0 11px 0 -2px #806247}
+.art-desk:after{left:19px;top:9px;width:16px;height:13px;border:2px solid #b8d3d3;background:#16364c}
+.art-sink:before{left:9px;top:21px;width:35px;height:13px;border:3px solid #c4d9dc;border-radius:4px;background:#4b7788}
+.art-sink:after{left:26px;top:10px;width:3px;height:13px;background:#dbe9e6}
+.store-item-copy{display:grid;gap:3px;min-width:0;flex:1}
+.store-item-copy b{font-size:11px;line-height:1.35;color:#f5f9fc}
+.store-item-copy small{font-size:9px;line-height:1.35;color:#9fb8ca}
+.store-item-copy strong{font-size:11px;color:#ffda84;font-variant-numeric:tabular-nums}
+.store-footnote{margin-top:9px;padding:8px 9px;border-radius:9px;background:#071a2c;color:#9ebbd0;font-size:10px;line-height:1.5}
+@media(max-width:360px){
+ .store-panel{left:4px;right:4px;padding:9px 8px}
+ .store-item{gap:6px;min-height:68px;padding:5px}
+ .store-item-art{width:43px;height:42px}
+ .store-item-copy b{font-size:10px}
+ .store-item-copy small{font-size:8px}
+ .store-category{font-size:9px}
+}
