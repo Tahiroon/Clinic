@@ -212,7 +212,12 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"){
    scaledMinY=Math.min(scaledMinY,c.y-h.y);
    scaledMinZ=Math.min(scaledMinZ,c.z-h.z);scaledMaxZ=Math.max(scaledMaxZ,c.z+h.z);
   }
-  model.setLocalPosition(-(scaledMinX+scaledMaxX)/2,-scaledMinY,-(scaledMinZ+scaledMaxZ)/2);
+  // AABBs are in world space. Convert the bounds centre into the avatar's local frame
+  // before setting the child model origin; never write world coordinates into localPosition.
+  const parentInverse=new pc.Mat4().invert(parent.getWorldTransform() as pc.Mat4);
+  const worldCenter=new pc.Vec3((scaledMinX+scaledMaxX)/2,parent.getPosition().y,(scaledMinZ+scaledMaxZ)/2);
+  const localCenter=parentInverse.transformPoint(worldCenter,new pc.Vec3());
+  model.setLocalPosition(-localCenter.x,-scaledMinY,-localCenter.z);
   model.addComponent("anim",{activate:true,speed:1});
   const anim:any=(model as any).anim;
   const clips:any[]=asset.resource.animations??[];
