@@ -131,7 +131,7 @@ try {
   }
   console.log("✓ Player physiotherapist, patient flow, optional receptionist upgrade, economy and simulation controls are wired");
   console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
-  for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.student,root", "loadHumanoid(characterAssets.patient,root", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
+  for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.student,avatar", "loadHumanoid(characterAssets.patient,root", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
   }
   console.log("✓ Player physiotherapist and waiting patients have visible character instances");
