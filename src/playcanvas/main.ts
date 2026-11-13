@@ -28,7 +28,7 @@ const resize=()=>{
  app.resizeCanvas(w,h);
  // Keep the same vertical world scale on phones; only the horizontal visible span adapts.
  const aspect=w/h;
- desiredOrthoHeight=aspect<.48?13.2:aspect<.62?12.6:aspect<.82?11.8:11.2;
+ desiredOrthoHeight=aspect<.48?19.2:aspect<.62?18.2:aspect<.82?16.8:15.8;
  camera.camera!.orthoHeight=desiredOrthoHeight;
 };
 const queueResize=()=>{
@@ -50,56 +50,99 @@ function material(c:pc.Color){const m=new pc.StandardMaterial();m.diffuse=c;m.up
 const M={ground:material(new pc.Color(.32,.48,.43)),tile:material(new pc.Color(.43,.59,.51)),grid:material(new pc.Color(.25,.4,.36)),room:material(new pc.Color(.78,.82,.79)),wall:material(new pc.Color(.88,.91,.86)),wallSide:material(new pc.Color(.53,.68,.69)),wood:material(new pc.Color(.48,.33,.23)),wood2:material(new pc.Color(.68,.49,.31)),teal:material(new pc.Color(.13,.48,.55)),blue:material(new pc.Color(.18,.35,.58)),pale:material(new pc.Color(.79,.9,.88)),green:material(new pc.Color(.2,.53,.36)),skin:material(new pc.Color(.7,.49,.36)),dark:material(new pc.Color(.1,.16,.21)),white:material(new pc.Color(.93,.94,.87)),yellow:material(new pc.Color(.85,.65,.27))};
 function box(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){const e=new pc.Entity(name);e.addComponent("model",{type:"box"});e.setPosition(x,y,z);e.setLocalScale(sx,sy,sz);e.model!.material=m;e.model!.castShadows=true;e.model!.receiveShadows=true;parent.addChild(e);return e;}
 function sphere(name:string,x:number,y:number,z:number,s:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){const e=new pc.Entity(name);e.addComponent("model",{type:"sphere"});e.setPosition(x,y,z);e.setLocalScale(s,s,s);e.model!.material=m;parent.addChild(e);return e;}
-const camera=new pc.Entity("Portrait isometric camera");camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:10,clearColor:new pc.Color(.55,.7,.72),nearClip:.1,farClip:150});const cameraTarget=new pc.Vec3(0,0,0),cameraGoal=new pc.Vec3(0,0,0);camera.setPosition(11,15,11);camera.lookAt(cameraTarget);app.root.addChild(camera);
+const camera=new pc.Entity("Portrait isometric camera");camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:10,clearColor:new pc.Color(.55,.7,.72),nearClip:.1,farClip:150});const cameraTarget=new pc.Vec3(0,0,1.45),cameraGoal=new pc.Vec3(0,0,1.45);camera.setPosition(11,15,12.45);camera.lookAt(cameraTarget);app.root.addChild(camera);
 let desiredOrthoHeight=camera.camera!.orthoHeight;
 const light=new pc.Entity("Soft daylight");light.addComponent("light",{type:"directional",intensity:1.65,castShadows:true,shadowResolution:2048,shadowType:pc.SHADOW_PCF3,shadowDistance:55,normalOffsetBias:.035});light.setEulerAngles(48,35,0);app.root.addChild(light);
 const world=new pc.Entity("Clinic plot");app.root.addChild(world);
-const GRID=1, W=16, D=16, HALF=W/2;
-const floorBase=material(new pc.Color(.34,.52,.39));
-const pathMat=material(new pc.Color(.72,.69,.59));
-const pathEdge=material(new pc.Color(.52,.62,.52));
-const glass=material(new pc.Color(.35,.72,.79));
+const GRID=1, W=20, D=20, HALF=W/2;
+const floorBase=material(new pc.Color(.34,.52,.37));
+const pathMat=material(new pc.Color(.72,.68,.57));
+const pathEdge=material(new pc.Color(.48,.57,.47));
+const glass=material(new pc.Color(.28,.67,.76));
+const trim=material(new pc.Color(.10,.39,.47));
+const roofAccent=material(new pc.Color(.16,.28,.38));
 box("Owned clinic lawn",0,-.22,0,W,.42,D,floorBase,world);
-// A simple, readable approach path leads from the property edge to the standardized starter reception.
-box("Front garden path",-2.0,.005,-4.4,1.8,.035,6.8,pathMat,world);
-box("Path left edging",-2.98,.025,-4.4,.09,.06,6.8,pathEdge,world);
-box("Path right edging",-1.02,.025,-4.4,.09,.06,6.8,pathEdge,world);
-// Low landscaping frames the property without hiding the clinic or consuming many draw calls.
-for(const [x,z] of [[-6,-5],[5,-5],[6,3],[-6,4]] as [number,number][]){
- const trunk=box("Garden tree trunk",x,.55,z,.22,1.1,.22,M.wood,world);
- const crown=sphere("Garden tree canopy",x,1.45,z,.82,M.green,world);
+// The clinic sits on a clearly readable landscaped plot, with a modest expansion margin on every side.
+box("Front garden path",-2.0,.005,-4.4,1.8,.035,7.4,pathMat,world);
+box("Path left edging",-2.98,.025,-4.4,.09,.06,7.4,pathEdge,world);
+box("Path right edging",-1.02,.025,-4.4,.09,.06,7.4,pathEdge,world);
+box("Entrance apron",-2.0,.025,-.75,3.2,.06,1.0,pathMat,world);
+// A low perimeter hedge defines the maximum property without making the starting clinic feel boxed in.
+for(const [x,z,sx,sz] of [[0,-9.65,19.3,.32],[0,9.65,19.3,.32],[-9.65,0,.32,19.3],[9.65,0,.32,19.3]] as [number,number,number,number][]){
+ box("Property hedge",x,.34,z,sx,.68,sz,M.green,world);
 }
-for(const [x,z] of [[-5,-2],[4,-3],[5,1],[-6,1]] as [number,number][]){
- box("Garden planter",x,.18,z,.8,.36,.8,M.wood2,world);
- sphere("Garden shrub",x,.72,z,.55,M.green,world);
+for(const [x,z] of [[-7,-6],[7,-6],[7,6],[-7,6]] as [number,number][]){
+ box("Garden tree trunk",x,.72,z,.2,1.4,.2,M.wood,world);
+ sphere("Garden tree canopy",x,1.72,z,.9,M.green,world);
 }
-box("THERASON clinic sign",-2.0,2.65,-1.05,2.2,.34,.12,M.teal,world);
-box("Clinic sign face",-2.0,2.67,-1.13,1.8,.22,.035,M.white,world);
+for(const [x,z] of [[-6,-2],[6,-2],[6,3],[-6,4],[-4,-7],[3,-7]] as [number,number][]){
+ box("Garden planter",x,.18,z,.9,.36,.9,M.wood2,world);
+ sphere("Garden shrub",x,.72,z,.58,M.green,world);
+}
+box("Clinic sign support",-2.0,1.45,-.2,.12,2.9,.12,roofAccent,world);
+box("THERASON clinic sign",-2.0,2.8,-.2,2.4,.48,.16,trim,world);
+box("Clinic sign face",-2.0,2.8,-.295,2.08,.3,.035,M.white,world);
+box("Entry canopy",-2.0,2.18,-.12,2.4,.16,.9,roofAccent,world);
 const roomRoot=new pc.Entity("Open clinic interior");world.addChild(roomRoot);
 function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:number){
  const root=new pc.Entity("Room "+id);root.setPosition(gx+1,0,gz+1);world.addChild(root);
- const floor=kind==="gym"?material(new pc.Color(.45,.57,.59)):M.room;
+ const floor=kind==="gym"?material(new pc.Color(.40,.55,.58)):material(new pc.Color(.79,.82,.79));
  box("Room floor",1,.035,1,3.95,.07,3.95,floor,root);
- // Two full rear/side walls and a low front edge create readable open-top dollhouse view.
- box("Rear wall",1,1.05,3,4,2.1,.12,M.wall,root);if(id!==2)box("Left wall",-1,1.05,1,.12,2.1,4,M.wallSide,root);
- if(id===1){box("Shared wall front segment",3,1.05,-.35,.12,2.1,1.3,M.wall,root);box("Shared wall rear segment",3,1.05,2.35,.12,2.1,1.3,M.wall,root);box("Shared doorway lintel",3,2.0,1,.12,.16,1.4,M.white,root);}else box("Right wall",3,1.05,1,.12,2.1,4,M.wall,root);
- box("Front wall left",.15,.55,-1,.3,.55,.12,M.wall,root);box("Front wall right",2.35,.55,-1,1.3,.55,.12,M.wall,root);
- box("Door lintel",1.25,1.0,-1,.9,.12,.12,M.wall,root);
- box("Wall base rear",1,.17,2.91,4,.2,.15,M.teal,root);box("Wall base left",-.91,.17,1,.15,.2,4,M.teal,root);
+ // Full-height open-top architecture: the walls frame a real room while the cutaway roof keeps gameplay visible.
+ box("Rear wall",1,1.12,3,4,2.24,.16,M.wall,root);
+ if(id!==2)box("Left exterior wall",-1,1.12,1,.16,2.24,4,M.wallSide,root);
+ if(id===1){
+  box("Shared wall front segment",3,1.12,-.35,.16,2.24,1.3,M.wall,root);
+  box("Shared wall rear segment",3,1.12,2.35,.16,2.24,1.3,M.wall,root);
+  box("Shared doorway lintel",3,2.18,1,.18,.16,1.4,M.white,root);
+ }else box("Right exterior wall",3,1.12,1,.16,2.24,4,M.wallSide,root);
+ // Front facade has a generous doorway opening; collision rectangles use these same world-space dimensions.
+ box("Front wall left",.15,1.12,-1,.3,2.24,.16,M.wall,root);
+ box("Front wall right",2.35,1.12,-1,1.3,2.24,.16,M.wall,root);
+ box("Front doorway lintel",1.25,2.18,-1,.9,.16,.18,M.white,root);
+ // Coloured plinths and wall caps give the small clinic a consistent identity.
+ box("Rear wall teal plinth",1,.18,2.91,4,.24,.2,trim,root);
+ box("Front wall teal plinth left",.15,.18,-1,.3,.24,.2,trim,root);
+ box("Front wall teal plinth right",2.35,.18,-1,1.3,.24,.2,trim,root);
+ box("Rear wall cap",1,2.25,3,4,.12,.22,M.white,root);
+ // Large daylight windows on the rear elevation; glass is inset so it reads as glazing rather than painted wall.
+ for(const x of [.72,2.65]){
+  box("Rear window glass",x,1.42,2.91,1.05,.82,.035,glass,root);
+  box("Window top frame",x,1.86,2.88,1.16,.07,.09,M.white,root);
+  box("Window bottom frame",x,.98,2.88,1.16,.07,.09,M.white,root);
+  box("Window mullion",x,1.42,2.87,.055,.82,.09,M.white,root);
+ }
  if(kind==="treatment"){
-  box("Treatment bed base",1.95,.3,1.45,2.05,.2,.9,M.dark,root);box("Treatment mattress",1.95,.47,1.45,2,.2,.86,M.blue,root);box("Pillow",1.95,.59,1.12,.58,.1,.42,M.pale,root);
+  box("Treatment bed base",1.95,.3,1.45,2.05,.2,.9,M.dark,root);
+  box("Treatment mattress",1.95,.47,1.45,2,.2,.86,M.blue,root);
+  box("Treatment paper roll",1.95,.59,1.03,.72,.08,.12,M.pale,root);
+  box("Pillow",1.95,.59,1.18,.58,.1,.38,M.pale,root);
   for(const x of [1.12,2.78])for(const z of [1.12,1.78])box("Bed leg",x,.08,z,.08,.35,.08,M.dark,root);
-  box("Therapy cabinet",.25,.55,2.4,.55,1.1,.55,M.wood2,root);box("Wall chart",2.3,1.65,2.91,.75,.65,.04,M.pale,root);
+  box("Therapy cabinet",.25,.55,2.4,.55,1.1,.55,M.wood2,root);
+  box("Cabinet handle",.25,.55,2.115,.05,.12,.04,M.yellow,root);
+  box("Wall chart",2.3,1.65,2.91,.75,.65,.04,M.pale,root);
+  box("Anatomy chart accent",2.3,1.65,2.875,.12,.45,.035,trim,root);
  }else if(kind==="reception"){
-  box("Reception desk",.2,.48,2.35,1.8,.85,.65,M.wood,root);box("Desk top",.2,.94,2.35,1.9,.1,.72,M.wood2,root);box("Desk panel",.2,.45,2.01,1.4,.6,.03,M.teal,root);
-  for(const z of [1.2,2.15]){box("Waiting chair",.5,.38,z,.65,.18,.62,M.teal,root);box("Chair back",.5,.75,z+.22,.65,.6,.13,M.blue,root);}
+  box("Reception desk",.2,.48,2.35,1.8,.85,.65,M.wood,root);
+  box("Desk top",.2,.94,2.35,1.9,.1,.72,M.wood2,root);
+  box("Desk front accent",.2,.45,2.01,1.4,.6,.03,trim,root);
+  box("Reception monitor base",.2,1.02,2.25,.28,.08,.2,M.dark,root);
+  box("Reception monitor",.2,1.2,2.25,.42,.34,.05,M.dark,root);
+  for(const z of [1.2,2.15]){
+   box("Waiting chair seat",.5,.38,z,.65,.18,.62,M.teal,root);
+   box("Waiting chair back",.5,.75,z+.22,.65,.6,.13,M.blue,root);
+   for(const x of [.25,.75])for(const zz of [z-.2,z+.2])box("Waiting chair leg",x,.18,zz,.055,.36,.055,M.dark,root);
+  }
  }else{
-  box("Exercise mat",1.1,.07,1.1,2.7,.08,1.25,M.blue,root);box("Parallel bar",.2,.6,2.45,.1,1.1,.1,M.wood2,root);box("Parallel bar",2,.6,2.45,.1,1.1,.1,M.wood2,root);box("Bar rail",1.1,1.08,2.45,1.9,.08,.08,M.yellow,root);
+  box("Exercise mat",1.1,.07,1.1,2.7,.08,1.25,M.blue,root);
+  box("Parallel bar left",.2,.6,2.45,.1,1.1,.1,M.wood2,root);
+  box("Parallel bar right",2,.6,2.45,.1,1.1,.1,M.wood2,root);
+  box("Parallel bar rail",1.1,1.08,2.45,1.9,.08,.08,M.yellow,root);
  }
  return root;
 }
 // The starter clinic is assembled from lightweight procedural geometry; optional GLB assets load independently.
-const avatar=new pc.Entity("Student avatar");avatar.setPosition(-2.0,0,.55);world.addChild(avatar);
+const avatar=new pc.Entity("Student avatar");avatar.setPosition(-2.0,0,-1.45);world.addChild(avatar);
 let avatarAnim:any=null;let playerRig:HumanoidRig|null=null;
 const characterAssets:Record<string,string>={
  student:new URL("../assets/characters/Student.glb",import.meta.url).href,
@@ -154,7 +197,7 @@ const patientNpc=new pc.Entity("Clinic patient");patientNpc.setPosition(1.55,0,1
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false);
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=3, focus=false, wallRotation:0|90=0;
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v3"; 
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v4"; 
 const starterLayout:Placed[]=[{id:1,kind:"reception",gx:-4,gz:0},{id:2,kind:"treatment",gx:0,gz:0}];
 const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
@@ -355,7 +398,7 @@ function updateMode(next:"move"|"build"){mode=next;moveBtn.classList.toggle("act
 function screenToGround(clientX:number,clientY:number){const r=canvas.getBoundingClientRect(),x=(clientX-r.left)*(canvas.width/r.width),y=(clientY-r.top)*(canvas.height/r.height);const a=camera.camera!.screenToWorld(x,y,.1),b=camera.camera!.screenToWorld(x,y,100),d=b.sub(a);if(Math.abs(d.y)<.0001)return null;const t=-a.y/d.y;if(t<0)return null;const p=a.add(d.mulScalar(t));if(Math.abs(p.x)>HALF||Math.abs(p.z)>HALF)return null;return p;}
 let pointerStart:{x:number;y:number;cx:number;cz:number;tx:number;tz:number}|null=null,dragged=false;const activePointers=new Map<number,{x:number;y:number}>();let pinchDistance=0,pinchHeight=0;
 canvas.addEventListener("pointerdown",e=>{activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size===2){const pts=[...activePointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);pinchHeight=desiredOrthoHeight;pointerStart=null;dragged=true;}else{pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraGoal.x,tz:cameraGoal.z};dragged=false;}canvas.setPointerCapture(e.pointerId);});
-canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(9,Math.min(18,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraGoal.set(Math.max(-5,Math.min(5,pointerStart.tx+shiftX)),0,Math.max(-5,Math.min(5,pointerStart.tz+shiftZ)));}});
+canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(10.5,Math.min(23,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraGoal.set(Math.max(-7,Math.min(7,pointerStart.tx+shiftX)),0,Math.max(-7,Math.min(7,pointerStart.tz+shiftZ)));}});
 canvas.addEventListener("pointerup",e=>{activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;if(!pointerStart){if(activePointers.size===1){const p=[...activePointers.values()][0];pointerStart={x:p.x,y:p.y,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraTarget.x,tz:cameraTarget.z};}else dragged=false;return;}const wasDrag=dragged;pointerStart=null;if(wasDrag)return;const p=screenToGround(e.clientX,e.clientY);if(!p)return;if(mode==="build"){const gx=Math.floor(p.x),gz=Math.floor(p.z);if(selected==="asset"&&!selectedAssetKey){status.textContent="اختر أصلاً من المتجر أولاً.";return;}if(occupied(gx,gz,selected,wallRotation,selectedAssetKey??undefined)){status.textContent="هذه الخلايا مشغولة. اختر مساحة فارغة بجوارها.";return;}const cost=selected==="asset"&&selectedAssetKey?storeAssetSpecs[selectedAssetKey].cost:costs[selected];if(coins<cost){status.textContent="عملاتك لا تكفي لهذه الإضافة بعد. أكمل جلساتك لاكتساب العملات.";return;}coins-=cost;coinsLabel.textContent=String(coins);const item:Placed={id:nextId++,kind:selected,gx,gz,rot:(selected==="wall"||selected==="door")?wallRotation:0,assetKey:selected==="asset"?selectedAssetKey??undefined:undefined};placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;}const tx=Math.round(p.x*2)/2,tz=Math.round(p.z*2)/2;const route=findWalkPath(avatar.getPosition().x,avatar.getPosition().z,tx,tz);if(!route||!route.length){status.textContent="لم أجد ممراً آمناً إلى هذه النقطة. اختر مكاناً أقرب أو ممراً أوسع.";return;}walkPath=route;const first=walkPath.shift()!;target=new pc.Vec3(first.x,0,first.z);status.textContent="الأخصائي يسلك أقرب ممر متاح.";});
 canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;});
 function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",gym:"صالة تمارين",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}
@@ -365,7 +408,7 @@ document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEve
 document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEventListener("click",()=>selectAsset(b.dataset.asset??"")));
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";el("#catalog-furniture").hidden=cat!=="furniture";if(cat==="structure")selectBuild("wall");else if(cat==="rooms")selectBuild("reception");else selectAsset("pt-treatment-table");}));
 el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;status.textContent="اتجاه الحائط الآن "+(wallRotation===0?"أفقي":"رأسي")+". اختر الخلية التالية.";});
-viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?10.2:(window.innerWidth/window.innerHeight<.48?13.2:12.6);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
+viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?10.8:(window.innerWidth/window.innerHeight<.48?19.2:18.2);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
 let sessionStep=0,sessionScore=0;
 const steps=[
  {title:"استقبال المريض",intro:"وصل مريض جديد إلى عيادتك. ابدأ الجلسة بخطوة آمنة ومنظمة.",question:"ما أول خطوة مناسبة؟",options:[["safe","التحقق من علامات الخطر وأخذ التاريخ المرضي",true,"اختيار ممتاز. سلامة المريض وجمع المعلومات يسبقان أي تدخل."],["exercise","بدء التمارين مباشرة",false,"لا تبدأ التدخل قبل فهم الحالة والتحقق من علامات الخطر."],["diagnosis","تحديد التشخيص النهائي فوراً",false,"المعلومات الحالية لا تكفي لتشخيص نهائي. ابدأ بالتقييم."]]},
