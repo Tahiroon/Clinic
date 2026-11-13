@@ -335,12 +335,12 @@ loadHumanoid(characterAssets.student,avatar,1.72,true,rig=>{
  avatarAnim=rig.anim;playerRig=rig;
  status.textContent="الأخصائي جاهز. اضغط على مكان داخل العيادة ليتحرك إليه.";
 });
-const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.25,0,1.35);
+const patientNpc=new pc.Entity("Patient visitor");world.addChild(patientNpc);patientNpc.setLocalPosition(1.25,0,1.35);patientNpc.enabled=false;
 const patientFallback=createFallbackHumanoid(patientNpc,"patient");
 let patientFallbackRig:FallbackRig|null=patientFallback;
 loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>{patientFallback.entity.destroy();patientFallbackRig=null;});
 
-let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=3200, xp=0, nextId=4, focus=false, wallRotation:0|90=0;
+let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=3200, xp=0, nextId=1, focus=false, wallRotation:0|90=0;
 let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v3")||0);return Math.max(0,Math.min(5,saved));}catch{return 0;}})();
 
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:pc.Vec3|null=null;const saveKey="therason-clinic-world-v11";
@@ -700,7 +700,7 @@ function canAvatarStand(x:number,z:number){
  if(x-radius< -HALF_X||x+radius>HALF_X||z-radius< -HALF_Z||z+radius>HALF_Z)return false;
  const player={x:x-radius,z:z-radius,w:radius*2,d:radius*2};
  // Patient is a real occupied spot; route to the nearest safe treatment-side approach, never through the body.
- if(rectanglesOverlap(player,{x:1.25-.28,z:1.35-.28,w:.56,d:.56}))return false;
+ if(patientNpc.enabled){const patientPosition=patientNpc.getLocalPosition();if(rectanglesOverlap(player,{x:patientPosition.x-.28,z:patientPosition.z-.28,w:.56,d:.56}))return false;}
  // Perimeter hedge and outdoor props are solid; the lawn is not an infinite walkable plane.
  const outdoorBarriers=[
   {x:-HALF_X,z:-HALF_Z,w:.18,d:D},
@@ -847,7 +847,7 @@ function renderMission(){
 }
 function setMissionPhase(next:number){
  missionPhase=next;
- try{localStorage.setItem("therason-clinic-mission-v2",String(next===1?0:next));}catch{}
+ try{localStorage.setItem("therason-clinic-mission-v3",String(next));}catch{}
  renderMission();
 }
 
