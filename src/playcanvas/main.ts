@@ -175,58 +175,37 @@ const ROOM_SURFACES={
  treatment:material(new pc.Color(.86,.94,.91)),
  exercise:material(new pc.Color(.83,.90,.96))
 };
-const ROOM_TILE_A=material(new pc.Color(.96,.97,.92));
-const ROOM_TILE_B=material(new pc.Color(.82,.91,.90));
 function makeRoom(kind:"treatment"|"reception"|"assessment"|"exercise",gx:number,gz:number,id:number,width=4,depth=4){
  const root=new pc.Entity("Room "+id+" · "+kind);
  world.addChild(root);root.setLocalPosition(gx+width/2,0,gz+depth/2);
- const wallThickness=.16,wallHeight=2.25,halfW=width/2,halfD=depth/2;
- const floor=ROOM_SURFACES[kind];
- box("Room floor base",0,.035,0,width-.06,.07,depth-.06,floor,root);
- // Small alternating floor tiles create the bright, readable toy-clinic finish without texturing the entire plot.
- for(let x=0;x<Math.ceil(width);x++)for(let z=0;z<Math.ceil(depth);z++){
-  const tw=Math.min(.94,width-x-.06),td=Math.min(.94,depth-z-.06);
-  if(tw<=.08||td<=.08)continue;
-  box("Room floor tile",-.5*width+.5+x,.078,-.5*depth+.5+z,tw,.018,td,(x+z)%2?ROOM_TILE_A:ROOM_TILE_B,root);
+ const halfW=width/2,halfD=depth/2,wallThickness=.15,wallHeight=2.7;
+ box("Room floor base",0,.025,0,width,.05,depth,ROOM_SURFACES[kind],root);
+ for(let x=0;x<width;x+=2)for(let z=0;z<depth;z+=2){
+  const tileWidth=Math.min(2,width-x),tileDepth=Math.min(2,depth-z);
+  loadRoomModule(root,"corridor-floor-tile.glb",-halfW+x+tileWidth/2,.05,-halfD+z+tileDepth/2,0,tileWidth/2,tileDepth/2,"floor");
  }
- const wallMat=material(new pc.Color(.96,.97,.94)),sideMat=material(new pc.Color(.58,.78,.79));
+ // Modular two-metre partitions, glazed rear wall and a real hinged door reproduce the readable cutaway-room language of a management sim.
+ addRoomWallRun(root,"z",-halfD,depth,-halfW,"solid");
+ addRoomWallRun(root,"z",-halfD,depth,halfW,"solid");
+ addRoomWallRun(root,"x",-halfW,width,halfD,"glazed");
+ const doorWidth=Math.min(1.2,width*.34),sideSegment=(width-doorWidth)/2;
+ addRoomWallRun(root,"x",-halfW,sideSegment,-halfD,"solid");
+ addRoomWallRun(root,"x",doorWidth/2,sideSegment,-halfD,"solid");
+ loadRoomDoor(root,0,-halfD);
  const trimMat=kind==="reception"?M.teal:kind==="assessment"?M.blue:kind==="exercise"?M.yellow:M.teal;
- const frameMat=material(new pc.Color(.99,.99,.95));
- // Open-front cutaway room, like a management sim: the room remains legible while its furniture is visible.
- box("Left wall",-halfW,wallHeight/2,0,wallThickness,wallHeight,depth,sideMat,root);
- box("Right wall",halfW,wallHeight/2,0,wallThickness,wallHeight,depth,sideMat,root);
- box("Rear wall",0,wallHeight/2,halfD,width,wallHeight,wallThickness,wallMat,root);
- const doorWidth=Math.min(1.2,width*.42),sideSegment=(width-doorWidth)/2;
- box("Front wall left",-(doorWidth/2+sideSegment/2),wallHeight/2,-halfD,sideSegment,wallHeight,wallThickness,wallMat,root);
- box("Front wall right",doorWidth/2+sideSegment/2,wallHeight/2,-halfD,sideSegment,wallHeight,wallThickness,wallMat,root);
- box("Door lintel",0,wallHeight-.08,-halfD,doorWidth,.16,wallThickness,frameMat,root);
- box("Door frame left",-doorWidth/2,1.08,-halfD-.035,.07,2.16,.12,frameMat,root);
- box("Door frame right",doorWidth/2,1.08,-halfD-.035,.07,2.16,.12,frameMat,root);
- box("Door leaf ajar",-doorWidth*.32,1.02,-halfD+.13,.07,2.02,Math.min(.82,depth*.22),M.white,root);
- cylinder("Door handle",-doorWidth*.32,1.03,-halfD+.48,.035,.035,.035,M.yellow,root);
- for(const x of [-halfW,halfW])box("Colored wall base",x,.17,0,wallThickness,.22,depth,trimMat,root);
- box("Rear wall color band",0,.35,halfD-wallThickness-.03,width,.16,.08,trimMat,root);
- box("Rear wall cap",0,wallHeight+.04,halfD,width,.1,.22,frameMat,root);
- box("Room identity plaque",0,1.86,halfD-wallThickness-.02,Math.min(1.8,width*.55),.42,.06,trimMat,root);
- const windowWidth=Math.min(1.05,(width-.5)/2);
- for(const x of [-width*.25,width*.25]){
-  box("Rear window glass",x,1.35,halfD-wallThickness-.025,windowWidth,.82,.035,glass,root);
-  box("Rear window frame top",x,1.79,halfD-wallThickness-.055,windowWidth+.08,.06,.07,frameMat,root);
-  box("Rear window frame bottom",x,.91,halfD-wallThickness-.055,windowWidth+.08,.06,.07,frameMat,root);
- }
- for(const x of [-width*.22,width*.22]){
-  box("Ceiling light housing",x,2.30,0,.68,.055,.20,M.white,root);
-  box("Ceiling light diffuser",x,2.265,0,.54,.018,.13,M.pale,root);
+ box("Room identity plaque",-halfW+.12,2.0,0,.06,.42,.86,trimMat,root);
+ for(const x of [-Math.min(1,width*.25),Math.min(1,width*.25)]){
+  box("Ceiling light housing",x,2.55,0,.68,.055,.20,M.white,root);
+  box("Ceiling light diffuser",x,2.515,0,.54,.018,.13,M.pale,root);
  }
  if(kind==="treatment"||kind==="assessment"){
-  box(kind==="assessment"?"Assessment wall chart":"Treatment wall chart",halfW-.55,1.55,halfD-wallThickness-.08,.68,.82,.045,M.pale,root);
-  box("Chart teal stripe",halfW-.55,1.55,halfD-wallThickness-.11,.10,.58,.025,trimMat,root);
+  box(kind==="assessment"?"Assessment wall chart":"Treatment wall chart",halfW-.55,1.55,halfD-.18,.68,.82,.045,M.pale,root);
+  box("Chart teal stripe",halfW-.55,1.55,halfD-.21,.10,.58,.025,trimMat,root);
  }else if(kind==="reception"){
   loadReceptionDesk(root);loadWaitingSeats(root);
  }else{
-  // Keep the exercise room as an empty, readable build space; the player buys and places its therapy equipment.
-  box("Exercise wall display",0,1.28,halfD-wallThickness-.08,Math.min(1.7,width*.5),.78,.05,M.pale,root);
-  box("Exercise wall display accent",0,1.28,halfD-wallThickness-.12,.12,.62,.025,M.teal,root);
+  box("Exercise wall display",0,1.28,halfD-.18,Math.min(1.7,width*.5),.78,.05,M.pale,root);
+  box("Exercise wall display accent",0,1.28,halfD-.22,.12,.62,.025,M.teal,root);
  }
  return root;
 }
@@ -410,9 +389,55 @@ const clinicAssetUrls:Record<string,string>={
  "waiting-bench-two-seat.glb":new URL("../assets/clinic-kit/management-sim/waiting-bench-two-seat.glb",import.meta.url).href,
  "privacy-screen.glb":new URL("../assets/clinic-kit/management-sim/privacy-screen.glb",import.meta.url).href,
  "wheelchair.glb":new URL("../assets/clinic-kit/management-sim/wheelchair.glb",import.meta.url).href,
- "bedside-cabinet.glb":new URL("../assets/clinic-kit/management-sim/bedside-cabinet.glb",import.meta.url).href
+ "bedside-cabinet.glb":new URL("../assets/clinic-kit/management-sim/bedside-cabinet.glb",import.meta.url).href,
+ "partition-wall.glb":new URL("../assets/clinic-kit/management-sim/partition-wall.glb",import.meta.url).href,
+ "partition-wall-1m.glb":new URL("../assets/clinic-kit/management-sim/partition-wall-1m.glb",import.meta.url).href,
+ "glazed-partition.glb":new URL("../assets/clinic-kit/management-sim/glazed-partition.glb",import.meta.url).href,
+ "door-leaf.glb":new URL("../assets/clinic-kit/management-sim/door-leaf.glb",import.meta.url).href,
+ "corridor-floor-tile.glb":new URL("../assets/clinic-kit/management-sim/corridor-floor-tile.glb",import.meta.url).href
 };
 const containerCache=new Map<string,Promise<any>>();
+function loadRoomModule(parent:pc.Entity,file:string,x:number,y:number,z:number,rotation:number,scaleX=1,scaleZ=1,fallback:"floor"|"wall"="wall"){
+ const url=clinicAssetUrls[file];if(!url)return;
+ getClinicContainer(url).then(asset=>{
+  const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:true});
+  parent.addChild(model);model.setLocalPosition(x,y,z);model.setLocalEulerAngles(0,rotation,0);model.setLocalScale(scaleX,1,scaleZ);model.syncHierarchy();
+ }).catch(error=>{
+  console.warn("Room module fallback:",file,error);
+  if(fallback==="floor")box("Fallback floor tile",x,y+.012,z,scaleX*2,.018,scaleZ*2,(Math.round(x+z)%2)?M.pale:M.room,parent);
+  else box("Fallback wall module",x,y+1.35,z,scaleX*2,2.7,scaleZ*.15,M.wallSide,parent);
+ });
+}
+function addRoomWallRun(parent:pc.Entity,axis:"x"|"z",start:number,length:number,fixed:number,kind:"solid"|"glazed"){
+ let cursor=0;
+ const rotation=axis==="z"?90:0;
+ const place=(file:string,span:number,center:number)=>{
+  const x=axis==="x"?center:fixed,z=axis==="x"?fixed:center;
+  loadRoomModule(parent,file,x,0,z,rotation,1,1,"wall");
+ };
+ const twoMetreFile=kind==="glazed"?"glazed-partition.glb":"partition-wall.glb";
+ while(length-cursor>=1.95){place(twoMetreFile,2,start+cursor+1);cursor+=2;}
+ if(length-cursor>=.95){place("partition-wall-1m.glb",1,start+cursor+.5);cursor+=1;}
+ const remainder=length-cursor;
+ if(remainder>.05){
+  const center=start+cursor+remainder/2,x=axis==="x"?center:fixed,z=axis==="x"?fixed:center;
+  box("Short wall infill",x,1.35,z,axis==="x"?remainder:.15,2.7,axis==="z"?remainder:.15,M.wallSide,parent);
+ }
+}
+function loadRoomDoor(parent:pc.Entity,x:number,z:number){
+ const url=clinicAssetUrls["door-leaf.glb"];
+ getClinicContainer(url).then(asset=>{
+  const model=asset.resource.instantiateRenderEntity({castShadows:false,receiveShadows:true});
+  parent.addChild(model);model.setLocalPosition(x,0,z);model.syncHierarchy();
+  const leaf=findEntityByName(model,"door");if(leaf)leaf.setLocalEulerAngles(0,68,0);
+  model.syncHierarchy();
+ }).catch(error=>{
+  console.warn("Door model fallback",error);
+  box("Door frame left",x-.6,1.35,z,.07,2.7,.16,M.white,parent);
+  box("Door frame right",x+.6,1.35,z,.07,2.7,.16,M.white,parent);
+  box("Door leaf ajar",x-.32,1.02,z+.13,.07,2.02,.82,M.wood2,parent);
+ });
+}
 function getClinicContainer(url:string):Promise<any>{
  let pending=containerCache.get(url);
  if(!pending){
