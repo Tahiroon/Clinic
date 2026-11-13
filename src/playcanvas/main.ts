@@ -875,6 +875,24 @@ function setMissionPhase(next:number){
  renderMission();
 }
 
+function renderManagement(){
+ el<HTMLElement>("#game-clock").textContent="اليوم "+management.day+" · "+formatGameTime(management);
+ el<HTMLElement>("#patient-count").textContent=getActivePatientCount(management)+" مرضى";
+ el<HTMLElement>("#reputation").textContent="سمعة "+Math.round(management.reputation);
+ el("#mg-balance").textContent=String(Math.round(management.balance));
+ el("#mg-treated").textContent=String(management.treated);
+ el("#mg-reputation").textContent=Math.round(management.reputation)+"%";
+ el("#mg-staff-count").textContent=String(management.staff.length);
+ el("#management-date").textContent="اليوم "+management.day+" · "+formatGameTime(management)+" · "+(management.speed===0?"متوقفة":management.speed+"×");
+ const staffStatus:Record<string,string>={idle:"متاح",working:"يعالج مريضاً",break:"في استراحة"};
+ el("#staff-list").innerHTML=management.staff.map(member=>'<div class="management-row"><div><strong>'+member.name+' · '+getRoleLabel(member.role)+'</strong><small>'+staffStatus[member.status]+' · مهارة '+member.skill+' · معنويات '+Math.round(member.morale)+'</small></div><div><small>طاقة '+Math.round(member.energy)+'%</small><div class="meter"><i style="width:'+Math.round(member.energy)+'%"></i></div></div></div>').join("");
+ const stageLabels:Record<string,string>={arriving:"وصل الآن",reception:"التسجيل",waiting:"ينتظر",assessment:"التقييم",treatment:"جلسة علاج"};
+ const queue=getPatientQueue(management);
+ el("#patient-queue").innerHTML=queue.length?queue.map(patient=>'<div class="management-row"><div><strong>'+patient.name+' · '+patient.caseLabel+'</strong><small>'+stageLabels[patient.stage]+' · انتظار '+Math.round(patient.waitMinutes)+' دقيقة</small></div><div><small>الصبر '+Math.round(patient.patience)+'%</small><div class="meter"><i style="width:'+Math.round(patient.patience)+'%"></i></div></div></div>').join(""):'<p class="empty-management">لا توجد حالات نشطة حالياً. ابنِ الاستقبال ووظّف موظف استقبال وغرفة تقييم وعلاج.</p>';
+ el("#clinic-events").innerHTML=management.events.slice(0,6).map(item=>'<div class="management-event">'+item.message+'</div>').join("");
+ document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>button.classList.toggle("selected",Number(button.dataset.speed)===management.speed));
+}
+
 function screenToGround(clientX:number,clientY:number){
  const rect=canvas.getBoundingClientRect();
  const px=(clientX-rect.left)*(canvas.width/rect.width),py=(clientY-rect.top)*(canvas.height/rect.height);
@@ -938,6 +956,19 @@ canvas.addEventListener("pointerup",e=>{
  status.textContent="الأخصائي يلتف حول العائق ويتجه إلى النقطة المحددة.";
 });
 canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);pointerStart=null;pinchDistance=0;dragged=false;});
+
+managementToggle.addEventListener("click",()=>{
+ managementPanel.hidden=!managementPanel.hidden;
+ if(!managementPanel.hidden){buildPanel.hidden=true;updateMode("move");renderManagement();}
+});
+el<HTMLButtonElement>("#management-close").addEventListener("click",()=>{managementPanel.hidden=true;});
+document.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach(button=>button.addEventListener("click",()=>{
+ const speed=Number(button.dataset.speed) as 0|1|2|3;setSimulationSpeed(management,speed);renderManagement();save();
+}));
+document.querySelectorAll<HTMLButtonElement>("[data-hire]").forEach(button=>button.addEventListener("click",()=>{
+ const result=hireStaff(management,button.dataset.hire as StaffRole);
+ coins=management.balance;coinsLabel.textContent=String(coins);status.textContent=result.message;save();renderManagement();
+}));
 function selectBuild(kind:BuildKind){selected=kind;selectedAssetKey=null;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.toggle("selected",b.dataset.build===kind));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.remove("selected"));const names:Record<BuildKind,string>={treatment:"غرفة علاج",reception:"استقبال",assessment:"غرفة تقييم",gym:"صالة تأهيل",staff:"استراحة الفريق",chair:"كرسي انتظار",plant:"نبات داخلي",cabinet:"خزانة أدوات",parallel:"متوازي",bike:"دراجة علاجية",treadmill:"سير مشي",wallbars:"سلم حائطي",lamp:"مصباح",rug:"سجادة",wall:"مقطع حائط",door:"باب",asset:"أصل ثلاثي الأبعاد"};el("#build-hint").textContent="تم اختيار "+names[kind]+". المس خلية فارغة لوضعه، ويمكنك تدوير الحائط من زر التدوير.";}
 function selectAsset(key:string){const spec=storeAssetSpecs[key];if(!spec)return;selected="asset";selectedAssetKey=key;previewValidity=null;document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.classList.remove("selected"));document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.classList.toggle("selected",b.dataset.asset===key));el("#build-hint").textContent="تم اختيار "+spec.label+" من الأصول ثلاثية الأبعاد. يحتاج مساحة "+spec.footprint+"×"+spec.footprint+" خلايا.";}
 moveBtn.addEventListener("click",()=>{updateMode("move");storeBtn.classList.remove("active");});
@@ -975,9 +1006,9 @@ sessionBtn.addEventListener("click",()=>{
  else{focus=false;cameraGoal.set(0,0,0);viewBtn.classList.remove("active");status.textContent="لا يوجد مسار آمن إلى المريض. افتح الممر أو أعد ترتيب الأثاث قبل بدء الجلسة.";}
 });
 sessionDialog.addEventListener("close",()=>{focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=15.5;viewBtn.classList.remove("active");});
-el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{if(missionPhase===2)setMissionPhase(3);const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
-load();createLawnGrass();coinsLabel.textContent=String(coins);
-let locomotionState="";
+el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{if(missionPhase===2)setMissionPhase(3);const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;management.balance=coins;management.experience=xp;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
+load();createLawnGrass();coinsLabel.textContent=String(coins);renderManagement();
+let locomotionState="",managementUiTimer=0,managementSaveTimer=0;
 function setLocomotion(moving:boolean){
  if(!playerRig)return;
  const desired=moving?playerRig.walk:playerRig.idle;
@@ -1021,6 +1052,10 @@ app.on("update",(dt:number)=>{
  if(document.hidden)return;
  // Clamp long frames after tab switches or weak-device stalls to prevent sudden character jumps.
  const frameDt=Math.min(Math.max(dt,0),.05);
+ advanceSimulation(management,frameDt);coins=management.balance;coinsLabel.textContent=String(Math.round(coins));
+ managementUiTimer+=frameDt;managementSaveTimer+=frameDt;
+ if(managementUiTimer>=.45){managementUiTimer=0;renderManagement();}
+ if(managementSaveTimer>=8){managementSaveTimer=0;save();}
  playerFallbackRig?.update(frameDt,!!target);
  patientFallbackRig?.update(frameDt,false);
  // Smooth camera follow/pan/zoom instead of snapping the camera on every touch event.
