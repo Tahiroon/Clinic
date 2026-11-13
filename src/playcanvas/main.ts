@@ -113,13 +113,7 @@ function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:numb
   box("Window mullion",x,1.42,2.87,.055,.82,.09,M.white,root);
  }
  if(kind==="treatment"){
-  box("Treatment bed base",1.95,.3,1.45,2.05,.2,.9,M.dark,root);
-  box("Treatment mattress",1.95,.47,1.45,2,.2,.86,M.blue,root);
-  box("Treatment paper roll",1.95,.59,1.03,.72,.08,.12,M.pale,root);
-  box("Pillow",1.95,.59,1.18,.58,.1,.38,M.pale,root);
-  for(const x of [1.12,2.78])for(const z of [1.12,1.78])box("Bed leg",x,.08,z,.08,.35,.08,M.dark,root);
-  box("Therapy cabinet",.25,.55,2.4,.55,1.1,.55,M.wood2,root);
-  box("Cabinet handle",.25,.55,2.115,.05,.12,.04,M.yellow,root);
+  // The treatment table and storage cabinet are loaded from the licensed GLB asset kit below.
   box("Wall chart",2.3,1.65,2.91,.75,.65,.04,M.pale,root);
   box("Anatomy chart accent",2.3,1.65,2.875,.12,.45,.035,trim,root);
  }else if(kind==="reception"){
@@ -226,10 +220,15 @@ loadHumanoid(characterAssets.patient,patientNpc,1.62,false,()=>patientFallback.d
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:pc.Vec3|null=null, coins=350, xp=0, nextId=3, focus=false, wallRotation:0|90=0;
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];const saveKey="therason-clinic-world-v4"; 
-const starterLayout:Placed[]=[{id:1,kind:"reception",gx:-4,gz:0},{id:2,kind:"treatment",gx:0,gz:0}];
+const starterLayout:Placed[]=[
+ {id:1,kind:"reception",gx:-4,gz:0},
+ {id:2,kind:"treatment",gx:0,gz:0},
+ {id:3,kind:"asset",gx:1,gz:1,rot:0,assetKey:"pt-treatment-table"},
+ {id:4,kind:"asset",gx:0,gz:3,rot:0,assetKey:"pt-storage-cabinet"}
+];
 const costs:Record<BuildKind,number>={treatment:0,reception:60,gym:90,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
- "pt-treatment-table":{file:"physical-therapy-room-set.glb",node:"TreatmentTable",label:"سرير علاج طبيعي",cost:90,footprint:3,targetSize:2.15},
+ "pt-treatment-table":{file:"physical-therapy-room-set.glb",node:"TreatmentTable",label:"سرير علاج طبيعي",cost:90,footprint:2,targetSize:1.9},
  "pt-parallel-bars":{file:"physical-therapy-room-set.glb",node:"ParallelBars",label:"جهاز المتوازي",cost:100,footprint:3,targetSize:2.8},
  "pt-band-rack":{file:"physical-therapy-room-set.glb",node:"BandRack",label:"حامل أحزمة المقاومة",cost:35,footprint:2,targetSize:1.5},
  "pt-exercise-ball":{file:"physical-therapy-room-set.glb",node:"ExerciseBall",label:"كرة علاجية",cost:20,footprint:1,targetSize:.72},
@@ -257,6 +256,20 @@ function getClinicContainer(url:string):Promise<any>{
  }
  return pending;
 }
+function drawAssetFallback(p:Placed,spec:{label:string}){
+ const root=new pc.Entity("Fallback prop · "+spec.label);
+ root.setPosition(p.gx+(p.kind==="asset"&&p.assetKey==="pt-treatment-table"?1:0.5),0,p.gz+(p.kind==="asset"&&p.assetKey==="pt-treatment-table"?1:0.5));
+ world.addChild(root);
+ if(p.assetKey==="pt-treatment-table"){
+  box("Fallback treatment bed base",0,.3,0,1.85,.2,.82,M.dark,root);
+  box("Fallback treatment mattress",0,.47,0,1.8,.18,.78,M.blue,root);
+  box("Fallback treatment pillow",0,.59,-.3,.48,.1,.28,M.pale,root);
+  for(const x of [-.72,.72])for(const z of [-.28,.28])box("Fallback bed leg",x,.13,z,.08,.28,.08,M.dark,root);
+ }else if(p.assetKey==="pt-storage-cabinet"){
+  box("Fallback cabinet",0,.55,0,.62,1.1,.48,M.wood2,root);
+  box("Fallback cabinet door",0,.55,.25,.54,.98,.025,M.wood,root);
+ }
+}
 function loadClinicAsset(p:Placed){
  const spec=p.assetKey?storeAssetSpecs[p.assetKey]:undefined;
  if(!spec)return;
@@ -281,7 +294,7 @@ function loadClinicAsset(p:Placed){
   const b=getBounds();
   chosen.setLocalPosition(holder.getPosition().x-(b.minX+b.maxX)/2,-b.minY,holder.getPosition().z-(b.minZ+b.maxZ)/2);
   holder.syncHierarchy();app.root.syncHierarchy();
- }).catch(error=>{console.error("Clinic store asset failed",spec.label,error);status.textContent="تعذر تحميل "+spec.label+"؛ تأكد من الاتصال ثم أعد المحاولة.";});
+ }).catch(error=>{console.error("Clinic store asset failed",spec.label,error);drawAssetFallback(p,spec);status.textContent="تم استخدام نموذج احتياطي لـ "+spec.label+" بسبب تعذر تحميل الأصل.";});
 }
 
 function save(){try{localStorage.setItem(saveKey,JSON.stringify({v:3,coins,xp,placed}));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
@@ -382,8 +395,8 @@ function canAvatarStand(x:number,z:number){
   }
   return rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey));
  });
- const patientBounds={x:1.55-.3,z:1.5-.3,w:.6,d:.6};
- return !roomBlocked&&!rectanglesOverlap(player,patientBounds);
+ // The patient is an interaction target, not a solid obstacle; the player must be able to approach the plinth.
+ return !roomBlocked;
 }
 function findWalkPath(sx:number,sz:number,tx:number,tz:number){
  const step=.5,cell=(v:number)=>Math.round(v/step),key=(x:number,z:number)=>x+","+z;
