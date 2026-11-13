@@ -17,27 +17,32 @@
 4. No nurses, employed doctors, cleaners, assistants or staff roster in the first release.
 5. Fresh accounts receive the same compact starter clinic: reception, one treatment room, clear internal passage, small green outdoor area and visible expansion space.
 6. Equipment can be placed inside room footprints without treating the room floor itself as an obstacle.
-7. Shared room doors are traversable; walls and furniture block movement appropriately.
+7. Shared room doors are traversable; walls, built-in furniture and placed equipment block movement appropriately.
 8. Starter clinic is visually coherent and not an oversized empty shell.
+9. Clinical session activation smoothly frames the treatment area; closing the session restores the overview.
+10. Session controls remain compact enough to leave a meaningful portion of the 3D world visible.
+11. Hidden build tabs/panels are actually hidden on first load and after category changes.
+12. Babylon.js is not a shipped dependency or build entry; PlayCanvas is the only runtime in the game build.
 
 ## First-slice acceptance
 1. App opens in usable portrait layout.
 2. Scene shows the standardized starter property without requiring a build step.
 3. Loading has recoverable asset errors and never spins indefinitely.
 4. Camera frames the starter clinic and a useful portion of its property on narrow phones.
-5. Pan and pinch zoom are stable and bounded.
-6. Tapping walkable floor moves the avatar toward the target.
-7. Avatar does not pass through walls, closed boundaries or furniture.
-8. Avatar can pass through intended room doorways and the internal reception/treatment connection.
-9. Grid aligns with the floor.
-10. Valid equipment placement updates occupancy and can occur inside rooms.
-11. Overlapping/out-of-bounds/path-blocking placement is rejected clearly.
-12. Rotation updates footprint correctly.
-13. Layout and coin balance survive reload.
-14. Invalid/unsupported saves fail safely and fall back to a clean starter state.
-15. Low graphics mode reduces costly effects and remains usable.
-16. Repeated scene entry/exit does not cause unbounded memory growth.
-17. No secrets or real student/patient data exist in repository.
+5. Pan and pinch zoom are stable, bounded and damped rather than snapping.
+6. Long frame stalls do not teleport the avatar.
+7. Tapping walkable floor moves the avatar toward the target.
+8. Avatar does not pass through walls, closed boundaries, built-in furniture or placed furniture.
+9. Avatar can pass through intended room doorways and the internal reception/treatment connection.
+10. Grid aligns with the floor.
+11. Valid equipment placement updates occupancy and can occur inside rooms.
+12. Overlapping/out-of-bounds/path-blocking placement is rejected clearly.
+13. Rotation updates footprint correctly.
+14. Layout and coin balance survive reload.
+15. Invalid, duplicated, out-of-bounds or unsupported save records are ignored safely; unrecoverable saves fall back to a clean starter clinic.
+16. Low graphics mode reduces costly effects and remains usable.
+17. Repeated scene entry/exit does not cause unbounded memory growth.
+18. No secrets or real student/patient data exist in repository.
 
 ## Performance conditions
 Test at least one real entry-level Android phone and one stronger device. Record exact models and browser versions. Test cold and warm cache, constrained network where possible, and a sustained three-minute interaction loop.
