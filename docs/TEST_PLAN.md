@@ -11,24 +11,21 @@
 - Clinical review: educator validation of case facts, red flags, reasoning paths and feedback before publication.
 
 ## Product scope checks
-1. Only the player physiotherapist is an employed/active clinic character in the first release.
-2. Patients appear as visitors/case characters.
-3. One optional receptionist may be hired later; no receptionist NPC is required for the first playable slice.
-4. No nurses, employed doctors, cleaners, assistants or staff roster in the first release.
-5. Every fresh account receives a 14 m × 28 m portrait-oriented green property with one 4 m × 4 m treatment room only, one treatment table and one storage unit. The rest of the property remains open for player-built expansion.
-6. Grass covers the unbuilt outdoor land around the clinic; no grass, trees or shrubs may appear inside any constructed room.
-7. Do not prebuild reception/waiting rooms or pave the entire property. The player builds these facilities as the clinic grows.
-8. The starter treatment room loads the individual licensed physiotherapy treatment-table and storage-cabinet GLB objects; it must not scale an entire hospital-room scene into a single prop.
-9. Equipment can be placed inside room footprints without treating the room floor itself as an obstacle.
-10. Room wall rendering and navigation collision must derive from the same wall/door dimensions.
-11. The outside property hedge, trees and planters are collision obstacles; the avatar cannot pass through the plot boundary.
-12. Babylon.js is not a shipped dependency or build entry; PlayCanvas is the only runtime in the game build.
-13. Portrait toolbar remains visible with large touch controls; management and build panels never cover the selected room-drawing area.
-14. The player can drag on the ground to draw rooms of different rectangular sizes; cost, bounds and collision use the same dimensions as the rendered walls and floor.
-15. The management clock pauses and advances at 1×, 2× and 3× without frame-rate-dependent game time.
-16. Patients arrive only when the clinic has a reception; the queue reflects registration, waiting, assessment, treatment and discharge/left states.
-17. Reception staffing, physiotherapist availability, staff energy/breaks, hourly payroll, patient patience, revenue and reputation visibly affect the simulation.
-18. Hiring staff and building rooms updates the same saved management state and wallet; reload must preserve staff, rooms, patients, money and simulation time.
+
+1. The player physiotherapist is the only clinical worker character.
+2. Patients appear as visitors with individual fictional cases.
+3. One optional receptionist can be purchased only after three completed patient sessions; it is never required to open the clinic.
+4. No recruitable physiotherapists, nurses, employed doctors, rehabilitation assistants, cleaners, staff roster, payroll, energy, morale, breaks or staff rooms.
+5. A fresh clinic begins on the 14 m × 28 m landscaped property with one 4 m × 4 m treatment room, one treatment table and one storage unit.
+6. Grass remains on unbuilt outdoor land; room flooring appears only inside built rooms.
+7. The player builds reception, assessment and exercise rooms as progression requires.
+8. Licensed GLB physiotherapy and reception assets load independently with fallbacks.
+9. Patients arrive after clinic opening, queue, wait, begin a player-led session and leave after completion.
+10. Patient patience, reputation, session income and XP update consistently.
+11. The receptionist upgrade costs one-time coins, unlocks after three completed sessions and persists after reload.
+12. Pause and 1×/2×/3× controls advance simulation time deterministically.
+13. Variable-size room drawing, cost, bounds, collision and rendered walls use the same dimensions.
+14. Save/reload preserves rooms, patient queue, currency, receptionist unlock, clinic time and progression.
 
 ## Management-game acceptance
 1. App opens in usable portrait layout and the property, constructed rooms and active characters remain visible at the initial camera zoom.
