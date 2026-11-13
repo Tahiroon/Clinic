@@ -274,14 +274,36 @@ function canAvatarStand(x:number,z:number){
  const player={x:x-r,z:z-r,w:r*2,d:r*2};
  const boundary=[{x:-HALF,z:-HALF,w:W,d:.22},{x:-HALF,z:HALF-.22,w:W,d:.22},{x:-HALF,z:-HALF,w:.22,d:D},{x:HALF-.22,z:-HALF,w:.22,d:D}];
  if(boundary.some(w=>rectanglesOverlap(player,w)))return false;
- return !placed.some(p=>{
+ const roomBlocked=placed.some(p=>{
   if(p.kind==="treatment"||p.kind==="reception"||p.kind==="gym"){
    const x=p.gx,z=p.gz;
-   const walls=[{x:x,z:z+2.9,w:4,d:.16},...(p.id===2?[]:[{x:x,z:z,w:.16,d:4}]),...(p.id===1?[{x:x+3.9,z:z,w:.16,d:1.3},{x:x+3.9,z:z+2.7,w:.16,d:1.3}]:[{x:x+3.9,z:z,w:.16,d:4}]),{x:x+1,z:z-.05,w:.3,d:.14},{x:x+2.7,z:z-.05,w:1.3,d:.14}];
-   return walls.some(w=>rectanglesOverlap(player,w));
+   // Match the collision rectangles to the actual room geometry (root is offset by +1,+1).
+   const walls=[
+    {x:x,z:z+3.9,w:4,d:.16},
+    ...(p.id===2?[]:[{x:x,z:z,w:.16,d:4}]),
+    ...(p.id===1?[
+     {x:x+3.9,z:z+.65,w:.16,d:1.3},
+     {x:x+3.9,z:z+3.35,w:.16,d:.65}
+    ]:[{x:x+3.9,z:z,w:.16,d:4}]),
+    {x:x+1.15,z:z-.05,w:.3,d:.14},
+    {x:x+3.35,z:z-.05,w:1.3,d:.14}
+   ];
+   if(walls.some(w=>rectanglesOverlap(player,w)))return true;
+   // Built-in furniture must block walking just like furniture placed by the learner.
+   const furniture: {x:number;z:number;w:number;d:number}[] = p.kind==="reception"?[
+    {x:x+.3,z:z+3.025,w:1.8,d:.65}, // reception counter
+    {x:x+1.175,z:z+1.89,w:.65,d:.62}, // waiting seat
+    {x:x+1.175,z:z+2.84,w:.65,d:.62}  // waiting seat
+   ]:p.kind==="treatment"?[
+    {x:x+1.925,z:z+2.0,w:2.05,d:.9}, // treatment bed
+    {x:x+.975,z:z+3.125,w:.55,d:.55} // equipment cabinet
+   ]:[];
+   return furniture.some(w=>rectanglesOverlap(player,w));
   }
   return rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey));
  });
+ const patientBounds={x:1.55-.3,z:1.5-.3,w:.6,d:.6};
+ return !roomBlocked&&!rectanglesOverlap(player,patientBounds);
 }
 function findWalkPath(sx:number,sz:number,tx:number,tz:number){
  const step=.5,cell=(v:number)=>Math.round(v/step),key=(x:number,z:number)=>x+","+z;
