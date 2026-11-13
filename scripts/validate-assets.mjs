@@ -125,6 +125,10 @@ try {
   }
   console.log("✓ Staff, patient flow, economy and simulation controls are wired");
   console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
+  for (const required of ["syncStaffVisuals()", "waitingPatientVisuals", "loadHumanoid(characterAssets.student,root", "loadHumanoid(characterAssets.patient,root"]) {
+    if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
+  }
+  console.log("✓ Hired staff and waiting patients have visible character instances");
 
 } catch (error) {
   failed = true;
