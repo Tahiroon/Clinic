@@ -162,6 +162,16 @@ try {
   for (const required of ["roomDrawing=true", "updateRoomDrawPreview()", "buildRoom(management,roomType,b.x,b.z,b.w,b.d)", "managementSaveKey", "advanceSimulation(management,frameDt)"]) {
     if (!source.includes(required)) throw new Error("Playable management/build loop is missing " + required);
   }
+  if (/drawAssetFallback|Fallback prop ·/.test(source)) {
+    throw new Error("Store equipment must never silently substitute procedural fake models for the real GLB");
+  }
+  if (!/if\(patientNpc\.enabled&&patientTarget&&patientStepTarget\)/.test(source) ||
+      !/patientStepTarget=first\?new Vec3\(first\.x,0,first\.z\):null/.test(source) ||
+      !/transitionHumanoid\(patientRig,true\)/.test(source) ||
+      !/patientNpc\.setLocalPosition\(x,0,z\)/.test(source)) {
+    throw new Error("Patient movement routes must be executed with animated, collision-aware waypoint movement");
+  }
+  console.log("✓ Real GLB-only store placement and executable patient navigation are wired");
   console.log("✓ Player physiotherapist, patient flow, optional receptionist upgrade, economy and simulation controls are wired");
   console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
   if (!/addRoomWallRun\(root,"x",-halfW,width,halfD,"solid"\)/.test(source) ||
