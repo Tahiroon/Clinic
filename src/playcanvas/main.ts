@@ -28,7 +28,7 @@ const resize=()=>{
  app.resizeCanvas(w,h);
  // Keep the same vertical world scale on phones; only the horizontal visible span adapts.
  const aspect=w/h;
- desiredOrthoHeight=aspect<.48?13.6:aspect<.62?12.9:aspect<.82?12.2:11.8;
+ desiredOrthoHeight=aspect<.48?8.7:aspect<.62?9.2:aspect<.82?9.7:10.2;
  camera.camera!.orthoHeight=desiredOrthoHeight;
 };
 const queueResize=()=>{
@@ -60,8 +60,8 @@ function cone(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:numb
 const camera=new pc.Entity("Portrait isometric camera");
 camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:12.9,clearColor:new pc.Color(.69,.79,.80),nearClip:.1,farClip:150});
 const cameraTarget=new pc.Vec3(0,0,0),cameraGoal=new pc.Vec3(0,0,0);
-camera.setPosition(5.3,15,-14.5);camera.lookAt(cameraTarget);app.root.addChild(camera);
-let desiredOrthoHeight=12.9;
+camera.setPosition(3.5,21.5,-15);camera.lookAt(cameraTarget);app.root.addChild(camera);
+let desiredOrthoHeight=8.7;
 const light=new pc.Entity("Soft daylight");
 light.addComponent("light",{type:"directional",intensity:1.15,castShadows:false});
 light.setEulerAngles(48,25,0);app.root.addChild(light);
@@ -75,7 +75,7 @@ tapMarker.setLocalScale(.34,.035,.34);
 tapMarker.enabled=false;
 world.addChild(tapMarker);
 
-const GRID=1, W=5.2, D=12, HALF_X=W/2, HALF_Z=D/2;
+const GRID=1, W=6.5, D=14, HALF_X=W/2, HALF_Z=D/2;
 const floorBase=material(new pc.Color(.34,.49,.35));
 const grassAlt=material(new pc.Color(.38,.53,.38));
 const pathMat=material(new pc.Color(.72,.68,.57));
@@ -85,22 +85,22 @@ const trim=material(new pc.Color(.10,.39,.47));
 const roofAccent=material(new pc.Color(.16,.28,.38));
 // A narrow, deep property is intentionally composed for a portrait isometric camera.
 box("Owned landscaped property",0,-.22,0,W,.42,D,floorBase,world);
-box("Entrance walk",0,.005,-5.08,1.45,.045,1.95,pathMat,world);
-for(let i=0;i<5;i++)box("Entrance stepping stone",0,.055,-5.78+i*.34,1.16,.035,.25,pathEdge,world);
+box("Entrance walk",0,.005,-5.95,1.65,.045,2.65,pathMat,world);
+for(let i=0;i<6;i++)box("Entrance stepping stone",0,.055,-6.78+i*.37,1.30,.035,.27,pathEdge,world);
 box("Entrance apron",0,.045,-4.12,2.8,.08,.65,pathMat,world);
 // Low perimeter edging defines this starter plot while leaving the land visibly expandable.
-for(const [x,z,sx,sz] of [[0,-5.88,5.0,.16],[0,5.88,5.0,.16],[-2.52,0,.16,11.6],[2.52,0,.16,11.6]] as [number,number,number,number][]){
+for(const [x,z,sx,sz] of [[0,-6.86,6.3,.18],[0,6.86,6.3,.18],[-3.17,0,.18,13.7],[3.17,0,.18,13.7]] as [number,number,number,number][]){
  box("Property boundary edging",x,.17,z,sx,.34,sz,trim,world);
 }
 // Trees and planting remain outdoors; their crowns use layered low-poly cones rather than primitive balls.
-for(const [x,z] of [[-2.05,-5.12],[2.05,-5.12],[-2.05,5.15],[2.05,5.15]] as [number,number][]){
- cylinder("Garden tree trunk",x,.67,z,.13,1.34,.13,M.wood,world);
- cone("Garden tree lower crown",x,1.38,z,.92,1.25,.92,M.green,world);
- cone("Garden tree upper crown",x,2.0,z,.68,1.05,.68,grassAlt,world);
+for(const [x,z] of [[-2.72,-6.0],[2.72,-6.0],[-2.72,6.05],[2.72,6.05]] as [number,number][]){
+ cylinder("Garden tree trunk",x,.72,z,.16,1.44,.16,M.wood,world);
+ cone("Garden tree lower crown",x,1.48,z,1.02,1.36,1.02,M.green,world);
+ cone("Garden tree upper crown",x,2.18,z,.76,1.12,.76,grassAlt,world);
 }
-for(const [x,z] of [[-2.22,-2.0],[2.22,-1.1],[-2.22,1.4],[2.22,2.7]] as [number,number][]){
- box("Outdoor planter",x,.16,z,.45,.32,.72,M.wood2,world);
- cone("Planter shrub",x,.62,z,.36,.78,.36,M.green,world);
+for(const [x,z] of [[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]] as [number,number][]){
+ box("Outdoor planter",x,.18,z,.48,.36,.78,M.wood2,world);
+ cone("Planter shrub",x,.66,z,.40,.82,.40,M.green,world);
 }
 // The clinic identity is fixed to the entrance facade, not floating in the middle of the lawn.
 box("THERASON entrance sign",0,2.55,-4.13,2.0,.46,.12,trim,world);
@@ -640,7 +640,7 @@ function screenToGround(clientX:number,clientY:number){
 }
 let pointerStart:{x:number;y:number;cx:number;cz:number;tx:number;tz:number}|null=null,dragged=false;const activePointers=new Map<number,{x:number;y:number}>();let pinchDistance=0,pinchHeight=0;
 canvas.addEventListener("pointerdown",e=>{activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size===2){const pts=[...activePointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);pinchHeight=desiredOrthoHeight;pointerStart=null;dragged=true;}else{pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraGoal.x,tz:cameraGoal.z};dragged=false;}canvas.setPointerCapture(e.pointerId);});
-canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(9.5,Math.min(18,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraGoal.set(Math.max(-4.5,Math.min(4.5,pointerStart.tx+shiftX)),0,Math.max(-4,Math.min(4,pointerStart.tz+shiftZ)));}});
+canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(7.2,Math.min(14,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraGoal.set(Math.max(-2.2,Math.min(2.2,pointerStart.tx+shiftX)),0,Math.max(-5.8,Math.min(5.8,pointerStart.tz+shiftZ)));}});
 canvas.addEventListener("pointerup",e=>{
  activePointers.delete(e.pointerId);if(activePointers.size<2)pinchDistance=0;
  if(!pointerStart){
@@ -689,7 +689,7 @@ document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEve
 document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEventListener("click",()=>selectAsset(b.dataset.asset??"")));
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";el("#catalog-furniture").hidden=cat!=="furniture";if(cat==="structure")selectBuild("wall");else if(cat==="rooms")selectBuild("reception");else selectAsset("pt-treatment-table");}));
 el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;status.textContent="اتجاه الحائط الآن "+(wallRotation===0?"أفقي":"رأسي")+". اختر الخلية التالية.";});
-viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?8.5:(window.innerWidth/window.innerHeight<.48?13.6:12.9);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
+viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:(window.innerWidth/window.innerHeight<.48?8.7:9.2);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
 let sessionStep=0,sessionScore=0;
 const steps=[
  {title:"استقبال المريض",intro:"وصل مريض جديد إلى عيادتك. ابدأ الجلسة بخطوة آمنة ومنظمة.",question:"ما أول خطوة مناسبة؟",options:[["safe","التحقق من علامات الخطر وأخذ التاريخ المرضي",true,"اختيار ممتاز. سلامة المريض وجمع المعلومات يسبقان أي تدخل."],["exercise","بدء التمارين مباشرة",false,"لا تبدأ التدخل قبل فهم الحالة والتحقق من علامات الخطر."],["diagnosis","تحديد التشخيص النهائي فوراً",false,"المعلومات الحالية لا تكفي لتشخيص نهائي. ابدأ بالتقييم."]]},
@@ -700,7 +700,7 @@ const steps=[
 ];
 function renderStep(){const s=steps[sessionStep];el("#session-step").textContent="الجلسة التعليمية · "+(sessionStep+1)+" من 5";el("#session-title").textContent=s.title;el("#session-intro").textContent=s.intro;el("#session-question").textContent=s.question;el("#session-feedback").textContent="اختر إجابتك لتحصل على تغذية راجعة.";el<HTMLButtonElement>("#session-next").disabled=true;el("#session-next").textContent=sessionStep===4?"إنهاء الجلسة":"التالي";el("#session-options").innerHTML=s.options.map(o=>'<button type="button" data-session-choice="'+o[0]+'">'+o[1]+"</button>").join("");document.querySelectorAll<HTMLButtonElement>("[data-session-choice]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-session-choice]").forEach(x=>{(x as HTMLButtonElement).disabled=true;});b.classList.add("chosen");const option=s.options.find(o=>o[0]===b.dataset.sessionChoice)!;if(option[2])sessionScore++;el("#session-feedback").textContent=option[3] as string;el<HTMLButtonElement>("#session-next").disabled=false;}));}
 sessionBtn.addEventListener("click",()=>{sessionStep=0;sessionScore=0;focus=true;cameraGoal.set(0,0,2.0);desiredOrthoHeight=8.5;viewBtn.classList.add("active");renderStep();sessionDialog.showModal();});
-sessionDialog.addEventListener("close",()=>{focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=window.innerWidth/window.innerHeight<.48?13.6:12.9;viewBtn.classList.remove("active");});
+sessionDialog.addEventListener("close",()=>{focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=window.innerWidth/window.innerHeight<.48?8.7:9.2;viewBtn.classList.remove("active");});
 el<HTMLButtonElement>("#session-next").addEventListener("click",()=>{if(sessionStep<4){sessionStep++;renderStep();}else{const earned=sessionScore*8;xp+=sessionScore*10;coins+=earned;coinsLabel.textContent=String(coins);el("#experience").textContent=xp+" XP";el("#experience-text").textContent="أكملت جلستك بنتيجة "+sessionScore+" من 5. استمر في تطوير مهاراتك.";el("#session-title").textContent="أحسنت! انتهت الجلسة";el("#session-step").textContent="ملخص الجلسة التعليمية";el("#session-intro").textContent="هذه محاكاة تعليمية وليست تقييماً سريرياً حقيقياً.";el("#patient-brief").innerHTML="<b>نتيجتك: "+sessionScore+" / 5</b><span>عملات مكتسبة: "+earned+"</span><span>خبرة مكتسبة: "+(sessionScore*10)+" XP</span>";el("#session-question").textContent="تذكّر: سلامة المريض والتفكير المنظم وإعادة التقييم أساس الممارسة.";el("#session-options").innerHTML="";el("#session-feedback").textContent="يمكنك العودة إلى عيادتك وتطويرها.";el<HTMLButtonElement>("#session-next").disabled=false;el("#session-next").textContent="العودة إلى العيادة";el<HTMLButtonElement>("#session-next").onclick=()=>{save();sessionDialog.close();};save();}});
 load();coinsLabel.textContent=String(coins);
 let locomotionState="";
@@ -720,7 +720,7 @@ app.on("update",(dt:number)=>{
  cameraTarget.x+=(cameraGoal.x-cameraTarget.x)*cameraAlpha;
  cameraTarget.z+=(cameraGoal.z-cameraTarget.z)*cameraAlpha;
  camera.camera!.orthoHeight+=(desiredOrthoHeight-camera.camera!.orthoHeight)*cameraAlpha;
- camera.setPosition(cameraTarget.x+(focus?3.7:5.3),focus?12:15,cameraTarget.z+(focus?-10.2:-14.5));
+ camera.setPosition(cameraTarget.x+(focus?2.0:3.5),focus?16:21.5,cameraTarget.z+(focus?-8.0:-15));
  camera.lookAt(cameraTarget);
  if(!target)return;
  const p=avatar.getLocalPosition().clone(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
