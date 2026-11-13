@@ -321,10 +321,18 @@ function createFallbackHumanoid(parent:pc.Entity,kind:"student"|"patient"):Fallb
    }
    anim.activate=true;
   }
-  const idle=names.find(n=>/idle|stand|rest/i.test(n))??names[0]??"";
-  const walk=names.find(n=>/walk|walking/i.test(n))??names.find(n=>/run|jog/i.test(n))??idle;
+  const idle=names.find(n=>/idle|stand|rest/i.test(n))??"";
+  const walk=names.find(n=>/walk|walking/i.test(n))??names.find(n=>/run|jog/i.test(n))??"";
+  if(!idle||!walk||!anim?.baseLayer){
+   console.error("Character has no usable idle/walk state graph; keep the animated fallback visible",url,{clips:names});
+   model.destroy();return;
+  }
+  try{anim.baseLayer.play(idle);anim.speed=1;}
+  catch(error){
+   console.error("Character idle state failed; keep the animated fallback visible",url,error);
+   model.destroy();return;
+  }
   const rig:HumanoidRig={entity:model,anim,clips:names,idle,walk};
-   if(idle&&anim?.baseLayer){try{anim.baseLayer.play(idle);}catch(error){console.warn("Idle animation could not start",error);}}
   if(onReady)onReady(rig);
   console.info("Clinic character ready",url,{height,clips:names,idle,walk});
  });
