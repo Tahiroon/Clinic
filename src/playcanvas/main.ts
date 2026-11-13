@@ -282,11 +282,11 @@ function canAvatarStand(x:number,z:number){
     {x:x,z:z+3.9,w:4,d:.16},
     ...(p.id===2?[]:[{x:x,z:z,w:.16,d:4}]),
     ...(p.id===1?[
-     {x:x+3.9,z:z+.65,w:.16,d:1.3},
-     {x:x+3.9,z:z+3.35,w:.16,d:.65}
+     {x:x+3.9,z:z,w:.16,d:1.3},
+     {x:x+3.9,z:z+2.7,w:.16,d:1.3}
     ]:[{x:x+3.9,z:z,w:.16,d:4}]),
-    {x:x+1.15,z:z-.05,w:.3,d:.14},
-    {x:x+3.35,z:z-.05,w:1.3,d:.14}
+    {x:x+1,z:z-.05,w:.3,d:.14},
+    {x:x+2.7,z:z-.05,w:1.3,d:.14}
    ];
    if(walls.some(w=>rectanglesOverlap(player,w)))return true;
    // Built-in furniture must block walking just like furniture placed by the learner.
