@@ -1,28 +1,41 @@
 # THERASON CLINIC
 
-A standalone, mobile-first 3D clinical learning simulator for physiotherapy students.
-
-## Project status
-
-Early development. The first milestone is an evidence-based engine evaluation and a small mobile vertical slice.
-
-## Working agreement
-
-- All development work takes place on `clinic-dev`.
-- `main` is the protected baseline; no development changes are made there after this bootstrap commit.
-- No integration with the production THERASON platform or Supabase until the architecture, security boundaries, and integration plan are reviewed and approved.
-- Engine selection (PlayCanvas vs Babylon.js) will be based on comparable prototypes and measured results, including tests on a real low-end Android device.
+A portrait-first mobile clinic-management and physiotherapy simulation game.
 
 ## Product direction
 
-The simulator combines clinic ownership and progression with realistic, guided physiotherapy clinical experiences. Its educational core emphasizes assessment, clinical reasoning, justified decision-making, treatment planning, patient response, and reassessment.
+Build and expand a rehabilitation clinic, manage its small economy and patient flow, and personally act as the physiotherapist during evidence-informed clinical encounters. The broad inspiration is the readable isometric management experience of Two Point Hospital, with an original THERASON identity and no copied assets, characters, interface or layouts.
 
-## Initial experience
+## Initial character scope
 
-- Portrait-first, isometric, stylized 3D.
-- An open-roof clinic with a reception area and one treatment room.
-- A customizable avatar with tap-to-move navigation.
-- Grid-based placement with collision and space validation.
-- Lightweight assets, scalable quality settings, and offline-friendly design.
+- One player character: the physiotherapist.
+- One optional purchasable receptionist, planned after the core scene is stable.
+- Patients are visitors/case characters.
+- No nurses, employed doctors, cleaners, assistants or large staff roster in the first release.
 
-See the project documentation on `clinic-dev` for the game design, architecture, engine evaluation, and test plan.
+## Starter clinic
+
+Every learner begins with the same compact, polished clinic and initial property footprint: reception/waiting area, one treatment room, clear circulation, a modest outdoor green area and visible room/land expansion opportunities. Personalization begins with equipment, furniture and decor; larger spaces unlock progressively.
+
+## Technical direction
+
+- Single 3D runtime: PlayCanvas.
+- Portrait-first, isometric-style orthographic camera.
+- Lightweight UI, optimized GLB assets, progressive loading and local-first saves.
+- Designed for low-end Android and unreliable connectivity.
+- Clinical cases are versioned data, separate from the 3D runtime, and require qualified review.
+
+## Working agreement
+
+- All development takes place on `clinic-dev`.
+- `main` remains untouched unless the owner explicitly approves a merge.
+- Keep the clinic independently deployable; do not connect production THERASON or Supabase until the security and integration design is approved.
+- Measure performance on real Android devices; do not claim performance targets are achieved before testing.
+
+## Documentation
+
+- `docs/PRODUCT_VISION_2.0.md` — master product direction.
+- `docs/GAME_DESIGN.md` — approved gameplay direction.
+- `docs/ARCHITECTURE.md` — runtime and technical architecture.
+- `docs/ENGINE_EVALUATION.md` — engine decision and upgrade policy.
+- `docs/TEST_PLAN.md` — validation and device-test requirements.
