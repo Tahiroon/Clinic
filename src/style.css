@@ -235,3 +235,8 @@ button{font:inherit;touch-action:manipulation}
 @media(min-width:700px){
  .mission-card{top:94px;left:18px;right:auto;margin:0;width:390px}
 }
+
+.mission-actions{display:flex;flex-direction:column;align-items:stretch;gap:4px;flex:none}
+#start-tour:disabled{opacity:.68;cursor:default;filter:saturate(.65)}
+#skip-tour{border:0;background:transparent;color:#9bb4ca;font-size:9px;padding:2px 8px;min-height:18px}
+@media(max-width:360px){.mission-actions{gap:2px}#skip-tour{font-size:8px}}
