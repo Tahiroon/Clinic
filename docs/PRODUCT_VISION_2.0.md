@@ -88,7 +88,7 @@ No staff roster, hiring screen, staff energy, morale, payroll, break schedules, 
 - One controllable physiotherapist avatar is the only clinic worker in the initial release.
 - Patients arrive after the clinic opens, register, wait, move to the appropriate room, complete a player-led clinical session, then leave.
 - Patients have a fictional case, patience, mood and readable queue status. Excessive waiting can reduce patience and reputation.
-- The receptionist upgrade shortens registration/queue friction but does not provide clinical care.
+- Before buying the receptionist, the player manually registers each arrival from the patient queue; after purchase, the receptionist handles registration automatically and shortens queue friction. The receptionist does not provide clinical care.
 - Begin with a small visible patient population and a strict mobile-friendly active-character cap.
 - Use authored idle/walk animations and obstacle-aware navigation. Distant/off-screen characters can be simplified or paused.
 - Movement must respect room walls, doors, furniture and walkable areas.
