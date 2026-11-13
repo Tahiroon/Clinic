@@ -6,16 +6,13 @@ A portrait-first mobile clinic-management and physiotherapy simulation game.
 
 Build and expand a rehabilitation clinic, manage its small economy and patient flow, and personally act as the physiotherapist during evidence-informed clinical encounters. The broad inspiration is the readable isometric management experience of Two Point Hospital, with an original THERASON identity and no copied assets, characters, interface or layouts.
 
-## Initial character scope
+## Management gameplay
 
-- One player character: the physiotherapist.
-- One optional purchasable receptionist, planned after the core scene is stable.
-- Patients are visitors/case characters.
-- No nurses, employed doctors, cleaners, assistants or large staff roster in the first release.
+The player owns and manages a physiotherapy clinic. Recruit physiotherapists, rehabilitation assistants, receptionists and cleaners; build and furnish functional rooms; manage patient arrivals, waiting queues, assessment, treatment, staff energy, morale, payroll, reputation and clinic growth. The player can personally take over clinical cases.
 
 ## Starter clinic
 
-Every learner begins on a generous 14 m × 28 m green property with one treatment room and essential equipment. The surrounding land stays open for player-built expansion: additional treatment rooms, reception, waiting and exercise facilities are added gradually. Outdoor grass surrounds the building; the whole property is never paved or tiled.
+The campaign begins with a generous 14 m × 28 m landscaped property, starter capital and a build-your-own-clinic objective. The player constructs reception, assessment, treatment and exercise spaces, hires a small team and opens the clinic. All unbuilt land remains outdoor grass; floors and walls appear only inside constructed rooms.
 
 ## Technical direction
 
