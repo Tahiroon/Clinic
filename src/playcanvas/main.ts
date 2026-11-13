@@ -405,7 +405,7 @@ function loadRoomModule(parent:pc.Entity,file:string,x:number,y:number,z:number,
  }).catch(error=>{
   console.warn("Room module fallback:",file,error);
   if(fallback==="floor")box("Fallback floor tile",x,y+.012,z,scaleX*2,.018,scaleZ*2,(Math.round(x+z)%2)?M.pale:M.room,parent);
-  else box("Fallback wall module",x,y+1.35,z,scaleX*2,2.7,scaleZ*.15,M.wallSide,parent);
+  else{const fallbackWall=box("Fallback wall module",x,y+1.35,z,scaleX*2,2.7,scaleZ*.15,M.wallSide,parent);fallbackWall.setLocalEulerAngles(0,rotation,0);}
  });
 }
 function addRoomWallRun(parent:pc.Entity,axis:"x"|"z",start:number,length:number,fixed:number,kind:"solid"|"glazed"){
