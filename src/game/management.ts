@@ -10,7 +10,7 @@ export interface ClinicRoom {
 }
 export interface ClinicEvent {id:number;minute:number;kind:"arrival"|"warning"|"income"|"treatment"|"milestone";message:string;}
 export interface ManagementState {
-  version:2;day:number;minuteOfDay:number;speed:0|1|2|3;clinicOpen:boolean;
+  version:3;day:number;minuteOfDay:number;speed:0|1|2|3;clinicOpen:boolean;
   balance:number;reputation:number;experience:number;treated:number;arrivals:number;
   receptionistOwned:boolean;patients:ClinicPatient[];rooms:ClinicRoom[];events:ClinicEvent[];
   nextPatientId:number;nextRoomId:number;nextEventId:number;arrivalAccumulator:number;
@@ -29,7 +29,7 @@ const CASES=[
 ];
 const NAMES=["مريم","أحمد","سارة","محمد","آمنة","يوسف","هدى","عمر","سلمى","خالد","إسراء","مصطفى"];
 export function createInitialManagementState():ManagementState{
- return {version:2,day:1,minuteOfDay:8*60,speed:1,clinicOpen:false,balance:3200,reputation:50,experience:0,treated:0,arrivals:0,receptionistOwned:false,
+ return {version:3,day:1,minuteOfDay:8*60,speed:1,clinicOpen:false,balance:3200,reputation:50,experience:0,treated:0,arrivals:0,receptionistOwned:false,
  patients:[],rooms:[{id:1,type:"treatment",x:-2,z:-2,width:4,depth:4,prestige:1,open:true,capacity:1}],events:[{id:1,minute:480,kind:"milestone",message:"غرفة العلاج الأولى جاهزة. ابنِ الاستقبال وغرفة التقييم ووسّع عيادتك."}],
  nextPatientId:1,nextRoomId:2,nextEventId:2,arrivalAccumulator:0};
 }
