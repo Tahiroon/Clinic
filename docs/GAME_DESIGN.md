@@ -171,3 +171,12 @@ Do not expand content until:
 
 No staff roster, recruitable physiotherapists, nurses, employed doctors, rehabilitation assistants, cleaners, payroll, staff energy/morale/break systems, staff rooms, large crowd simulation, multiplayer editing, chat, trading, real patient records, photorealism or unrelated hospital departments.
 
+
+
+## Real equipment marketplace
+
+The clinic shop is a data-driven catalog backed by the exact bundled GLB assets used by placement. Every catalog entry declares its source file, verified node (or full scene), price, footprint, target scale, category, intended room and clinical/use description. The catalog is split into physiotherapy, assessment, mobility, furnishing, safety, finishing/decor, specialty expansion and ready-made kits. Search filters the active category without loading every model.
+
+The selected product is previewed as the same GLB scene/node used when it is placed. The player can rotate the selected item before placement. Product thumbnails are captured from a downsampled post-render frame only after a player inspects that product; the shop does not create a separate WebGL renderer or load every product at once. Uninspected products show a clear 3D-inspection prompt rather than a fake illustration.
+
+New stock includes wayfinding/signage, clinic amenities, patient-bed bay, lab and imaging expansion sets, plus interior partitions, door leaf and floor tile modules. These are optional expansions: specialist suites and large kits require a suitable built room and enough floor area. All new models remain lazy-loaded through the shared container cache, and the original asset-source/license notices stay with the bundled GLBs.
