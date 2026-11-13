@@ -14,19 +14,22 @@ The broad inspiration is the readable isometric management experience of Two Poi
 4. Learn through justified decisions, evidence, feedback and reassessment.
 5. Progress through new spaces, equipment, case series and challenges.
 
-## Strict character scope for the first release
-- One player avatar: the physiotherapist. The player personally welcomes, assesses and treats patients.
-- One optional purchasable/hireable receptionist. The receptionist is non-clinical and helps organize appointments and arrivals.
-- No nurses, employed doctors, cleaners, assistants or other staff roles in the first release.
-- Patients are visitors/case characters, not employees.
-- The starter clinic works fully without hiring a receptionist.
+## Workforce and character simulation
+The player is the clinic owner-manager and can personally treat patients. Staff management is part of the first playable game, with four physiotherapy-appropriate roles: physiotherapists, rehabilitation assistants, receptionists and cleaners. Each staff member has a visible character, skill, energy, morale, wage, task and room assignment. The player recruits, assigns, trains and manages breaks. Patients are independent visitors with needs, patience, mood and a multi-stage clinic journey. Avoid hospital roles that do not belong in a physiotherapy clinic.
 
 ## Starter property and player-built clinic
-All players begin on the same generous 14 m × 28 m property, composed for portrait play. The land is continuous green outdoor space with a clear entrance path and landscaping around the edges. The only prebuilt interior is one compact 4 m × 4 m treatment room with one treatment table and one storage unit.
+All players begin with a generous 14 m × 28 m property, starter capital and a guided campaign. The main campaign begins with open landscaped land: the player draws/builds reception, assessment and treatment rooms, places required furniture and equipment, hires the first team, then opens the clinic. A separate tutorial can pre-place one room to teach movement. Room floors and walls belong only to constructed rooms; unbuilt land remains outdoor lawn.
 
-Do not spawn a finished reception/waiting wing or pave the whole property with clinic tiles. The player builds the clinic gradually: additional treatment rooms, reception, waiting, exercise areas and specialist facilities are constructed on the open property as progression permits. Floors and walls belong to player-built rooms only; all unbuilt land remains outdoor lawn.
+## Core management loop
+1. Plan room layout and corridors; build rooms from functional blueprints.
+2. Furnish rooms with required equipment and optional prestige/comfort items.
+3. Recruit staff with different skill levels, wages, energy and morale.
+4. Open the clinic; patients arrive, register, wait, receive assessment, treatment and discharge.
+5. Watch queues, staff workload, patient patience, comfort, reputation, income and expenses.
+6. Resolve bottlenecks by adding rooms, staff, equipment, seating, amenities or training.
+7. Complete campaign objectives and unlock specialist rehabilitation services.
 
-The starter state should look like the beginning of a clinic-development game, not a completed miniature hospital.
+Patient journey must be visible in the world and represented in management data. Patients can become dissatisfied or leave if waiting too long. Staff need breaks; low energy reduces performance. Room prestige and comfort affect patient satisfaction and staff morale. The simulation must continue at controllable 1×/2×/3× speed and pause instantly.
 
 ## World and expansion
 The clinic begins on an open 14 m × 28 m property with substantial lawn around the first treatment room. Players first construct rooms and facilities within this property, then may unlock or purchase adjacent land parcels using in-game progression and currency. Expansion can add rooms, wings or separate buildings, plus outdoor paths, trees, benches, signs, parking and a rehabilitation garden. Later specialist spaces may include a larger exercise gym, sports rehabilitation, balance/mobility facilities, and other justified facilities.
