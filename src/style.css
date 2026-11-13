@@ -240,3 +240,38 @@ button{font:inherit;touch-action:manipulation}
 #start-tour:disabled{opacity:.68;cursor:default;filter:saturate(.65)}
 #skip-tour{border:0;background:transparent;color:#9bb4ca;font-size:9px;padding:2px 8px;min-height:18px}
 @media(max-width:360px){.mission-actions{gap:2px}#skip-tour{font-size:8px}}
+
+
+/* Clinic-management game layer: live operations, staff and patient flow. */
+.management-toggle{border:1px solid #2d728b;background:linear-gradient(145deg,#1b7890,#15546e);color:#fff;border-radius:10px;padding:7px 11px;font-weight:800;font-size:12px;min-height:34px}
+.scene-stats{flex-wrap:wrap;justify-content:flex-end;gap:5px}
+.management-panel{position:absolute;z-index:30;top:calc(env(safe-area-inset-top,0px) + 58px);right:8px;left:8px;bottom:calc(82px + env(safe-area-inset-bottom,0px));max-width:520px;margin-inline:auto;overflow:auto;overscroll-behavior:contain;border:1px solid #31516d;border-radius:18px;background:linear-gradient(160deg,#0b1c31f7,#102b43f7);box-shadow:0 18px 50px #0009;padding:14px;scrollbar-width:thin}
+.management-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.management-heading h2{font-size:17px;margin:3px 0;color:#f4f8ff}
+.management-heading small{color:#a9bfd3;font-size:11px}
+.management-heading>button{width:36px;height:36px;border-radius:10px;border:1px solid #ffffff22;background:#ffffff10;color:white;font-size:24px}
+.management-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:13px 0}
+.management-stats>div{background:#ffffff0a;border:1px solid #ffffff14;border-radius:11px;padding:9px 7px;min-width:0}
+.management-stats small,.management-stats b{display:block}
+.management-stats small{font-size:10px;color:#a9bfd3}
+.management-stats b{font-size:16px;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums}
+.time-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#ffffff0a;border-radius:12px;padding:9px;margin-bottom:12px}
+.time-controls>b{font-size:12px}
+.time-controls>div{display:flex;gap:5px}
+.time-controls button{border:1px solid #ffffff24;background:#ffffff0b;color:#dceafa;border-radius:8px;padding:7px 9px;font-size:11px}
+.time-controls button.selected{background:#176c83;border-color:#38b7cc;color:white}
+.management-section{border-top:1px solid #ffffff18;padding-top:11px;margin-top:11px}
+.management-section h3{font-size:13px;margin:0 0 8px;color:#dff5ff}
+.management-list{display:grid;gap:6px}
+.management-row{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#ffffff0a;border:1px solid #ffffff12;border-radius:10px;padding:8px 9px;font-size:11px}
+.management-row strong{display:block;color:#f3f7ff;font-size:12px}
+.management-row small{color:#a9bfd3;font-size:10px}
+.management-row .meter{height:5px;width:68px;border-radius:8px;background:#ffffff1b;overflow:hidden;margin-top:5px}
+.management-row .meter i{display:block;height:100%;background:#36b9a3}
+.hire-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
+.hire-grid button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:right;border:1px solid #2b536b;background:#14364d;color:#e8f6ff;border-radius:10px;padding:9px;font-size:11px;min-height:48px}
+.hire-grid button small{color:#f3cf80}
+.management-events{display:grid;gap:5px}
+.management-event{font-size:10px;line-height:1.5;color:#b9cce0;padding:6px 8px;border-right:2px solid #2994a8;background:#ffffff08;border-radius:5px}
+.empty-management{font-size:11px;color:#a9bfd3;margin:0;padding:10px;background:#ffffff08;border-radius:10px;line-height:1.6}
+@media(max-width:380px){.management-panel{left:5px;right:5px;padding:10px}.management-stats{gap:4px}.management-stats>div{padding:7px 5px}.management-stats b{font-size:14px}.time-controls{align-items:flex-start;flex-direction:column}}
