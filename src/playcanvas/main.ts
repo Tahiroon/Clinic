@@ -28,7 +28,7 @@ const resize=()=>{
  app.resizeCanvas(w,h);
  // Keep the same vertical world scale on phones; only the horizontal visible span adapts.
  const aspect=w/h;
- desiredOrthoHeight=aspect<.48?13.8:aspect<.62?13.2:aspect<.82?12.8:12.4;
+ desiredOrthoHeight=aspect<.48?13.6:aspect<.62?12.9:aspect<.82?12.2:11.8;
  camera.camera!.orthoHeight=desiredOrthoHeight;
 };
 const queueResize=()=>{
@@ -45,15 +45,28 @@ window.addEventListener("resize",queueResize,{passive:true});
 window.addEventListener("orientationchange",()=>window.setTimeout(queueResize,150),{passive:true});
 window.visualViewport?.addEventListener("resize",queueResize,{passive:true});
 window.visualViewport?.addEventListener("scroll",queueResize,{passive:true});
-app.scene.ambientLight=new pc.Color(.62,.68,.76);
+app.scene.ambientLight=new pc.Color(.76,.78,.80);
 function material(c:pc.Color){const m=new pc.StandardMaterial();m.diffuse=c;m.update();return m;}
 const M={ground:material(new pc.Color(.32,.48,.43)),tile:material(new pc.Color(.43,.59,.51)),grid:material(new pc.Color(.25,.4,.36)),room:material(new pc.Color(.78,.82,.79)),wall:material(new pc.Color(.88,.91,.86)),wallSide:material(new pc.Color(.53,.68,.69)),wood:material(new pc.Color(.48,.33,.23)),wood2:material(new pc.Color(.68,.49,.31)),teal:material(new pc.Color(.13,.48,.55)),blue:material(new pc.Color(.18,.35,.58)),pale:material(new pc.Color(.79,.9,.88)),green:material(new pc.Color(.2,.53,.36)),skin:material(new pc.Color(.7,.49,.36)),dark:material(new pc.Color(.1,.16,.21)),white:material(new pc.Color(.93,.94,.87)),yellow:material(new pc.Color(.85,.65,.27))};
-function box(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){const e=new pc.Entity(name);e.addComponent("model",{type:"box"});e.setPosition(x,y,z);e.setLocalScale(sx,sy,sz);e.model!.material=m;e.model!.castShadows=true;e.model!.receiveShadows=true;parent.addChild(e);return e;}
-function sphere(name:string,x:number,y:number,z:number,s:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){const e=new pc.Entity(name);e.addComponent("model",{type:"sphere"});e.setPosition(x,y,z);e.setLocalScale(s,s,s);e.model!.material=m;parent.addChild(e);return e;}
-const camera=new pc.Entity("Portrait isometric camera");camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:10,clearColor:new pc.Color(.55,.7,.72),nearClip:.1,farClip:150});const cameraTarget=new pc.Vec3(0,0,1.7),cameraGoal=new pc.Vec3(0,0,1.7);camera.setPosition(14.5,15,5.3);camera.lookAt(cameraTarget);app.root.addChild(camera);
-let desiredOrthoHeight=camera.camera!.orthoHeight;
-const light=new pc.Entity("Soft daylight");light.addComponent("light",{type:"directional",intensity:1.65,castShadows:true,shadowResolution:1024,shadowType:pc.SHADOW_PCF3,shadowDistance:32,normalOffsetBias:.035});light.setEulerAngles(48,35,0);app.root.addChild(light);
-const world=new pc.Entity("Clinic plot");app.root.addChild(world);
+function primitive(name:string,type:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){
+ const e=new pc.Entity(name);e.addComponent("model",{type});parent.addChild(e);e.setLocalPosition(x,y,z);e.setLocalScale(sx,sy,sz);
+ e.model!.material=m;e.model!.castShadows=false;e.model!.receiveShadows=false;return e;
+}
+function box(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){return primitive(name,"box",x,y,z,sx,sy,sz,m,parent);}
+function sphere(name:string,x:number,y:number,z:number,s:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){return primitive(name,"sphere",x,y,z,s,s,s,m,parent);}
+function cylinder(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){return primitive(name,"cylinder",x,y,z,sx,sy,sz,m,parent);}
+function cone(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,m:pc.StandardMaterial,parent:pc.Entity=app.root){return primitive(name,"cone",x,y,z,sx,sy,sz,m,parent);}
+const camera=new pc.Entity("Portrait isometric camera");
+camera.addComponent("camera",{projection:pc.PROJECTION_ORTHOGRAPHIC,orthoHeight:12.9,clearColor:new pc.Color(.69,.79,.80),nearClip:.1,farClip:150});
+const cameraTarget=new pc.Vec3(0,0,0),cameraGoal=new pc.Vec3(0,0,0);
+camera.setPosition(5.3,15,-14.5);camera.lookAt(cameraTarget);app.root.addChild(camera);
+let desiredOrthoHeight=12.9;
+const light=new pc.Entity("Soft daylight");
+light.addComponent("light",{type:"directional",intensity:1.15,castShadows:false});
+light.setEulerAngles(48,25,0);app.root.addChild(light);
+const world=new pc.Entity("Clinic property · portrait 3/4 world");
+world.setEulerAngles(0,10,0);app.root.addChild(world);world.syncHierarchy();app.root.syncHierarchy();
+const worldInverse=new pc.Mat4().invert(world.getWorldTransform() as pc.Mat4);
 const tapMarker=new pc.Entity("Tap destination marker");
 tapMarker.addComponent("model",{type:"cylinder"});
 tapMarker.model!.material=M.yellow;
@@ -61,36 +74,38 @@ tapMarker.setLocalScale(.34,.035,.34);
 tapMarker.enabled=false;
 world.addChild(tapMarker);
 
-const GRID=1, W=12, D=10, HALF_X=W/2, HALF_Z=D/2;
-const floorBase=material(new pc.Color(.34,.52,.37));
+const GRID=1, W=5.2, D=12, HALF_X=W/2, HALF_Z=D/2;
+const floorBase=material(new pc.Color(.34,.49,.35));
+const grassAlt=material(new pc.Color(.38,.53,.38));
 const pathMat=material(new pc.Color(.72,.68,.57));
 const pathEdge=material(new pc.Color(.48,.57,.47));
 const glass=material(new pc.Color(.28,.67,.76));
 const trim=material(new pc.Color(.10,.39,.47));
 const roofAccent=material(new pc.Color(.16,.28,.38));
-box("Owned clinic lawn",0,-.22,0,W,.42,D,floorBase,world);
-// The clinic sits on a clearly readable landscaped plot, with a modest expansion margin on every side.
-box("Front garden path",-2.0,.005,-2.75,1.8,.035,4.35,pathMat,world);
-box("Path left edging",-2.98,.025,-2.75,.09,.06,4.35,pathEdge,world);
-box("Path right edging",-1.02,.025,-2.75,.09,.06,4.35,pathEdge,world);
-box("Entrance apron",-2.0,.025,-.75,3.2,.06,1.0,pathMat,world);
-// A low perimeter hedge defines the maximum property without making the starting clinic feel boxed in.
-for(const [x,z,sx,sz] of [[0,-4.82,11.7,.28],[0,4.82,11.7,.28],[-5.82,0,.28,9.6],[5.82,0,.28,9.6]] as [number,number,number,number][]){
- box("Property hedge",x,.34,z,sx,.68,sz,M.green,world);
+// A narrow, deep property is intentionally composed for a portrait isometric camera.
+box("Owned landscaped property",0,-.22,0,W,.42,D,floorBase,world);
+box("Entrance walk",0,.005,-5.08,1.45,.045,1.95,pathMat,world);
+for(let i=0;i<5;i++)box("Entrance stepping stone",0,.055,-5.78+i*.34,1.16,.035,.25,pathEdge,world);
+box("Entrance apron",0,.045,-4.12,2.8,.08,.65,pathMat,world);
+// Low perimeter edging defines this starter plot while leaving the land visibly expandable.
+for(const [x,z,sx,sz] of [[0,-5.88,5.0,.16],[0,5.88,5.0,.16],[-2.52,0,.16,11.6],[2.52,0,.16,11.6]] as [number,number,number,number][]){
+ box("Property boundary edging",x,.17,z,sx,.34,sz,trim,world);
 }
-for(const [x,z] of [[-5.05,-3.75],[5.05,-3.75],[-5.05,4.25],[5.05,4.25]] as [number,number][]){
- box("Garden tree trunk",x,.72,z,.2,1.4,.2,M.wood,world);
- sphere("Garden tree canopy",x,1.72,z,.9,M.green,world);
+// Trees and planting remain outdoors; their crowns use layered low-poly cones rather than primitive balls.
+for(const [x,z] of [[-2.05,-5.12],[2.05,-5.12],[-2.05,5.15],[2.05,5.15]] as [number,number][]){
+ cylinder("Garden tree trunk",x,.67,z,.13,1.34,.13,M.wood,world);
+ cone("Garden tree lower crown",x,1.38,z,.92,1.25,.92,M.green,world);
+ cone("Garden tree upper crown",x,2.0,z,.68,1.05,.68,grassAlt,world);
 }
-for(const [x,z] of [[-5.05,-1.5],[5.05,-1.5],[-5.05,2.55],[5.05,2.55],[-3.7,-4.45],[3.7,-4.45]] as [number,number][]){
- box("Garden planter",x,.18,z,.9,.36,.9,M.wood2,world);
- sphere("Garden shrub",x,.72,z,.58,M.green,world);
+for(const [x,z] of [[-2.22,-2.0],[2.22,-1.1],[-2.22,1.4],[2.22,2.7]] as [number,number][]){
+ box("Outdoor planter",x,.16,z,.45,.32,.72,M.wood2,world);
+ cone("Planter shrub",x,.62,z,.36,.78,.36,M.green,world);
 }
-box("Clinic sign support",-2.0,1.45,-.2,.12,2.9,.12,roofAccent,world);
-box("THERASON clinic sign",-2.0,2.8,-.2,2.4,.48,.16,trim,world);
-box("Clinic sign face",-2.0,2.8,-.295,2.08,.3,.035,M.white,world);
-box("Entry canopy",-2.0,2.18,-.12,2.4,.16,.9,roofAccent,world);
-const roomRoot=new pc.Entity("Open clinic interior");world.addChild(roomRoot);
+// The clinic identity is fixed to the entrance facade, not floating in the middle of the lawn.
+box("THERASON entrance sign",0,2.55,-4.13,2.0,.46,.12,trim,world);
+box("Entrance sign inset",0,2.56,-4.205,1.7,.27,.035,M.white,world);
+box("Entrance canopy",0,2.15,-4.28,2.3,.16,.78,roofAccent,world);
+const roomRoot=new pc.Entity("Starter clinic rooms");world.addChild(roomRoot);
 function makeRoom(kind:"treatment"|"reception"|"gym",gx:number,gz:number,id:number){
  const root=new pc.Entity("Room "+id);root.setPosition(gx+1,0,gz+1);world.addChild(root);
  const floor=kind==="gym"?material(new pc.Color(.40,.55,.58)):material(new pc.Color(.79,.82,.79));
