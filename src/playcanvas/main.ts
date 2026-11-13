@@ -103,6 +103,8 @@ for(const [x,z] of outdoorShrubPositions){
  box("Outdoor planter",x,.17,z,.56,.34,.78,M.wood2,world);
  const shrub=sphere("Outdoor shrub",x,.62,z,.37,M.green,world);shrub.setLocalScale(1.12,.8,.95);
 }
+const lawnGrassMaterial=material(new pc.Color(1,1,1));
+lawnGrassMaterial.diffuseVertexColor=true;lawnGrassMaterial.cull=pc.CULLFACE_NONE;lawnGrassMaterial.update();
 let lawnGrassOwner:pc.Entity|null=null;
 function createLawnGrass(){
  if(lawnGrassOwner){lawnGrassOwner.destroy();lawnGrassOwner=null;}
@@ -134,11 +136,10 @@ function createLawnGrass(){
  mesh.setNormals(pc.calculateNormals(positions,indices));
  mesh.setColors32(new Uint8Array(colors));
  mesh.setIndices(indices);mesh.update();
- const grassMat=material(new pc.Color(1,1,1));grassMat.diffuseVertexColor=true;grassMat.cull=pc.CULLFACE_NONE;grassMat.update();
  lawnGrassOwner=new pc.Entity("Outdoor grass mesh owner");
  const grassGraph=new pc.GraphNode("Outdoor grass mesh graph");
  const model=new pc.Model();model.graph=grassGraph;
- model.meshInstances=[new pc.MeshInstance(mesh,grassMat,grassGraph)];
+ model.meshInstances=[new pc.MeshInstance(mesh,lawnGrassMaterial,grassGraph)];
  lawnGrassOwner.addComponent("model");lawnGrassOwner.model!.model=model;world.addChild(lawnGrassOwner);
 }
 const arrivalMetal=material(new pc.Color(.20,.31,.38));
