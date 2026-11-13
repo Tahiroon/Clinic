@@ -7,6 +7,18 @@ A portrait-first mobile clinic-management game with an original physiotherapy id
 
 The broad inspiration is the readable isometric management experience of Two Point Hospital—not its protected characters, artwork, interface, names, assets, diseases or exact layouts.
 
+## Design lessons adapted from Two Point Studios
+
+These are design principles to learn from, not assets, characters, UI layouts or systems to copy:
+
+- **Start simple, layer gradually:** introduce one room and one clear task first; unlock more decisions only after the learner understands the current loop. Two Point's developers described deliberately reducing early friction before layering features over time ([NME interview](https://www.nme.com/features/doing-things-the-two-point-way-3199369)).
+- **Make the space itself strategic:** room shape, doors, corridors, waiting areas and equipment placement should visibly change patient flow. Functional and decorative objects should later affect room quality and patient comfort, not just fill space ([official Steam overview](https://store.steampowered.com/app/535930/Two_Point_Hospital/)).
+- **Keep camera and controls effortless:** provide a readable overview for planning, a closer build view and smooth, predictable touch gestures. The studio discussed rebuilding controls around quick, simple interactions and smooth camera movement for console play ([developer interview](https://www.pushsquare.com/news/2020/02/interview_two_point_hospital_devs_talk_diseases_dad_jokes_and_dualshock_4)).
+- **Make the world feel alive through small details:** purposeful idle/walk animations, patient reactions, short ambient moments and clear visual feedback make a small population feel present ([development retrospective](https://mcvuk.com/development-news/when-we-made-two-point-hospital/)).
+- **Keep a grounded reality anchor:** use a warm, lightly playful THERASON world, but keep physiotherapy cases, safety decisions, assessment and feedback evidence-informed. Humour must never trivialise patient safety or turn the simulator into a substitute for clinical supervision.
+
+**THERASON's distinction:** the learner is the physiotherapist. The central reward is better clinical reasoning and a better-designed rehabilitation clinic—not managing a large workforce or maximising cures per minute.
+
 ## Core pillars
 1. Build and expand a beautiful clinic and its outdoor property.
 2. Manage appointments, patient flow, money, reputation and equipment.
