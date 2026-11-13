@@ -373,7 +373,7 @@ const starterLayout:Placed[]=[{id:1,kind:"treatment",gx:-2,gz:-2,width:4,depth:4
 const costs:Record<BuildKind,number>={treatment:720,reception:420,assessment:620,gym:980,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 const storeAssetSpecs:Record<string,{file:string;node:string;label:string;cost:number;footprint:number;targetSize:number}>={
  "pt-treatment-table":{file:"examination-couch.glb",node:"*",label:"سرير علاج طبيعي",cost:90,footprint:2,targetSize:2.3},
- "pt-exam-table":{file:"doctors-office-set.glb",node:"ExamTable",label:"سرير فحص سريري",cost:95,footprint:2,targetSize:1.9},
+ "pt-exam-table":{file:"examination-couch.glb",node:"*",label:"سرير فحص سريري",cost:95,footprint:2,targetSize:2.3},
  "pt-patient-chair":{file:"doctors-office-set.glb",node:"Chair_Patient",label:"كرسي المريض",cost:45,footprint:1,targetSize:0.9},
  "pt-doctor-desk":{file:"doctors-office-set.glb",node:"Desk_Doctor",label:"مكتب الأخصائي",cost:65,footprint:2,targetSize:1.35},
  "pt-privacy-screen":{file:"privacy-screen.glb",node:"*",label:"حاجز خصوصية طبي",cost:60,footprint:2,targetSize:1.8},
@@ -603,7 +603,7 @@ function load(){
   for(const p of placed)drawPlaced(p);
  }catch{useStarter();}
 }
-function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"exercise":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"exercise",p.gx,p.gz,p.id,p.width??4,p.depth??4);if(p.kind==="treatment"&&p.id===1){loadClinicAsset({id:90001,kind:"asset",gx:-2,gz:-2,assetKey:"pt-treatment-table"});loadClinicAsset({id:90002,kind:"asset",gx:1,gz:1,assetKey:"pt-storage-cabinet"});}return;}
+function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(isRoomKind(p.kind)){const roomType=p.kind==="gym"?"exercise":p.kind;makeRoom(roomType as "treatment"|"reception"|"assessment"|"exercise",p.gx,p.gz,p.id,p.width??4,p.depth??4);if(p.kind==="treatment"&&p.id===1){loadClinicAsset({id:90001,kind:"asset",gx:-1,gz:-1,assetKey:"pt-treatment-table"});loadClinicAsset({id:90002,kind:"asset",gx:1,gz:1,assetKey:"pt-storage-cabinet"});}return;}
  const root=new pc.Entity("Placed "+p.kind);
  world.addChild(root);
  if(p.kind==="wall")root.setLocalPosition(p.rot===90?p.gx+1.5:x,0,p.rot===90?z:p.gz+1.5);
@@ -662,6 +662,8 @@ function occupied(gx:number,gz:number,kind:BuildKind,rot:0|90=0,assetKey?:string
    return a.x>=left&&a.z>=front&&a.x+a.w<=right&&a.z+a.d<=back;
   });
   if(!insideRoom)return true;
+  const starterFurniture=[{x:-.55,z:-1.15,w:1.1,d:2.3},{x:1.07,z:1.07,w:.86,d:.86}];
+  if(placed.some(p=>p.kind==="treatment"&&p.id===1)&&starterFurniture.some(obstacle=>rectanglesOverlap(a,obstacle)))return true;
  }
  // Furniture may share a room's floor, but never another prop's physical footprint.
  return placed.some(p=>!isRoomKind(p.kind)&&rectanglesOverlap(a,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey,p.width,p.depth)));
