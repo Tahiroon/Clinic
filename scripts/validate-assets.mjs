@@ -21,7 +21,12 @@ const required = [
   ["src/assets/clinic-kit/management-sim/partition-wall.glb", [], []],
   ["src/assets/clinic-kit/management-sim/partition-wall-1m.glb", [], []],
   ["src/assets/clinic-kit/management-sim/door-leaf.glb", [], []],
-  ["src/assets/clinic-kit/management-sim/corridor-floor-tile.glb", [], []]
+  ["src/assets/clinic-kit/management-sim/corridor-floor-tile.glb", [], []],
+  ["src/assets/clinic-kit/hospital/hospital-signage-set.glb", [], []],
+  ["src/assets/clinic-kit/hospital/hospital-gift-shop-set.glb", [], []],
+  ["src/assets/clinic-kit/hospital/hospital-bed-bay.glb", [], []],
+  ["src/assets/clinic-kit/hospital/hospital-lab-set.glb", [], []],
+  ["src/assets/clinic-kit/hospital/x-ray-room-set.glb", [], []]
 ];
 
 let failed = false;
@@ -202,8 +207,8 @@ try {
   if (/loadClinicAsset\(\{id:p\.id\*1000/.test(drawPlacedSource)) throw new Error("Rooms must be empty until the player buys and places equipment");
   const roomBuilderSource=source.slice(source.indexOf("function makeRoom"),source.indexOf("// The starter clinic"));
   if (/loadReceptionDesk\(root\)|loadWaitingSeats\(root\)|Treatment wall chart|Assessment wall chart|Exercise wall display/.test(roomBuilderSource)) throw new Error("New rooms must stay empty until the player buys equipment and decor");
-  if (!/id="store-panel"/.test(html) || !/data-store-category/.test(html) || (html.match(/class="store-item"/g)||[]).length < 16) {
-    throw new Error("The dedicated categorized equipment shop is incomplete");
+  if (!/id="store-panel"/.test(html) || !/data-store-category/.test(html) || !/id="store-grid"/.test(html) || !/id="store-search"/.test(html) || (html.match(/data-store-category=/g)||[]).length < 8 || !/function renderStoreCatalog\(\)/.test(source) || storeSpecs.length < 30) {
+    throw new Error("The data-driven categorized real-asset shop, search or expanded inventory is incomplete");
   }
   console.log("✓ Restrained recessed-panel architecture and layered starter-clinic pavilion are wired");
   console.log("✓ High-end PCSS shadows and low-end contact-shadow fallback are wired");
@@ -211,7 +216,8 @@ try {
   if (!/function showStorePreview\(key:string\)/.test(source) ||
       !/getClinicContainer\(url\)\.then\(asset=>/.test(source) ||
       !/id="store-preview"/.test(html) || !/id="store-place-selected"/.test(html) ||
-      /class="store-item-art art-/.test(html)) {
+      !/id="store-rotate-selected"/.test(html) || !/canvas\.toDataURL\("image\/webp",\.68\)/.test(source) ||
+      !/storeThumbnailCache/.test(source) || /class="store-item-art art-/.test(html)) {
     throw new Error("The shop must preview the exact bundled GLB model before placement, not use fake product drawings");
   }
   if (!/storePreviewGeneration/.test(source) || !/clearStorePreview\(\)/.test(source) ||
