@@ -339,7 +339,7 @@ function loadReceptionDesk(parent:pc.Entity){
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
   b=renderBounds(model);
   if(!b)throw new Error("Reception desk has no renderable meshes after scaling");
-  const target=parent.getPosition().clone().add(new pc.Vec3(.2,0,2.35));
+  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(.2,0,2.35),new pc.Vec3());
   const current=model.getPosition();
   model.setPosition(current.x+target.x-(b.minX+b.maxX)/2,current.y-b.minY,current.z+target.z-(b.minZ+b.maxZ)/2);
   model.syncHierarchy();app.root.syncHierarchy();
@@ -368,7 +368,7 @@ function loadTreatmentRoomDecor(parent:pc.Entity){
   model.setLocalScale(scale,scale,scale);model.syncHierarchy();app.root.syncHierarchy();
   b=renderBounds(model);
   if(!b)throw new Error("Treatment-room props have no renderable meshes");
-  const target=parent.getPosition().clone().add(new pc.Vec3(1,0,1));
+  const target=parent.getWorldTransform().transformPoint(new pc.Vec3(1,0,1),new pc.Vec3());
   const current=model.getPosition();
   model.setPosition(current.x+target.x-(b.minX+b.maxX)/2,current.y-b.minY,current.z+target.z-(b.minZ+b.maxZ)/2);
   model.syncHierarchy();app.root.syncHierarchy();
@@ -386,7 +386,7 @@ function loadClinicAsset(p:Placed){
   if(!chosen){container.destroy();throw new Error("Missing model node "+spec.node);}
   container.removeChild(chosen);container.destroy();
   const size=spec.footprint,holder=new pc.Entity("3D asset · "+spec.label);
-  holder.setPosition(p.gx+size/2,0,p.gz+size/2);world.addChild(holder);holder.addChild(chosen);
+  world.addChild(holder);holder.setLocalPosition(p.gx+size/2,0,p.gz+size/2);holder.addChild(chosen);
   chosen.setLocalPosition(0,0,0);chosen.setLocalEulerAngles(0,p.rot??0,0);
   holder.syncHierarchy();app.root.syncHierarchy();
   const getBounds=()=>{
@@ -398,7 +398,8 @@ function loadClinicAsset(p:Placed){
   const before=getBounds(),scale=spec.targetSize/Math.max(before.maxX-before.minX,before.maxZ-before.minZ,.01);
   chosen.setLocalScale(scale,scale,scale);holder.syncHierarchy();app.root.syncHierarchy();
   const b=getBounds();
-  chosen.setLocalPosition(holder.getPosition().x-(b.minX+b.maxX)/2,-b.minY,holder.getPosition().z-(b.minZ+b.maxZ)/2);
+  const holderWorld=holder.getPosition(),chosenWorld=chosen.getPosition();
+  chosen.setPosition(chosenWorld.x+holderWorld.x-(b.minX+b.maxX)/2,chosenWorld.y-b.minY,chosenWorld.z+holderWorld.z-(b.minZ+b.maxZ)/2);
   holder.syncHierarchy();app.root.syncHierarchy();
  }).catch(error=>{console.error("Clinic store asset failed",spec.label,error);drawAssetFallback(p,spec);status.textContent="تم استخدام نموذج احتياطي لـ "+spec.label+" بسبب تعذر تحميل الأصل.";});
 }
@@ -436,9 +437,10 @@ function load(){
 }
 function drawPlaced(p:Placed){if(p.kind==="asset"){loadClinicAsset(p);return;}const x=p.gx+.5,z=p.gz+.5;if(p.kind==="reception"||p.kind==="gym"||p.kind==="treatment"){const r=makeRoom(p.kind,p.gx,p.gz,p.id); return;}
  const root=new pc.Entity("Placed "+p.kind);
- if(p.kind==="wall")root.setPosition(p.rot===90?p.gx+1.5: x,0,p.rot===90?z:p.gz+1.5);
- else root.setPosition(x,0,z);
- root.setEulerAngles(0,p.rot??0,0);world.addChild(root);
+ world.addChild(root);
+ if(p.kind==="wall")root.setLocalPosition(p.rot===90?p.gx+1.5:x,0,p.rot===90?z:p.gz+1.5);
+ else root.setLocalPosition(x,0,z);
+ root.setLocalEulerAngles(0,p.rot??0,0);
  if(p.kind==="chair"){box("Chair seat",0,.38,0,.6,.15,.6,M.teal,root);box("Chair back",0,.75,-.22,.6,.6,.13,M.blue,root);for(const a of [-.22,.22])for(const b of [-.22,.22])box("Chair leg",a,.16,b,.06,.32,.06,M.dark,root);}
  if(p.kind==="plant"){box("Plant pot",0,.2,0,.38,.4,.38,M.wood2,root);sphere("Plant leaves",0,.72,0,.52,M.green,root);sphere("Plant leaf",.2,.88,.04,.3,M.green,root);}
  if(p.kind==="cabinet"){box("Cabinet body",0,.6,0,.7,1.2,.42,M.wood2,root);box("Cabinet door",0,.6,.22,.62,1.08,.03,M.wood,root);}
@@ -561,7 +563,7 @@ function simplifyWalkRoute(route:{x:number;z:number}[],sx:number,sz:number){
  return result;
 }
 function moveAvatarSafely(dx:number,dz:number){
- const p=avatar.getPosition(),distance=Math.hypot(dx,dz),steps=Math.max(1,Math.ceil(distance/.055));
+ const p=avatar.getLocalPosition().clone(),distance=Math.hypot(dx,dz),steps=Math.max(1,Math.ceil(distance/.055));
  let x=p.x,z=p.z;
  for(let i=1;i<=steps;i++){
   const nx=p.x+dx*i/steps,nz=p.z+dz*i/steps;
@@ -569,11 +571,21 @@ function moveAvatarSafely(dx:number,dz:number){
   const canX=canAvatarStand(nx,z),canZ=canAvatarStand(x,nz);
   if(canX)x=nx;if(canZ)z=nz;if(!canX&&!canZ)break;
  }
- avatar.setPosition(x,0,z);
+ avatar.setLocalPosition(x,0,z);
  return Math.hypot(x-p.x,z-p.z)>.001;
 }
 function updateMode(next:"move"|"build"){mode=next;if(next==="build"){destination=null;target=null;walkPath=[];setLocomotion(false);tapMarker.enabled=false;}moveBtn.classList.toggle("active",mode==="move");buildBtn.classList.toggle("active",mode==="build");buildPanel.hidden=mode!=="build";status.textContent=mode==="move"?"اضغط على الأرض لتحريك شخصيتك. اسحب لتحريك الكاميرا.":"اختر غرفة أو قطعة ثم المس خلية فارغة في الشبكة.";}
-function screenToGround(clientX:number,clientY:number){const r=canvas.getBoundingClientRect(),x=(clientX-r.left)*(canvas.width/r.width),y=(clientY-r.top)*(canvas.height/r.height);const a=camera.camera!.screenToWorld(x,y,.1),b=camera.camera!.screenToWorld(x,y,100),d=b.sub(a);if(Math.abs(d.y)<.0001)return null;const t=-a.y/d.y;if(t<0)return null;const p=a.add(d.mulScalar(t));if(Math.abs(p.x)>HALF_X||Math.abs(p.z)>HALF_Z)return null;return p;}
+function screenToGround(clientX:number,clientY:number){
+ const rect=canvas.getBoundingClientRect();
+ const px=(clientX-rect.left)*(canvas.width/rect.width),py=(clientY-rect.top)*(canvas.height/rect.height);
+ const near=camera.camera!.screenToWorld(px,py,.1),far=camera.camera!.screenToWorld(px,py,100),direction=far.sub(near);
+ if(Math.abs(direction.y)<.0001)return null;
+ const t=-near.y/direction.y;if(t<0)return null;
+ const worldPoint=near.add(direction.mulScalar(t));
+ const localPoint=worldInverse.transformPoint(worldPoint,new pc.Vec3());
+ if(Math.abs(localPoint.x)>HALF_X||Math.abs(localPoint.z)>HALF_Z)return null;
+ return localPoint;
+}
 let pointerStart:{x:number;y:number;cx:number;cz:number;tx:number;tz:number}|null=null,dragged=false;const activePointers=new Map<number,{x:number;y:number}>();let pinchDistance=0,pinchHeight=0;
 canvas.addEventListener("pointerdown",e=>{activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size===2){const pts=[...activePointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);pinchHeight=desiredOrthoHeight;pointerStart=null;dragged=true;}else{pointerStart={x:e.clientX,y:e.clientY,cx:camera.getPosition().x,cz:camera.getPosition().z,tx:cameraGoal.x,tz:cameraGoal.z};dragged=false;}canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener("pointermove",e=>{if(activePointers.has(e.pointerId))activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size>=2){const pts=[...activePointers.values()];const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)desiredOrthoHeight=Math.max(9.5,Math.min(18,pinchHeight*pinchDistance/Math.max(1,distance)));dragged=true;return;}if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>8)dragged=true;if(dragged){const scale=camera.camera!.orthoHeight/Math.max(220,canvas.clientHeight),shiftX=-dx*scale*.7,shiftZ=dy*scale*.7;cameraGoal.set(Math.max(-4.5,Math.min(4.5,pointerStart.tx+shiftX)),0,Math.max(-4,Math.min(4,pointerStart.tz+shiftZ)));}});
@@ -596,7 +608,7 @@ canvas.addEventListener("pointerup",e=>{
   const item:Placed={id:nextId++,kind:selected,gx,gz,rot:(selected==="wall"||selected==="door")?wallRotation:0,assetKey:selected==="asset"?selectedAssetKey??undefined:undefined};
   placed.push(item);drawPlaced(item);save();status.textContent="تمت الإضافة! تقدر تواصل تخطيط عيادتك.";return;
  }
- const start=avatar.getPosition(),tx=ground.x,tz=ground.z;
+ const start=avatar.getLocalPosition().clone(),tx=ground.x,tz=ground.z;
  destination=new pc.Vec3(tx,0,tz);
  tapMarker.setPosition(tx,.035,tz);tapMarker.enabled=true;
  // Open-floor taps move to the exact point; the grid pathfinder is reserved for blocked lines of sight.
@@ -625,7 +637,7 @@ document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEve
 document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEventListener("click",()=>selectAsset(b.dataset.asset??"")));
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";el("#catalog-furniture").hidden=cat!=="furniture";if(cat==="structure")selectBuild("wall");else if(cat==="rooms")selectBuild("reception");else selectAsset("pt-treatment-table");}));
 el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;status.textContent="اتجاه الحائط الآن "+(wallRotation===0?"أفقي":"رأسي")+". اختر الخلية التالية.";});
-viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?10.8:(window.innerWidth/window.innerHeight<.48?19.2:18.2);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
+viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?8.5:(window.innerWidth/window.innerHeight<.48?13.6:12.9);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
 let sessionStep=0,sessionScore=0;
 const steps=[
  {title:"استقبال المريض",intro:"وصل مريض جديد إلى عيادتك. ابدأ الجلسة بخطوة آمنة ومنظمة.",question:"ما أول خطوة مناسبة؟",options:[["safe","التحقق من علامات الخطر وأخذ التاريخ المرضي",true,"اختيار ممتاز. سلامة المريض وجمع المعلومات يسبقان أي تدخل."],["exercise","بدء التمارين مباشرة",false,"لا تبدأ التدخل قبل فهم الحالة والتحقق من علامات الخطر."],["diagnosis","تحديد التشخيص النهائي فوراً",false,"المعلومات الحالية لا تكفي لتشخيص نهائي. ابدأ بالتقييم."]]},
@@ -656,20 +668,20 @@ app.on("update",(dt:number)=>{
  cameraTarget.x+=(cameraGoal.x-cameraTarget.x)*cameraAlpha;
  cameraTarget.z+=(cameraGoal.z-cameraTarget.z)*cameraAlpha;
  camera.camera!.orthoHeight+=(desiredOrthoHeight-camera.camera!.orthoHeight)*cameraAlpha;
- camera.setPosition(cameraTarget.x+(focus?10.5:14.5),focus?12:15,cameraTarget.z+(focus?3.8:5.3));
+ camera.setPosition(cameraTarget.x+(focus?3.7:5.3),focus?12:15,cameraTarget.z+(focus?-10.2:-14.5));
  camera.lookAt(cameraTarget);
  if(!target)return;
- const p=avatar.getPosition(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
+ const p=avatar.getLocalPosition().clone(),dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
  if(d<.10){
   if(walkPath.length){const next=walkPath.shift()!;target=new pc.Vec3(next.x,0,next.z);}
   else{target=null;destination=null;setLocomotion(false);}
  }else{
   setLocomotion(true);
   const desiredYaw=Math.atan2(dx,dz)*180/Math.PI;
-  const currentYaw=avatar.getEulerAngles().y;
+  const currentYaw=avatar.getLocalEulerAngles().y;
   let yawDelta=((desiredYaw-currentYaw+540)%360)-180;
   const maxTurn=Math.max(1,frameDt*360);
-  avatar.setEulerAngles(0,currentYaw+Math.max(-maxTurn,Math.min(maxTurn,yawDelta)),0);
+  avatar.setLocalEulerAngles(0,currentYaw+Math.max(-maxTurn,Math.min(maxTurn,yawDelta)),0);
   const walkSpeed=1.55;
   const step=Math.min(d,frameDt*walkSpeed),moved=moveAvatarSafely(dx/d*step,dz/d*step);
   if(!moved){
