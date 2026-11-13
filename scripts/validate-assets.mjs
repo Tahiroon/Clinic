@@ -110,8 +110,8 @@ try {
   if (!/insideBuildablePlot=x>-HALF_X/.test(source) || !/if\(isRoomKind\(item\.kind\)\)createLawnGrass\(\)/.test(source)) {
     throw new Error("Outdoor grass must be masked and regenerated when new rooms are built");
   }
-  if (!/Math\.min\(34,pinchHeight/.test(source)) {
-    throw new Error("Portrait camera zoom must allow the larger property to be explored");
+  if (!/Math\.min\(42,pinchHeight/.test(source) || !/Math\.max\(D\+3,\(W\+2\)\/aspect\)/.test(source)) {
+    throw new Error("Portrait camera must frame the full vertical property and retain exploration zoom");
   }
   console.log("✓ Main campaign starts with one 4×4 m treatment room on a 14×28 m green property");
   console.log("✓ Grass stays outside every player-built room"); 
@@ -164,8 +164,10 @@ try {
   }
   console.log("✓ Player physiotherapist, patient flow, optional receptionist upgrade, economy and simulation controls are wired");
   console.log("✓ Rooms support touch drag-to-draw with variable dimensions");
-  if (!/addRoomWallRun\(root,"x",-halfW,width,halfD,"solid"\)/.test(source) || !/const twoMetreFile="partition-wall\.glb"/.test(source)) {
-    throw new Error("Clinic rooms must use plain opaque walls, not glass partitions");
+  if (!/addRoomWallRun\(root,"x",-halfW,width,halfD,"solid"\)/.test(source) ||
+      !/Frosted clinic glazing/.test(source) || !/Wall structural frame post/.test(source) ||
+      !/Wall continuous upper cap/.test(source) || !/Wall cyan identity rail/.test(source)) {
+    throw new Error("Clinic rooms must use the modular framed-glazing wall kit");
   }
   const drawPlacedSource=source.slice(source.indexOf("function drawPlaced(p:Placed)"),source.indexOf("\nfunction footprint("));
   if (/loadClinicAsset\(\{id:p\.id\*1000/.test(drawPlacedSource)) throw new Error("Rooms must be empty until the player buys and places equipment");
@@ -174,7 +176,7 @@ try {
   if (!/id="store-panel"/.test(html) || !/data-store-category/.test(html) || (html.match(/class="store-item"/g)||[]).length < 16) {
     throw new Error("The dedicated categorized equipment shop is incomplete");
   }
-  console.log("✓ Plain opaque room architecture and player-controlled furnishing are wired");
+  console.log("✓ Modern clinic architecture uses framed glazing, protective lower panels and cyan identity rails");
   console.log("✓ Dedicated mobile equipment store contains categorized, priced clinical assets");
   if (!/function showStorePreview\(key:string\)/.test(source) ||
       !/getClinicContainer\(url\)\.then\(asset=>/.test(source) ||
@@ -210,7 +212,7 @@ try {
       !/addEventListener\("wheel"/.test(source)) {
     throw new Error("Accessible one-handed zoom, recenter and desktop wheel controls are required");
   }
-  if (!/const gaitLaneX=3\.25,gaitLaneZ=-16\.05/.test(source) ||
+  if (!/const gaitLaneX=3\.25,gaitLaneZ=-16\.15/.test(source) && !/const gaitLaneX=3\.25,gaitLaneZ=-16\.05/.test(source) ||
       !/Outdoor gait training lane/.test(source) || !/nearGaitLane/.test(source)) {
     throw new Error("The outdoor gait-training lane must stay outside the buildable plot and clear its grass mesh");
   }
