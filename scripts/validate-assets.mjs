@@ -174,7 +174,9 @@ try {
     throw new Error("Starter clinic pavilion facade must include its layered entrance and roof identity");
   }
   if (!/SHADOW_PCSS_32F/.test(source) || !/shadowSamples=8/.test(source) ||
-      !/addContactShadow/.test(source) || !/avatarContactShadow/.test(source)) {
+      !/addContactShadow/.test(source) || !/avatarContactShadow/.test(source) ||
+      !/castShadows=highDetailDevice/.test(source) || !/receiveShadows=highDetailDevice/.test(source) ||
+      !/groundY=\.052/.test(source)) {
     throw new Error("Adaptive real and contact shadow systems must remain enabled");
   }
   const drawPlacedSource=source.slice(source.indexOf("function drawPlaced(p:Placed)"),source.indexOf("\nfunction footprint("));
