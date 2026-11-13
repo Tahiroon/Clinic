@@ -50,6 +50,16 @@
 20. Repeated scene entry/exit does not cause unbounded memory growth.
 21. No secrets or real student/patient data exist in repository.
 
+## Camera, touch and performance acceptance
+
+1. One-finger drag pans the world without accidentally issuing a movement command.
+2. Two-finger pinch zooms smoothly within safe minimum and maximum limits.
+3. On-screen +/− controls provide one-handed zoom; the recenter control restores the portrait overview.
+4. Desktop mouse wheel zooms without scrolling the page.
+5. Camera pan bounds keep the clinic property reachable while allowing the surrounding garden to be inspected.
+6. On entry-level Android, render scale is capped below native device pixel ratio; capable devices may use a higher cap.
+7. Camera controls remain reachable above the bottom dock and do not block the patient/build interaction area.
+
 ## Store and outdoor presentation checks
 
 1. Selecting a store item loads its exact registered GLB model into the 3D preview stand; no CSS illustration is presented as the real product.
