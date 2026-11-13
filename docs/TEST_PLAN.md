@@ -23,7 +23,7 @@
 10. Room wall rendering and navigation collision must derive from the same wall/door dimensions.
 11. The outside property hedge, trees and planters are collision obstacles; the avatar cannot pass through the plot boundary.
 12. Babylon.js is not a shipped dependency or build entry; PlayCanvas is the only runtime in the game build.
-13. Bottom toolbar remains hidden during the current world-foundation pass.
+13. Portrait toolbar remains visible with five large touch controls; build/store panels never cover the selected placement point.
 
 ## First-slice acceptance
 1. App opens in usable portrait layout and the building, yard and player remain visible at the initial camera zoom.
@@ -35,9 +35,9 @@
 7. Tapping an open floor point moves the avatar to the actual selected point, not a nearby arbitrary waypoint.
 8. Tapping a blocked point selects the nearest reachable approach point on the same connected side of obstacles.
 9. A blocked target on the far side of a wall must never cause the avatar to stop at an arbitrary point on the near side.
-10. The avatar can walk from the outside entrance through reception and the internal doorway into the treatment room.
+10. The avatar can walk from the outdoor property path through the single starter-room entrance and approach the patient safely.
 11. The avatar can approach the patient beside the treatment table without intersecting the table or wall.
-12. The avatar routes around the waiting-seat row, reception desk, table, cabinet, trees, planters and boundary hedge.
+12. The avatar routes around the treatment table, storage unit, trees, shrubs, player-built rooms and property boundary.
 13. Avatar does not pass through walls, closed boundaries, built-in furniture or placed furniture.
 14. Grid aligns with the floor.
 15. Valid equipment placement updates occupancy and can occur inside rooms.
