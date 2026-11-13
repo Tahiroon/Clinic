@@ -501,6 +501,19 @@ function canAvatarStand(x:number,z:number){
  const radius=.28;
  if(x-radius< -HALF_X||x+radius>HALF_X||z-radius< -HALF_Z||z+radius>HALF_Z)return false;
  const player={x:x-radius,z:z-radius,w:radius*2,d:radius*2};
+ // Perimeter hedge and outdoor props are solid; the lawn is not an infinite walkable plane.
+ const outdoorBarriers=[
+  {x:-3.26,z:-6.9,w:.18,d:13.8},
+  {x:3.08,z:-6.9,w:.18,d:13.8},
+  {x:-3.15,z:-6.95,w:6.3,d:.18},
+  {x:-3.15,z:6.77,w:6.3,d:.18}
+ ];
+ if(outdoorBarriers.some(w=>rectanglesOverlap(player,w)))return false;
+ const gardenProps=[
+  ...[[-2.72,-6.0],[2.72,-6.0],[-2.72,6.05],[2.72,6.05]].map(([gx,gz])=>({x:gx-.26,z:gz-.26,w:.52,d:.52})),
+  ...[[-2.88,-1.8],[2.88,-.7],[-2.88,2.0],[2.88,3.8]].map(([gx,gz])=>({x:gx-.3,z:gz-.45,w:.6,d:.9}))
+ ];
+ if(gardenProps.some(w=>rectanglesOverlap(player,w)))return false;
  for(const p of placed){
   const isRoom=p.kind==="treatment"||p.kind==="reception"||p.kind==="gym";
   if(isRoom){
@@ -519,8 +532,8 @@ function canAvatarStand(x:number,z:number){
    if(walls.some(w=>rectanglesOverlap(player,w)))return false;
    const furniture:{x:number;z:number;w:number;d:number}[]=p.kind==="reception"?[
     {x:gx+.3,z:gz+3.025,w:1.8,d:.65},
-    {x:gx+1.025,z:gz+.35,w:.65,d:.62},
-    {x:gx+1.025,z:gz+1.25,w:.65,d:.62}
+    // The 4-seat GLB row is centred in the waiting zone; keep side lanes clear.
+    {x:gx+.9,z:gz+1.3,w:2.2,d:.95}
    ]:p.kind==="treatment"?[]:[
     {x:gx+.15,z:gz+2.05,w:.2,d:1.1},
     {x:gx+1.95,z:gz+2.05,w:.2,d:1.1},
