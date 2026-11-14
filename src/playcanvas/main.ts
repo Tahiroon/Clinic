@@ -152,7 +152,8 @@ for(const [x,z] of [[-10,-8],[10,-7]] as [number,number][]){
  bed.setLocalEulerAngles(0,x>0?8:-8,0);
  for(let i=0;i<3;i++){const shrub=sphere("Rounded shrub cluster",x+(i-1)*.55,.32,z,.34, i===1?worldTreeC:worldTreeA,district);shrub.setLocalScale(1.15,.78,1);}
 }
-const clinicTimber=material(new Color(.34,.23,.16));\nconst gaitLaneX=4.2,gaitLaneZ=-17.8;
+const clinicTimber=material(new Color(.34,.23,.16));
+const gaitLaneX=4.2,gaitLaneZ=-17.8;
 box("Clinic identity sign post",-3.1,.95,-11.6,.14,1.9,.14,clinicTimber,district);
 box("Clinic identity sign", -3.1,1.82,-11.6,1.25,.72,.10,trim,district);
 box("Clinic identity sign inset",-3.1,1.82,-11.67,1.05,.48,.025,M.white,district);
@@ -824,17 +825,7 @@ function canAvatarStand(x:number,z:number){
  const player={x:x-radius,z:z-radius,w:radius*2,d:radius*2};
  // Patient is a real occupied spot; route to the nearest safe treatment-side approach, never through the body.
  if(patientNpc.enabled){const patientPosition=patientNpc.getLocalPosition();if(rectanglesOverlap(player,{x:patientPosition.x-.28,z:patientPosition.z-.28,w:.56,d:.56}))return false;}
- // Perimeter hedge and outdoor props are solid; the lawn is not an infinite walkable plane.
- const outdoorBarriers=[
-  {x:-7.34,z:-HALF_Z,w:.42,d:D},
-  {x:6.92,z:-HALF_Z,w:.42,d:D},
-  {x:-HALF_X,z:13.91,w:W,d:.42},
-  {x:-7.2,z:-14.33,w:4.95,d:.42},
-  {x:2.25,z:-14.33,w:4.95,d:.42},
-  {x:-2.52,z:-14.48,w:.60,d:.72},
-  {x:1.92,z:-14.48,w:.60,d:.72}
- ];
- if(outdoorBarriers.some(w=>rectanglesOverlap(player,w)))return false;
+ // Open cutaway clinic: movement is bounded by room walls and placed obstacles, not an outer fence.
  for(const p of placed){
   const isRoom=isRoomKind(p.kind);
   if(isRoom){
