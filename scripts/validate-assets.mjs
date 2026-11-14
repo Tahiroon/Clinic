@@ -93,29 +93,23 @@ try {
     throw new Error("The artificial grass-blade mesh must be removed from the outdoor world");
   }
   for (const required of [
-    "District terrain · compact landscape","District access road","District side road",
-    "Clinic buildable foundation","West clinic boundary","East clinic boundary","Rear clinic boundary",
-    "Front boundary west wing","Front boundary east wing","Clinic entrance gate lintel",
-    "Masonry boundary pier","makeDistrictTree","makeDistrictBuilding","Outdoor physiotherapy gait lane"
+    "Small outer landscape","Arrival road","Clinic pedestrian approach",
+    "Clinic buildable foundation","Soft sculpted tree crown","Clinic identity sign",
+    "const starterLayout:Placed[]=","kind:\"reception\"","kind:\"assessment\"","kind:\"treatment\"","kind:\"gym\"",
+    "pt-reception-desk","pt-waiting-bench","pt-exam-table","pt-patient-chair","pt-treatment-table","pt-parallel-bars"
   ]) {
-    if (!source.includes(required)) throw new Error("The rebuilt district world is missing " + required);
+    if (!source.includes(required)) throw new Error("The compact cutaway clinic starter scene is missing " + required);
   }
-  if (!/Math\.min\(42,pinchHeight/.test(source) || !/Math\.max\(D\+8,\(W\+8\)\/aspect\)/.test(source) ||
-      !/HALF_X\+10-halfWidth/.test(source) || !/HALF_Z\+14-halfHeight/.test(source)) {
-    throw new Error("Portrait camera must frame the clinic and keep the nearby district within a compact camera pan range");
+  if (!/desiredOrthoHeight=aspect<\.9\?16\.5:aspect<1\.2\?15:13\.5/.test(source) ||
+      !/cameraTarget\.z\+\(focus\?-6\.5:-11\.5\)/.test(source)) {
+    throw new Error("Portrait camera must prioritise readable clinic rooms over the empty outdoor property");
   }
-  console.log("✓ Clinic plot is distinct from a compact, scaled clay neighbourhood with roads and nearby buildings");
-  console.log("✓ Clinic property has a continuous 3 m masonry perimeter and a dedicated entrance gate");
-  console.log("✓ Artificial grass blades are removed; outdoor landscape uses broad terrain and composed planting");
+  if (/West clinic boundary|East clinic boundary|Rear clinic boundary|Main gate masonry pier/.test(source)) {
+    throw new Error("The starter clinic must not be hidden behind a perimeter fence");
+  }
+  console.log("✓ Compact cutaway clinic, prebuilt starter rooms and a small outdoor arrival area are present");
   const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.z < b.z + b.d && a.z + a.d > b.z;
-  const treePositions = [[-9.1,-16.1],[9.1,-16.1],[-9.1,16.1],[9.1,16.1]];
-  const shrubPositions = [[-8.8,-7.5],[8.8,-4.5],[-8.8,5.2],[8.8,8.0]];
-  const routeObstacles = [
-    {x:-7,z:-14,w:.18,d:28},{x:6.82,z:-14,w:.18,d:28},
-    {x:-7,z:-14,w:14,d:.18},{x:-7,z:13.82,w:14,d:.18},
-    ...treePositions.map(([x,z])=>({x:x-.42,z:z-.42,w:.84,d:.84})),
-    ...shrubPositions.map(([x,z])=>({x:x-.34,z:z-.48,w:.68,d:.96}))
-  ];
+  const routeObstacles = [];
   const canStand = (x,z) => {
     const radius=.28, player={x:x-radius,z:z-radius,w:radius*2,d:radius*2};
     if(x-radius < -7 || x+radius > 7 || z-radius < -14 || z+radius > 14)return false;
