@@ -371,7 +371,13 @@ let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-cli
 let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:Vec3|null=null;const saveKey="therason-clinic-world-v14";
 const managementSaveKey="therason-clinic-management-v6";
 const TRIAL_ACCOUNT_COINS=3200; 
-const starterLayout:Placed[]=[\n {id:1,kind:"reception",gx:-6,gz:-7,width:5,depth:5},{id:2,kind:"assessment",gx:1,gz:-7,width:4,depth:5},\n {id:3,kind:"treatment",gx:-6,gz:1,width:5,depth:5},{id:4,kind:"gym",gx:1,gz:1,width:5,depth:5},\n {id:5,kind:"asset",gx:-5,gz:-6,assetKey:"pt-reception-desk"},{id:6,kind:"asset",gx:-5,gz:-4,assetKey:"pt-waiting-bench"},\n {id:7,kind:"asset",gx:1,gz:-6,assetKey:"pt-exam-table"},{id:8,kind:"asset",gx:3,gz:-4,assetKey:"pt-patient-chair"},\n {id:9,kind:"asset",gx:-5,gz:2,assetKey:"pt-treatment-table"},{id:10,kind:"asset",gx:1,gz:2,assetKey:"pt-parallel-bars"}\n];
+const starterLayout:Placed[]=[
+ {id:1,kind:"reception",gx:-6,gz:-7,width:5,depth:5},{id:2,kind:"assessment",gx:1,gz:-7,width:4,depth:5},
+ {id:3,kind:"treatment",gx:-6,gz:1,width:5,depth:5},{id:4,kind:"gym",gx:1,gz:1,width:5,depth:5},
+ {id:5,kind:"asset",gx:-5,gz:-6,assetKey:"pt-reception-desk"},{id:6,kind:"asset",gx:-5,gz:-4,assetKey:"pt-waiting-bench"},
+ {id:7,kind:"asset",gx:1,gz:-6,assetKey:"pt-exam-table"},{id:8,kind:"asset",gx:3,gz:-4,assetKey:"pt-patient-chair"},
+ {id:9,kind:"asset",gx:-5,gz:2,assetKey:"pt-treatment-table"},{id:10,kind:"asset",gx:1,gz:2,assetKey:"pt-parallel-bars"}
+];
 const costs:Record<BuildKind,number>={treatment:720,reception:420,assessment:620,gym:980,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 type StoreCategory="therapy"|"assessment"|"mobility"|"furnishing"|"safety"|"decor"|"specialty"|"kits";
 type StoreAssetSpec={file:string;node:string;label:string;cost:number;footprint:number;targetSize:number;category:StoreCategory;description:string;room:string};
@@ -839,7 +845,8 @@ function canAvatarStand(x:number,z:number){
     {x:gx,z:gz+rd-.08,w:rw,d:.16}
    ];
    if(walls.some(w=>rectanglesOverlap(player,w)))return false;
-   // Rooms begin empty. Real purchased props are checked below from the placed-item registry.\n   continue;
+   // Rooms begin empty. Real purchased props are checked below from the placed-item registry.
+   continue;
   }
   if(rectanglesOverlap(player,footprintAt(p.gx,p.gz,p.kind,p.rot,p.assetKey,p.width,p.depth)))return false;
  }
