@@ -171,9 +171,8 @@ try {
       !/Wall protective skirting/.test(source) || !/Wall top coping/.test(source)) {
     throw new Error("Clinic rooms must use the restrained recessed-panel wall system");
   }
-  if (!/Clinic glazed entrance left leaf/.test(source) ||
-      !/Clinic terracotta roof left slope/.test(source) || !/THERASON sign shadow backing/.test(source)) {
-    throw new Error("Starter clinic pavilion facade must include its layered entrance and roof identity");
+  if (!/Clinic identity sign/.test(source) || !/Small outer landscape/.test(source)) {
+    throw new Error("The compact clinic needs a visible THERASON identity marker and small exterior context");
   }
   if (!/SHADOW_PCSS_32F/.test(source) || !/shadowResolution=2048/.test(source) ||
       !/shadowSamples=12/.test(source) || !/shadowBlockerSamples=6/.test(source) ||
