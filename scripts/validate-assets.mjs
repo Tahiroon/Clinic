@@ -206,16 +206,7 @@ try {
     throw new Error("Store preview lifecycle must cancel stale loads and release preview entities");
   }
   console.log("✓ Store preview uses the same verified GLB model as placement and cleans up safely");
-  if (!/const gaitLaneX=4\.2,gaitLaneZ=-17\.8/.test(source) ||
-      !/Outdoor physiotherapy gait lane/.test(source) || !/Gait lane walking surface/.test(source)) {
-    throw new Error("The outdoor gait-training lane must be a real part of the district landscape");
-  }
-  if (!/Clinic entrance gate lintel/.test(source) || !/Arrival court paving/.test(source) ||
-      !/West clinic boundary/.test(source) || !/East clinic boundary/.test(source) ||
-      !/Rear clinic boundary/.test(source) || !/Main gate masonry pier/.test(source)) {
-    throw new Error("The clinic must be enclosed by substantial masonry walls with a readable public gate");
-  }
-  console.log("✓ District arrival road, clinic promenade, full masonry enclosure and gate are present");
+  console.log("✓ Compact exterior and cutaway clinic are validated above");
   if (!/highDetailDevice=deviceMemory>=4&&cpuCores>=6/.test(source) ||
       !/maxPixelRatio=highDetailDevice\?Math\.min\(window\.devicePixelRatio\|\|1,1\.25\):Math\.min\(window\.devicePixelRatio\|\|1,\.9\)/.test(source)) {
     throw new Error("Adaptive rendering quality is missing for high-end and low-end devices");
@@ -226,16 +217,6 @@ try {
       !/addEventListener\("wheel"/.test(source)) {
     throw new Error("Accessible one-handed zoom, recenter and desktop wheel controls are required");
   }
-  if (!/const gaitLaneX=4\.2,gaitLaneZ=-17\.8/.test(source) ||
-      !/Outdoor physiotherapy gait lane/.test(source) || !/Gait lane walking surface/.test(source)) {
-    throw new Error("The outdoor gait-training lane must be part of the expanded district");
-  }
-  if (!/Clinic entrance gate lintel/.test(source) || !/Arrival court paving/.test(source) ||
-      !/West clinic boundary/.test(source) || !/East clinic boundary/.test(source) ||
-      !/Rear clinic boundary/.test(source) || !/Main gate masonry pier/.test(source)) {
-    throw new Error("The clinic must be enclosed by substantial masonry walls with a readable public gate");
-  }
-  console.log("✓ District arrival, gait-training area and complete masonry property enclosure are present");
   for (const required of ["waitingPatientVisuals", "loadHumanoid(characterAssets.physiotherapist,avatar", "loadHumanoid(characterAssets.patient,root", "loadHumanoid(characterAssets.receptionist,receptionistNpc", "receptionistNpc.enabled=management.receptionistOwned", "registerPatient(management,Number(button.dataset.registerPatient))", "recoverInterruptedSessions(management)", "completePatientSession(management,activeSessionPatientId,sessionScore)"]) {
     if (!source.includes(required)) throw new Error("Visible staff/patient simulation is missing " + required);
   }
