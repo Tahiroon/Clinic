@@ -152,7 +152,7 @@ for(const [x,z] of [[-10,-8],[10,-7]] as [number,number][]){
  bed.setLocalEulerAngles(0,x>0?8:-8,0);
  for(let i=0;i<3;i++){const shrub=sphere("Rounded shrub cluster",x+(i-1)*.55,.32,z,.34, i===1?worldTreeC:worldTreeA,district);shrub.setLocalScale(1.15,.78,1);}
 }
-const gaitLaneX=4.2,gaitLaneZ=-17.8;
+const clinicTimber=material(new Color(.34,.23,.16));\nconst gaitLaneX=4.2,gaitLaneZ=-17.8;
 box("Clinic identity sign post",-3.1,.95,-11.6,.14,1.9,.14,clinicTimber,district);
 box("Clinic identity sign", -3.1,1.82,-11.6,1.25,.72,.10,trim,district);
 box("Clinic identity sign inset",-3.1,1.82,-11.67,1.05,.48,.025,M.white,district);
