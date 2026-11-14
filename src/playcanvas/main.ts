@@ -35,7 +35,7 @@ const resize=()=>{
  // Portrait is a spatial advantage: frame the full 14×28 m starter property.
  // Wider screens keep a closer management view instead of stretching the mobile composition.
  const aspect=w/h;
- desiredOrthoHeight=aspect<.9?Math.max(D+8,(W+8)/aspect):aspect<1.2?22:16.5;
+ desiredOrthoHeight=aspect<.9?16.5:aspect<1.2?15:13.5;
  camera.camera!.orthoHeight=desiredOrthoHeight;
 };
 const queueResize=()=>{
@@ -86,8 +86,8 @@ function addContactShadow(parent:Entity,name:string,x:number,z:number,width:numb
 const camera=new Entity("Portrait isometric camera");
 camera.addComponent("camera",{projection:PROJECTION_ORTHOGRAPHIC,orthoHeight:15.5,clearColor:new Color(.69,.79,.80),nearClip:.1,farClip:200});
 const cameraTarget=new Vec3(0,0,0),cameraGoal=new Vec3(0,0,0);
-camera.setPosition(3.5,21.5,-15);camera.lookAt(cameraTarget);app.root.addChild(camera);
-let desiredOrthoHeight=15.5;
+camera.setPosition(2.4,17.0,-11.5);camera.lookAt(cameraTarget);app.root.addChild(camera);
+let desiredOrthoHeight=14.5;
 const light=new Entity("Soft daylight");
 light.addComponent("light",{type:"directional",intensity:1.16,castShadows:highDetailDevice});
 if(highDetailDevice){
@@ -131,153 +131,33 @@ const worldTreeA=material(new Color(.23,.43,.29));
 const worldTreeB=material(new Color(.31,.50,.32));
 const worldTreeC=material(new Color(.40,.54,.34));
 const worldWarmGlass=material(new Color(.96,.76,.40));
-// A compact handcrafted neighbourhood surrounds the clinic; it is a backdrop, not an empty explorable district.
-const district=new Entity("Compact clay neighbourhood");world.addChild(district);district.setLocalScale(.58,1,.58);district.setLocalPosition(0,0,-5);
-box("District terrain · compact landscape",0,-.34,0,58,.48,76,lawnBase,district);
-box("Clinic buildable foundation",0,.005,0,W,.08,D,material(new Color(.66,.68,.65)),world);
-const terrainIslands:[number,number,number,number,StandardMaterial][]=[
- [-19,-22,7,5,lawnPatchMaterial],[-8,-27,5,3,grassAlt],[15,-20,7,4,lawnPatchMaterial],[-22,4,7,8,grassAlt],[22,10,7,7,lawnPatchMaterial],[-8,27,8,5,grassAlt],[0,-7,15,7,lawnPatchMaterial]
-];
-for(const [x,z,rx,rz,mat] of terrainIslands){const patch=sphere("Soft terrain colour variation",x,-.085,z,1,mat,district);patch.setLocalScale(rx,.018,rz);}
-box("District access road",0,-.025,-21.0,42,.10,5.8,worldRoad,district);
-box("Road north verge",0,.025,-17.85,42,.12,.34,worldStone,district);
-box("Road south verge",0,.025,-24.15,42,.12,.34,worldStone,district);
-box("District side road",17,-.02,4.0,5.0,.10,34,worldRoad,district);
-box("Side road west curb",14.35,.035,4.0,.30,.14,34,worldStone,district);
-box("Side road east curb",19.65,.035,4.0,.30,.14,34,worldStone,district);
-for(let x=-19;x<=19;x+=5.5)box("Road centre dash",x,.034,-21,2.4,.018,.10,worldRoadLine,district);
-box("Clinic approach promenade",0,.025,-17.55,4.2,.10,6.7,pathMat,district);
-box("Approach promenade left curb",-2.18,.10,-17.55,.16,.20,6.7,pathEdge,district);
-box("Approach promenade right curb",2.18,.10,-17.55,.16,.20,6.7,pathEdge,district);
-box("Clinic arrival path",0,.04,-10.8,2.5,.08,6.6,pathMat,district);
-box("Arrival court stone border",0,.07,-4.25,5.2,.14,3.2,pathEdge,district);
-box("Arrival court paving",0,.15,-4.25,4.95,.06,2.95,pathMat,district);
-for(const x of [-1.6,0,1.6])box("Arrival court paving joint",x,.185,-4.25,.025,.015,2.7,pathEdge,district);
-const wallBaseMat=material(new Color(.47,.43,.36));
-const wallBodyMat=material(new Color(.72,.66,.55));
-const wallCapMat=material(new Color(.84,.78,.66));
-const wallAccentMat=material(new Color(.17,.34,.35));
-function perimeterWall(name:string,x:number,z:number,sx:number,sz:number){
- box(name+" · footing",x,.16,z,sx+.22,.32,sz+.22,wallBaseMat,world);
- box(name+" · solid masonry",x,1.72,z,sx,2.85,sz,wallBodyMat,world);
- box(name+" · stone coping",x,3.20,z,sx+.20,.20,sz+.20,wallCapMat,world);
- box(name+" · lower plinth",x,.48,z,sx+.05,.22,sz+.05,wallBaseMat,world);
+// Compact surroundings: a small arrival court frames the clinic without a huge empty lawn or perimeter fence.
+const district=new Entity("Small clinic surroundings");world.addChild(district);district.setLocalScale(.36,1,.36);district.setLocalPosition(0,0,-8);
+box("Small outer landscape",0,-.34,0,34,.48,42,lawnBase,district);
+box("Arrival road",0,-.035,-17,34,.10,4.8,worldRoad,district);
+box("Arrival road curb north",0,.025,-14.45,34,.12,.28,worldStone,district);
+box("Arrival road curb south",0,.025,-19.55,34,.12,.28,worldStone,district);
+for(let x=-15;x<=15;x+=5)box("Road dash",x,.025,-17,2.0,.018,.09,worldRoadLine,district);
+box("Clinic pedestrian approach",0,.025,-12.8,4.2,.10,4.4,pathMat,district);
+box("Approach path border left",-2.18,.09,-12.8,.14,.18,4.4,worldStone,district);
+box("Approach path border right",2.18,.09,-12.8,.14,.18,4.4,worldStone,district);
+const outerTreeTrunk=material(new Color(.35,.23,.16));
+for(const [x,z,s] of [[-14,-12,1.0],[14,-12,.92],[-16,5,.85],[16,8,.9]] as [number,number,number][]){
+ cylinder("Neighbourhood tree trunk",x,.62*s,z,.15*s,1.24*s,.15*s,outerTreeTrunk,district);
+ const crown=sphere("Soft sculpted tree crown",x,1.75*s,z,.78*s,worldTreeB,district);crown.setLocalScale(1.12,.96,1.05);
+ const crown2=sphere("Tree crown highlight",x+.30*s,1.95*s,z-.12*s,.48*s,worldTreeC,district);crown2.setLocalScale(1.08,.9,1);
 }
-perimeterWall("West clinic boundary",-7.12,0,.42,28.25);
-perimeterWall("East clinic boundary",7.12,0,.42,28.25);
-perimeterWall("Rear clinic boundary",0,14.12,14.65,.42);
-perimeterWall("Front boundary west wing",-4.72,-14.12,4.95,.42);
-perimeterWall("Front boundary east wing",4.72,-14.12,4.95,.42);
-for(const [x,z] of [[-7.12,-14.12],[7.12,-14.12],[-7.12,14.12],[7.12,14.12],[-7.12,-7],[7.12,-7],[-7.12,7],[7.12,7]] as [number,number][]){
- box("Masonry boundary pier footing",x,.28,z,.78,.56,.78,wallBaseMat,world);
- box("Masonry boundary pier",x,1.82,z,.56,3.0,.56,wallCapMat,world);
- box("Masonry pier cap",x,3.42,z,.82,.20,.82,wallBaseMat,world);
- box("Masonry pier inset",x,1.82,z-.292,.20,1.65,.025,wallAccentMat,world);
-}
-for(const x of [-2.22,2.22]){
- box("Main gate stone footing",x,.30,-14.12,.82,.60,.86,wallBaseMat,world);
- box("Main gate masonry pier",x,1.92,-14.12,.62,3.15,.66,wallCapMat,world);
- box("Main gate teal inset",x,1.88,-14.47,.28,1.85,.035,wallAccentMat,world);
- box("Main gate capstone",x,3.62,-14.12,.94,.22,.98,wallBaseMat,world);
-}
-box("Clinic entrance gate lintel",0,3.48,-14.12,4.9,.30,.72,wallCapMat,world);
-box("Clinic entrance identity plaque",0,3.50,-14.50,2.75,.46,.08,wallAccentMat,world);
-box("Clinic entrance plaque inset",0,3.50,-14.55,2.40,.25,.025,M.white,world);
-function makeDistrictTree(x:number,z:number,scale:number,variant:number){
- const trunkMat=material(new Color(.37,.25,.17));
- cylinder("District tree trunk",x,.88*scale,z,.22*scale,1.76*scale,.22*scale,trunkMat,district);
- cylinder("District tree branch",x-.22*scale,1.48*scale,z,.09*scale,.88*scale,.09*scale,trunkMat,district).setLocalEulerAngles(0,0,-28);
- cylinder("District tree branch",x+.22*scale,1.52*scale,z,.08*scale,.82*scale,.08*scale,trunkMat,district).setLocalEulerAngles(0,0,27);
- const crownMat=variant===0?worldTreeA:variant===1?worldTreeB:worldTreeC;
- const crown=sphere("Rounded sculpted tree crown",x,2.35*scale,z,.90*scale,crownMat,district);crown.setLocalScale(1.18,.92,1.05);
- for(const [dx,dy,dz,r,mat] of [[-.55,2.20,.10,.58,worldTreeB],[.50,2.32,-.08,.60,crownMat],[.02,2.92,.02,.57,worldTreeA]] as [number,number,number,number,StandardMaterial][]){
-  const cluster=sphere("Layered tree canopy",x+dx*scale,dy*scale,z+dz*scale,r*scale,mat,district);cluster.setLocalScale(1.08,.95,.98);
- }
-}
-const districtTrees:[number,number,number,number][]=[
- [-20,-25,1.08,0],[18,-25,1.12,1],[-21,5,1.08,2],[21,16,1.12,0],[-9,29,.98,1],[10,29,1.04,2]
-];
-for(const [x,z,scale,variant] of districtTrees)makeDistrictTree(x,z,scale,variant);
-function makePlantingBed(x:number,z:number,w:number,d:number){
- const soil=material(new Color(.34,.27,.19));
- const bed=box("Irregular planted landscape bed",x,.025,z,w,.10,d,soil,district);
- bed.setLocalEulerAngles(0,(x*13+z*7)%17-8,0);
- for(const [dx,dz,r,mat] of [[-.28,-.16,.34,worldTreeA],[.12,.10,.38,worldTreeB],[.36,-.12,.29,worldTreeC],[-.08,.25,.27,worldTreeB]] as [number,number,number,StandardMaterial][]){
-  const shrub=sphere("Rounded low landscape shrub",x+dx*w,.34,z+dz*d,r,mat,district);shrub.setLocalScale(1.25,.78,1.0);
- }
-}
-for(const [x,z,w,d] of [[-18,-17,3.0,1.8],[18,-12,3.0,1.8],[-3,29,3.4,1.9]] as [number,number,number,number][])makePlantingBed(x,z,w,d);
-function makeDistrictBuilding(name:string,x:number,z:number,w:number,d:number,height:number,wallMat:StandardMaterial,roofMat:StandardMaterial){
- box(name+" · stone foundation",x,.16,z,w+.30,.32,d+.30,worldStone,district);
- box(name+" · plaster walls",x,height/2+.22,z,w,height,d,wallMat,district);
- box(name+" · pitched roof",x,height+.40,z,w+1.0,.52,d+1.0,roofMat,district);
- for(const wx of [-.30,.30]){
-  box(name+" · window recess",x+wx*w,height*.60+.22,z-d/2-.025,.78,.92,.06,wallBaseMat,district);
-  box(name+" · window glass",x+wx*w,height*.60+.22,z-d/2-.07,.60,.70,.035,worldWindow,district);
-  box(name+" · window sill",x+wx*w,height*.60-.25,z-d/2-.10,.88,.10,.16,wallCapMat,district);
- }
-}
-makeDistrictBuilding("West neighbourhood clinic",-18,2,6.2,4.8,3.5,worldPlaster,worldRoof);
-makeDistrictBuilding("East neighbourhood house",22,11,5.8,5.0,3.3,worldStone,worldRoof);
-for(const [x,z] of [[-4.5,-18.0],[4.5,-18.0],[20,-5]] as [number,number][]){
- cylinder("District lamp base",x,.12,z,.20,.24,.20,M.dark,district);
- cylinder("District lamp post",x,1.28,z,.065,2.3,.065,M.dark,district);
- sphere("District lamp diffuser",x,2.48,z,.20,worldWarmGlass,district);
+for(const [x,z] of [[-10,-8],[10,-7]] as [number,number][]){
+ const bed=box("Small planted island",x,.02,z,2.5,.10,1.4,worldStone,district);
+ bed.setLocalEulerAngles(0,x>0?8:-8,0);
+ for(let i=0;i<3;i++){const shrub=sphere("Rounded shrub cluster",x+(i-1)*.55,.32,z,.34, i===1?worldTreeC:worldTreeA,district);shrub.setLocalScale(1.15,.78,1);}
 }
 const gaitLaneX=4.2,gaitLaneZ=-17.8;
-box("Outdoor physiotherapy gait lane",gaitLaneX,.055,gaitLaneZ,1.55,.08,4.5,pathEdge,district);
-box("Gait lane walking surface",gaitLaneX,.105,gaitLaneZ,1.28,.025,4.25,pathMat,district);
-for(let i=0;i<5;i++)box("Gait lane distance marker",gaitLaneX,.13,gaitLaneZ-1.65+i*.82,.98,.018,.035,M.white,district);
-const arrivalMetal=material(new Color(.20,.31,.38));
-const warmGlass=material(new Color(.96,.76,.40));
-for(const x of [-1.12,1.12]){
- addContactShadow(district,"Entrance light shadow",x,-3.75,.28,.26);
- cylinder("Entrance path light base",x,.12,-3.75,.18,.22,.18,arrivalMetal,district);
- cylinder("Entrance path light stem",x,.52,-3.75,.065,.78,.065,arrivalMetal,district);
- sphere("Entrance path light diffuser",x,.98,-3.75,.14,warmGlass,district);
-}
-// A warm, low-rise neighbourhood clinic: plaster, stone, timber and a modest terracotta roof.
-const clinicPlaster=material(new Color(.79,.73,.63));
-const clinicStone=material(new Color(.58,.52,.43));
-const clinicTerracotta=material(new Color(.49,.25,.18));
-const clinicTimber=material(new Color(.34,.23,.16));
-box("Starter clinic stone plinth",0,.13,-2.38,6.0,.26,1.42,clinicStone,world);
-box("Starter clinic warm plaster left wing",-2.12,1.42,-2.22,1.72,2.58,.28,clinicPlaster,world);
-box("Starter clinic warm plaster right wing",2.12,1.42,-2.22,1.72,2.58,.28,clinicPlaster,world);
-for(const x of [-2.12,2.12]){
- box("Clinic window deep stone reveal",x,1.66,-2.385,1.30,1.52,.055,clinicStone,world);
- box("Clinic window shaded glass",x,1.66,-2.425,1.12,1.30,.035,M.wallBlue,world);
- box("Clinic timber window sill",x,.86,-2.48,1.42,.12,.18,clinicTimber,world);
- box("Clinic timber window lintel",x,2.45,-2.48,1.42,.12,.18,clinicTimber,world);
- box("Clinic timber window mullion",x,1.66,-2.49,.075,1.42,.10,clinicTimber,world);
-}
-for(const x of [-1.18,1.18]){
- box("Clinic entrance stone portal pier",x,1.42,-2.42,.28,2.72,.50,clinicStone,world);
- box("Clinic portal shadow reveal",x,1.42,-2.69,.045,2.55,.045,M.wallRecess,world);
-}
-box("Clinic entrance timber left frame",-.48,1.18,-2.43,.82,2.20,.14,clinicTimber,world);
-box("Clinic entrance timber right frame",.48,1.18,-2.43,.82,2.20,.14,clinicTimber,world);
-box("Clinic glazed entrance left leaf",-.47,1.18,-2.515,.66,2.02,.035,M.wallBlue,world);
-box("Clinic glazed entrance right leaf",.47,1.18,-2.515,.66,2.02,.035,M.wallBlue,world);
-box("Clinic entrance centre timber mullion",0,1.18,-2.54,.075,2.12,.11,clinicTimber,world);
-box("Clinic entrance handle left",-.10,1.10,-2.60,.035,.34,.035,M.wallFrame,world);
-box("Clinic entrance handle right",.10,1.10,-2.60,.035,.34,.035,M.wallFrame,world);
-box("Clinic facade stone lintel",0,2.82,-2.36,2.62,.24,.48,clinicStone,world);
-box("Clinic front eaves beam",0,3.02,-2.26,6.35,.22,2.02,clinicTimber,world);
-const clinicRoofLeft=box("Clinic terracotta roof left slope",-1.55,3.48,-2.26,3.35,.20,2.15,clinicTerracotta,world);
-clinicRoofLeft.setLocalEulerAngles(0,0,19);
-const clinicRoofRight=box("Clinic terracotta roof right slope",1.55,3.48,-2.26,3.35,.20,2.15,clinicTerracotta,world);
-clinicRoofRight.setLocalEulerAngles(0,0,-19);
-box("Clinic roof ridge cap",0,4.02,-2.26,.28,.22,2.22,clinicTerracotta,world);
-box("Clinic roof front fascia",0,3.12,-3.36,6.42,.20,.16,clinicTimber,world);
-box("THERASON sign shadow backing",0,2.88,-3.045,2.68,.48,.16,clinicTimber,world);
-box("THERASON entrance sign",0,2.88,-3.14,2.42,.34,.055,trim,world);
-box("THERASON sign inset",0,2.88,-3.18,2.16,.22,.025,M.white,world);
-box("THERASON sign identity mark",-.88,2.88,-3.20,.08,.18,.035,M.wallAccent,world);
-box("Traditional clinic entrance canopy",0,2.30,-2.86,3.45,.16,1.10,clinicTerracotta,world);
-box("Entrance canopy underside",0,2.205,-2.86,3.12,.035,.88,clinicStone,world);
-for(const x of [-1.48,1.48])box("Timber entrance canopy bracket",x,2.06,-2.66,.10,.34,.32,clinicTimber,world);
-addContactShadow(world,"Starter clinic building shadow",0,-3.45,3.2,.92,.052);
+box("Clinic identity sign post",-3.1,.95,-11.6,.14,1.9,.14,clinicTimber,district);
+box("Clinic identity sign", -3.1,1.82,-11.6,1.25,.72,.10,trim,district);
+box("Clinic identity sign inset",-3.1,1.82,-11.67,1.05,.48,.025,M.white,district);
+const clinicSignAccent=box("Clinic identity accent",-3.1,1.82,-11.70,.12,.28,.025,M.teal,district);
+box("Clinic buildable foundation",0,-.015,0,W,.08,D,lawnBase,world);
 const roomRoot=new Entity("Player-built clinic rooms");world.addChild(roomRoot);
 const buildGrid=new Entity("Expandable property construction grid");world.addChild(buildGrid);
 const gridMaterial=material(new Color(.20,.57,.65));
@@ -485,12 +365,12 @@ for(let i=0;i<2;i++){
 
 
 let mode:"move"|"build"="move", selected:BuildKind="wall", selectedAssetKey:string|null=null, target:Vec3|null=null, coins=3200, xp=0, nextId=1, focus=false, wallRotation:0|90=0;
-let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v4")||0);return Math.max(0,Math.min(7,saved));}catch{return 0;}})();
+let missionPhase=(()=>{try{const saved=Number(localStorage.getItem("therason-clinic-mission-v5")??6);return Math.max(0,Math.min(7,saved));}catch{return 6;}})();
 
-let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:Vec3|null=null;const saveKey="therason-clinic-world-v13";
-const managementSaveKey="therason-clinic-management-v5";
+let placed:Placed[]=[];let walkPath:{x:number;z:number}[]=[];let destination:Vec3|null=null;const saveKey="therason-clinic-world-v14";
+const managementSaveKey="therason-clinic-management-v6";
 const TRIAL_ACCOUNT_COINS=3200; 
-const starterLayout:Placed[]=[];
+const starterLayout:Placed[]=[\n {id:1,kind:"reception",gx:-6,gz:-7,width:5,depth:5},{id:2,kind:"assessment",gx:1,gz:-7,width:4,depth:5},\n {id:3,kind:"treatment",gx:-6,gz:1,width:5,depth:5},{id:4,kind:"gym",gx:1,gz:1,width:5,depth:5},\n {id:5,kind:"asset",gx:-5,gz:-6,assetKey:"pt-reception-desk"},{id:6,kind:"asset",gx:-5,gz:-4,assetKey:"pt-waiting-bench"},\n {id:7,kind:"asset",gx:1,gz:-6,assetKey:"pt-exam-table"},{id:8,kind:"asset",gx:3,gz:-4,assetKey:"pt-patient-chair"},\n {id:9,kind:"asset",gx:-5,gz:2,assetKey:"pt-treatment-table"},{id:10,kind:"asset",gx:1,gz:2,assetKey:"pt-parallel-bars"}\n];
 const costs:Record<BuildKind,number>={treatment:720,reception:420,assessment:620,gym:980,chair:20,plant:15,cabinet:30,parallel:80,bike:100,treadmill:120,wallbars:70,lamp:15,rug:25,wall:8,door:22,asset:0};
 type StoreCategory="therapy"|"assessment"|"mobility"|"furnishing"|"safety"|"decor"|"specialty"|"kits";
 type StoreAssetSpec={file:string;node:string;label:string;cost:number;footprint:number;targetSize:number;category:StoreCategory;description:string;room:string};
@@ -813,7 +693,7 @@ function loadClinicAsset(p:Placed){
  });
 }
 
-function save(){try{management.balance=coins;management.experience=xp;el("#store-coins").textContent=String(coins);localStorage.setItem(saveKey,JSON.stringify({v:13,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
+function save(){try{management.balance=coins;management.experience=xp;el("#store-coins").textContent=String(coins);localStorage.setItem(saveKey,JSON.stringify({v:14,coins,xp,placed}));localStorage.setItem(managementSaveKey,JSON.stringify(management));saveState.textContent="تم الحفظ";}catch{saveState.textContent="حفظ مؤقت";}}
 function validSavedItem(value:any):value is Placed{
  if(!value||typeof value!=="object")return false;
  const kinds:BuildKind[]=["treatment","reception","assessment","gym","chair","plant","cabinet","parallel","bike","treadmill","wallbars","lamp","rug","wall","door","asset"];
@@ -826,10 +706,10 @@ function validSavedItem(value:any):value is Placed{
  return bounds.x>=-HALF_X&&bounds.z>=-HALF_Z&&bounds.x+bounds.w<=HALF_X&&bounds.z+bounds.d<=HALF_Z;
 }
 function load(){
- const useStarter=()=>{management=createInitialManagementState();coins=management.balance;xp=0;placed=starterLayout.map(p=>({...p}));nextId=1;for(const p of placed)drawPlaced(p);};
+ const useStarter=()=>{management=createInitialManagementState();coins=management.balance;xp=0;placed=starterLayout.map(p=>({...p}));nextId=1;for(const p of placed){drawPlaced(p);nextId=Math.max(nextId,p.id+1);}missionPhase=6;try{localStorage.setItem("therason-clinic-mission-v5","6");}catch{}};
  try{
   const raw=localStorage.getItem(saveKey);if(!raw){useStarter();return;}
-  const v=JSON.parse(raw);if(v.v!==13||!Array.isArray(v.placed)){useStarter();return;}
+  const v=JSON.parse(raw);if(v.v!==14||!Array.isArray(v.placed)){useStarter();return;}
   try{const savedManagement=JSON.parse(localStorage.getItem(managementSaveKey)||"null");if(savedManagement?.version===3&&Array.isArray(savedManagement.patients)&&Array.isArray(savedManagement.rooms))management=savedManagement;else management=createInitialManagementState();recoverInterruptedSessions(management);}catch{management=createInitialManagementState();}
   coins=Math.max(0,Number.isFinite(management.balance)?Math.min(10000000,management.balance):TRIAL_ACCOUNT_COINS);management.balance=coins;
   xp=Number.isFinite(management.experience)?Math.max(0,Math.min(1000000000,management.experience)):0;
@@ -1094,7 +974,7 @@ function renderMission(){
 }
 function setMissionPhase(next:number){
  missionPhase=next;
- try{localStorage.setItem("therason-clinic-mission-v4",String(next));}catch{}
+ try{localStorage.setItem("therason-clinic-mission-v5",String(next));}catch{}
  renderMission();
 }
 
@@ -1330,7 +1210,7 @@ function beginPlacingSelectedAsset(){
  const spec=storeAssetSpecs[selectedAssetKey];
  storePanel.hidden=true;buildPanel.hidden=true;
  clearStorePreview();document.body.classList.remove("store-previewing");
- focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=15.5;viewBtn.classList.remove("active");
+ focus=false;cameraGoal.set(0,0,0);desiredOrthoHeight=14.5;viewBtn.classList.remove("active");
  storeBtn.classList.add("active");
  status.textContent="تم اختيار "+spec.label+". حرّك المؤشر إلى داخل الغرفة ثم المس لتأكيد الشراء ووضع الجهاز.";
 }
@@ -1369,14 +1249,14 @@ document.querySelectorAll<HTMLButtonElement>("[data-build]").forEach(b=>b.addEve
 document.querySelectorAll<HTMLButtonElement>("[data-asset]").forEach(b=>b.addEventListener("click",()=>selectAsset(b.dataset.asset??"")));
 document.querySelectorAll<HTMLButtonElement>("[data-category]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-category]").forEach(x=>x.classList.toggle("active",x===b));const cat=b.dataset.category;el("#catalog-structure").hidden=cat!=="structure";el("#catalog-rooms").hidden=cat!=="rooms";if(cat==="structure")selectBuild("wall");else selectBuild("treatment");}));
 el<HTMLButtonElement>("#rotate-wall").addEventListener("click",()=>{wallRotation=wallRotation===0?90:0;previewValidity=null;status.textContent="اتجاه العنصر الآن "+(wallRotation===0?"0°":"90°")+". سيتم تطبيقه على القطعة التالية.";});
-viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:(canvas.clientWidth/Math.max(1,canvas.clientHeight)<.48?15.5:14.8);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
-const zoomCamera=(factor:number)=>{desiredOrthoHeight=Math.max(8,Math.min(42,desiredOrthoHeight*factor));focus=false;viewBtn.classList.remove("active");};
+viewBtn.addEventListener("click",()=>{focus=!focus;cameraGoal.set(0,0,0);desiredOrthoHeight=focus?7.2:(canvas.clientWidth/Math.max(1,canvas.clientHeight)<.48?16.5:14.5);viewBtn.classList.toggle("active",focus);el("#camera-hint").classList.toggle("hide",focus);});
+const zoomCamera=(factor:number)=>{desiredOrthoHeight=Math.max(7,Math.min(30,desiredOrthoHeight*factor));focus=false;viewBtn.classList.remove("active");};
 el<HTMLButtonElement>("#camera-zoom-in").addEventListener("click",()=>zoomCamera(.82));
 el<HTMLButtonElement>("#camera-zoom-out").addEventListener("click",()=>zoomCamera(1.22));
 el<HTMLButtonElement>("#camera-reset").addEventListener("click",()=>{
  focus=false;cameraGoal.set(0,0,0);
  const aspect=canvas.clientWidth/Math.max(1,canvas.clientHeight);
- desiredOrthoHeight=aspect<.9?Math.max(D+3,(W+2)/aspect):aspect<1.2?22:16.5;
+ desiredOrthoHeight=aspect<.9?16.5:aspect<1.2?15:13.5;
  viewBtn.classList.remove("active");el("#camera-hint").classList.remove("hide");
 });
 canvas.addEventListener("wheel",event=>{event.preventDefault();zoomCamera(event.deltaY<0?.9:1.11);},{passive:false});
@@ -1500,7 +1380,7 @@ app.on("update",(dt:number)=>{
  cameraTarget.x+=(cameraGoal.x-cameraTarget.x)*cameraAlpha;
  cameraTarget.z+=(cameraGoal.z-cameraTarget.z)*cameraAlpha;
  camera.camera!.orthoHeight+=(desiredOrthoHeight-camera.camera!.orthoHeight)*cameraAlpha;
- camera.setPosition(cameraTarget.x+(focus?2.0:3.5),focus?16:21.5,cameraTarget.z+(focus?-8.0:-15));
+ camera.setPosition(cameraTarget.x+(focus?1.6:2.4),focus?13.5:17.0,cameraTarget.z+(focus?-6.5:-11.5));
  camera.lookAt(cameraTarget);
  const standingPosition=avatar.getLocalPosition();
  if(avatarContactShadow)avatarContactShadow.setLocalPosition(standingPosition.x,.052,standingPosition.z);
